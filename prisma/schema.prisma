@@ -1,0 +1,473 @@
+// ============================================================================
+// ЯСНО — Prisma schema (SQLite)
+// Ієрархія контенту: Course → Section (розділ) → Module (модуль) → Lesson (урок)
+// Кожен Module має свій Quiz (тест модуля). Course має один FinalExam
+// (фінальна атестація), що гейтить видачу Certificate.
+// RBAC спрощено до двох ролей: LEARNER (учень) і ADMIN (бачить усе: усіх
+// користувачів, їхню статистику, усі сертифікати, керує контентом).
+// ============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ----------------------------------------------------------------------------
+// RBAC — дві ролі
+// ----------------------------------------------------------------------------
+
+enum Role {
+  LEARNER
+  ADMIN
+}
+
+// ----------------------------------------------------------------------------
+// Better Auth
+// ----------------------------------------------------------------------------
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  banned     Boolean?  @default(false)
+  banReason  String?
+  banExpires DateTime?
+
+  role           Role          @default(LEARNER)
+  position       String?
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  streak         Int           @default(0)
+  lastActiveAt   DateTime?
+
+  /// Курс, який слухач обрав і проходить зараз — визначає, що показує дашборд.
+  activeCourseId String?
+  activeCourse   Course?       @relation(fields: [activeCourseId], references: [id], onDelete: SetNull)
+
+  sessions        Session[]
+  accounts        Account[]
+  progress        Progress[]
+  attempts        Attempt[]
+  examAttempts    ExamAttempt[]
+  favorites       Favorite[]
+  certificates    Certificate[]
+  notifications   Notification[]
+  lessonRevisions LessonRevision[]
+  lessonComments  LessonComment[]
+  commentReactions CommentReaction[]
+
+  @@index([organizationId])
+}
+
+model Session {
+  id             String   @id @default(cuid())
+  userId         String
+  token          String   @unique
+  expiresAt      DateTime
+  ipAddress      String?
+  userAgent      String?
+  impersonatedBy String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  userId                String
+  accountId             String
+  providerId            String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Verification {
+  id         String    @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime? @default(now())
+  updatedAt  DateTime? @updatedAt
+
+  @@index([identifier])
+}
+
+// ----------------------------------------------------------------------------
+// Організації — лише описові метадані користувача (без окремої ролі HR)
+// ----------------------------------------------------------------------------
+
+model Organization {
+  id   String @id @default(cuid())
+  name String
+  kind String
+
+  users User[]
+
+  @@index([name])
+}
+
+// ----------------------------------------------------------------------------
+// Контент: Course → Section → Module → Lesson
+// ----------------------------------------------------------------------------
+
+model Course {
+  id          String @id @default(cuid())
+  slug        String @unique
+  title       String
+  description String
+
+  sections  Section[]
+  finalExam FinalExam?
+  activeFor User[]
+
+  @@index([slug])
+}
+
+/// Кольоровий акцент розділу для clay-палітри (blue/green/amber/red/sun/gold/muted).
+/// Відповідає емодзі-кольорам розділів у plan.md (🔵🟩🟨🟪🟧🟥🟫⬛).
+enum SectionColor {
+  BLUE
+  GREEN
+  AMBER
+  RED
+  SUN
+  GOLD
+  MUTED
+  INK
+}
+
+model Section {
+  id          String       @id @default(cuid())
+  slug        String       @unique
+  title       String
+  description String
+  order       Int
+  color       SectionColor @default(BLUE)
+
+  courseId String
+  course   Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  modules  Module[]
+
+  @@index([courseId, order])
+}
+
+model Module {
+  id          String @id @default(cuid())
+  slug        String @unique
+  title       String
+  description String
+  order       Int
+  minutes     Int
+  /// «Ключовий модуль» (напр. Безпека) — вищий прохідний бал і статус ядра курсу
+  isKey       Boolean @default(false)
+  passScore   Int     @default(75)
+
+  sectionId String
+  section   Section  @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  lessons   Lesson[]
+  quiz      Quiz?
+
+  @@index([sectionId, order])
+}
+
+enum LessonKind {
+  LESSON
+  EXERCISE
+}
+
+model Lesson {
+  id        String     @id @default(cuid())
+  slug      String     @unique
+  title     String
+  minutes   Int
+  order     Int
+  kind      LessonKind @default(LESSON)
+  /// JSON-масив LessonBlock (@yasno/types): text, trafficLight, pair, redact, check, video
+  content   String
+  updatedAt DateTime   @updatedAt
+  /// Дата, станом на яку контент уроку перевірено й актуальний (адмін виставляє вручну)
+  validAsOf DateTime?
+
+  moduleId String
+  module   Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  progress  Progress[]
+  revisions LessonRevision[]
+  comments  LessonComment[]
+
+  @@index([moduleId, order])
+}
+
+/// Знімок вмісту уроку на момент редагування — проста історія версій без відкату.
+model LessonRevision {
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+
+  lessonId    String
+  lesson      Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  editedById  String
+  editedBy    User   @relation(fields: [editedById], references: [id], onDelete: Cascade)
+
+  @@index([lessonId, createdAt])
+}
+
+model LessonComment {
+  id        String   @id @default(cuid())
+  body      String
+  createdAt DateTime @default(now())
+
+  lessonId String
+  lesson   Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  reactions CommentReaction[]
+
+  @@index([lessonId, createdAt])
+}
+
+model CommentReaction {
+  id    String @id @default(cuid())
+  /// 1 = лайк, -1 = дизлайк
+  value Int
+
+  commentId String
+  comment   LessonComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([commentId, userId])
+}
+
+model Quiz {
+  id        String @id @default(cuid())
+  passScore Int    @default(75)
+
+  moduleId String @unique
+  module   Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  questions Question[]
+  attempts  Attempt[]
+}
+
+model Question {
+  id             String @id @default(cuid())
+  text           String
+  /// JSON-масив варіантів відповіді (рядки)
+  options        String
+  correctIndex   Int
+  explainCorrect String
+  explainWrong   String
+  order          Int
+
+  quizId String
+  quiz   Quiz   @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  @@index([quizId, order])
+}
+
+// ----------------------------------------------------------------------------
+// Фінальна атестація курсу (окремо від тестів модулів)
+// ----------------------------------------------------------------------------
+
+model FinalExam {
+  id                String @id @default(cuid())
+  passScore         Int    @default(80)
+  /// Мінімальний бал за питаннями з позначкою isSecurity — незалежний поріг
+  securityPassScore Int    @default(90)
+
+  courseId String @unique
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  questions FinalExamQuestion[]
+  attempts  ExamAttempt[]
+}
+
+model FinalExamQuestion {
+  id             String  @id @default(cuid())
+  text           String
+  options        String
+  correctIndex   Int
+  explainCorrect String
+  explainWrong   String
+  order          Int
+  /// Питання з блоку безпеки — рахується в окремий поріг securityPassScore
+  isSecurity     Boolean @default(false)
+
+  examId String
+  exam   FinalExam @relation(fields: [examId], references: [id], onDelete: Cascade)
+
+  @@index([examId, order])
+}
+
+// ----------------------------------------------------------------------------
+// Прогрес і спроби
+// ----------------------------------------------------------------------------
+
+model Progress {
+  id          String   @id @default(cuid())
+  userId      String
+  lessonId    String
+  completedAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+  @@index([userId])
+}
+
+model Attempt {
+  id        String   @id @default(cuid())
+  userId    String
+  quizId    String
+  score     Int
+  passed    Boolean
+  answers   String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  @@index([userId, quizId])
+}
+
+model ExamAttempt {
+  id            String   @id @default(cuid())
+  userId        String
+  examId        String
+  score         Int
+  securityScore Int
+  passed        Boolean
+  answers       String
+  createdAt     DateTime @default(now())
+
+  user User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exam FinalExam @relation(fields: [examId], references: [id], onDelete: Cascade)
+
+  @@index([userId, examId])
+}
+
+// ----------------------------------------------------------------------------
+// Бібліотека промптів
+// ----------------------------------------------------------------------------
+
+enum PromptCategory {
+  CITIZENS
+  LETTERS
+  MEETINGS
+  ANALYTICS
+  INTERNAL
+}
+
+model Prompt {
+  id        String         @id @default(cuid())
+  title     String
+  useCase   String
+  body      String
+  category  PromptCategory
+  verified  Boolean        @default(true)
+  copyCount Int            @default(0)
+
+  favorites Favorite[]
+
+  @@index([category])
+}
+
+model Favorite {
+  id       String @id @default(cuid())
+  userId   String
+  promptId String
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  prompt Prompt @relation(fields: [promptId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, promptId])
+}
+
+// ----------------------------------------------------------------------------
+// Сертифікати
+// ----------------------------------------------------------------------------
+
+model Certificate {
+  id               String   @id @default(cuid())
+  code             String   @unique
+  userId           String
+  holderName       String
+  holderPosition   String?
+  organizationName String?
+  score            Int
+  withHonors       Boolean  @default(false)
+  issuedAt         DateTime @default(now())
+  validUntil       DateTime
+  revoked          Boolean  @default(false)
+  revokedReason    String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ----------------------------------------------------------------------------
+// Сповіщення та ресурси
+// ----------------------------------------------------------------------------
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  title     String
+  body      String
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+enum ResourceKind {
+  GUIDE
+  CHECKLIST
+  TEMPLATE
+  REGULATION
+  TABLE
+  RULE
+}
+
+/// Універсальна бібліотека: чек-листи, правила, таблиці, шаблони, методички.
+/// Промпти (Prompt) лишаються окремою моделлю (свій copyCount/favorites),
+/// але показуються в одному UI /library разом із Resource.
+model Resource {
+  id        String       @id @default(cuid())
+  title     String
+  summary   String
+  /// Повний вміст: HTML для таблиць/чек-листів, текст для правил тощо
+  body      String       @default("")
+  kind      ResourceKind
+  version   String
+  updatedAt DateTime     @updatedAt
+}

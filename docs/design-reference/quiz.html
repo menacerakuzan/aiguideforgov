@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Тест модуля: Безпека даних · Ясно</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@500;600;700&family=Rubik:wght@400;500;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<a class="skip" href="#main">Перейти до вмісту</a>
+
+<div class="nav-shell">
+  <nav class="nav" aria-label="Основна навігація">
+    <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span> Ясно</a>
+    <div class="nav-links">
+      <a href="dashboard.html">Кабінет</a>
+      <a href="lesson.html">Урок</a>
+      <a href="quiz.html" aria-current="page">Тест</a>
+      <a href="cert.html">Сертифікат</a>
+    </div>
+    <button class="burger" aria-label="Відкрити меню" aria-expanded="false"><svg width="21" height="21" style="margin:auto"><use href="#i-menu"/></svg></button>
+    <span class="chip chip-sun" style="flex:none">Спроби необмежені</span>
+  </nav>
+</div>
+
+<main id="main" class="wrap" style="max-width:680px;padding-block:26px 90px">
+
+  <!-- ІНТРО -->
+  <section class="clay reveal" style="padding:38px;text-align:center" data-screen="intro">
+    <span class="orb orb-red orb-lg floaty" style="margin:0 auto 18px" aria-hidden="true"><svg width="28" height="28"><use href="#i-shield"/></svg></span>
+    <p class="kicker">Тест модуля 2</p>
+    <h1 style="font-size:clamp(26px,3.4vw,36px);margin:10px 0 14px">Безпека даних і конфіденційність</h1>
+    <p style="font-size:16.5px;color:var(--ink-soft);max-width:44ch;margin:0 auto 10px">
+      5 питань, без таймера. Прохідний бал 80% — цей модуль найважливіший,
+      тому планка вища за звичайну.
+    </p>
+    <p style="font-size:14.5px;color:var(--ink-mute);margin-bottom:26px">
+      Не складеться з першого разу — нічого страшного, спроби необмежені.
+    </p>
+    <button class="btn btn-blue btn-lg" data-start>Почати тест <svg width="19" height="19"><use href="#i-arrow"/></svg></button>
+  </section>
+
+  <!-- ПИТАННЯ -->
+  <section class="hidden" data-screen="quiz">
+    <div class="q-dots" style="margin-bottom:22px" data-dots aria-hidden="true"></div>
+    <div class="clay" style="padding:34px">
+      <p class="kicker" data-q-num>Питання 1 з 5</p>
+      <h2 style="font-size:clamp(20px,2.6vw,26px);margin:12px 0 24px" data-q-text aria-live="polite"></h2>
+      <div style="display:flex;flex-direction:column;gap:13px" data-q-options role="radiogroup" aria-label="Варіанти відповіді"></div>
+      <p class="q-explain hidden" data-q-explain aria-live="polite"></p>
+      <div style="display:flex;justify-content:flex-end;margin-top:22px">
+        <button class="btn btn-blue hidden" data-next>Далі <svg width="18" height="18"><use href="#i-arrow"/></svg></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- РЕЗУЛЬТАТ -->
+  <section class="hidden" data-screen="result">
+    <div class="clay" style="padding:40px;text-align:center">
+      <div class="ring-wrap" data-ring-wrap style="margin-bottom:20px">
+        <svg width="170" height="170" viewBox="0 0 170 170" role="img" aria-label="Результат тесту">
+          <circle class="ring-bg" cx="85" cy="85" r="71" stroke-width="17"/>
+          <circle class="ring-fg" data-ring cx="85" cy="85" r="71" stroke-width="17" stroke-dasharray="446.1" stroke-dashoffset="446.1"/>
+        </svg>
+        <div class="ring-mid">
+          <div class="pc" data-score>0%</div>
+          <div class="cap" data-score-cap>рахуємо…</div>
+        </div>
+      </div>
+      <h2 style="font-size:clamp(24px,3vw,32px);margin-bottom:10px" data-result-title></h2>
+      <p style="font-size:16px;color:var(--ink-soft);max-width:44ch;margin:0 auto 26px" data-result-text></p>
+      <div style="display:flex;gap:13px;justify-content:center;flex-wrap:wrap" data-result-actions></div>
+    </div>
+
+    <div class="clay" style="padding:28px;margin-top:20px" data-review-wrap>
+      <h2 style="font-size:18px;margin-bottom:16px">Розбір відповідей</h2>
+      <div style="display:flex;flex-direction:column;gap:12px" data-review></div>
+    </div>
+  </section>
+</main>
+
+<script src="app.js"></script>
+<script>
+(function () {
+  var QUESTIONS = [
+    {
+      text: 'Колега терміново просить підготувати відповідь і надсилає скан звернення. Перша дія?',
+      options: [
+        'Вставити текст скану в чат, щоб не гаяти час',
+        'Перенести текст в окремий файл і знеособити дані заявника',
+        'Переслати скан колезі, який «шарить» у ШІ',
+        'Відмовитися від ШІ для звернень назавжди'
+      ],
+      correct: 1,
+      explain: 'Знеособлення до передачі — базове правило. Швидкість ніколи не важливіша за дані заявника.'
+    },
+    {
+      text: 'Проєкт наказу, який ще не підписано керівником — це…',
+      options: [
+        'Відкриті дані: він же скоро буде опублікований',
+        'Службові дані: працювати можна, але знеособлено',
+        'Заборонені дані: жодного ШІ поруч із наказами'
+      ],
+      correct: 1,
+      explain: 'До підписання проєкт — службова інформація. Прибрали прізвища й реквізити — можна працювати.'
+    },
+    {
+      text: 'ШІ у відповіді послався на «Постанову КМУ № 1247 від 03.02.2024». Що робите?',
+      options: [
+        'Довіряю: номер і дата виглядають переконливо',
+        'Перевіряю постанову в офіційному джерелі перед використанням',
+        'Прошу ШІ підтвердити, що постанова існує'
+      ],
+      correct: 1,
+      explain: 'Переконливі реквізити — улюблений жанр галюцинацій. Перевірка тільки в першоджерелі; сам ШІ підтвердить будь-що.'
+    },
+    {
+      text: 'Реєстраційний номер справи громадянина можна лишити в тексті для ШІ?',
+      options: [
+        'Так, це технічний номер, не персональні дані',
+        'Ні: за номером однозначно встановлюється особа',
+        'Можна, якщо прибрати прізвище'
+      ],
+      correct: 1,
+      explain: 'Номер справи — прямий ключ до особи в реєстрі. Ховаємо разом з імʼям, адресою і телефоном.'
+    },
+    {
+      text: 'Хто відповідає за помилку ШІ в підписаному вами документі?',
+      options: [
+        'Розробник моделі',
+        'ШІ — він же текст писав',
+        'Ви: хто підписує, той і відповідає'
+      ],
+      correct: 2,
+      explain: 'Підпис — це відповідальність. ШІ — інструмент, як калькулятор: рахує він, а відповідаєте ви.'
+    }
+  ];
+
+  var $ = function (s) { return document.querySelector(s); };
+  var screens = {
+    intro: $('[data-screen="intro"]'),
+    quiz: $('[data-screen="quiz"]'),
+    result: $('[data-screen="result"]')
+  };
+  var dotsEl = $('[data-dots]');
+  var current = 0;
+  var answers = [];
+
+  function show(name) {
+    Object.keys(screens).forEach(function (k) { screens[k].classList.toggle('hidden', k !== name); });
+    screens[name].classList.add('pop');
+    window.scrollTo({ top: 0, behavior: YASNO.reduced ? 'auto' : 'smooth' });
+  }
+
+  function renderDots() {
+    dotsEl.innerHTML = '';
+    QUESTIONS.forEach(function (_, i) {
+      var d = document.createElement('span');
+      d.className = 'q-dot';
+      if (i === current) d.setAttribute('data-state', 'current');
+      else if (answers[i] !== undefined) d.setAttribute('data-state', answers[i].ok ? 'done' : 'wrong');
+      dotsEl.appendChild(d);
+    });
+  }
+
+  function renderQuestion() {
+    var q = QUESTIONS[current];
+    $('[data-q-num]').textContent = 'Питання ' + (current + 1) + ' з ' + QUESTIONS.length;
+    $('[data-q-text]').textContent = q.text;
+    var box = $('[data-q-options]');
+    box.innerHTML = '';
+    $('[data-q-explain]').classList.add('hidden');
+    $('[data-next]').classList.add('hidden');
+
+    q.options.forEach(function (opt, i) {
+      var b = document.createElement('button');
+      b.className = 'q-option';
+      b.innerHTML = '<span class="q-key">' + (i + 1) + '</span><span>' + opt + '</span>';
+      b.addEventListener('click', function () { answer(i, b); });
+      box.appendChild(b);
+    });
+    renderDots();
+  }
+
+  function answer(i, btn) {
+    var q = QUESTIONS[current];
+    var ok = i === q.correct;
+    answers[current] = { picked: i, ok: ok };
+
+    var opts = Array.prototype.slice.call($('[data-q-options]').children);
+    opts.forEach(function (o, j) {
+      if (j === q.correct) o.setAttribute('data-result', 'correct');
+      else if (j === i) o.setAttribute('data-result', 'wrong');
+      else o.style.opacity = '.55';
+    });
+
+    var ex = $('[data-q-explain]');
+    ex.classList.remove('hidden');
+    ex.className = 'q-explain ' + (ok ? 'clay-green' : 'clay-amber');
+    ex.textContent = (ok ? 'Так! ' : 'Не зовсім. ') + q.explain;
+
+    if (ok) YASNO.pop(btn.querySelector('.q-key'));
+    else YASNO.wiggle(btn);
+
+    var next = $('[data-next]');
+    next.classList.remove('hidden');
+    next.innerHTML = current === QUESTIONS.length - 1
+      ? 'Результат <svg width="18" height="18"><use href="#i-arrow"/></svg>'
+      : 'Далі <svg width="18" height="18"><use href="#i-arrow"/></svg>';
+    YASNO.pop(next);
+    renderDots();
+  }
+
+  $('[data-next]').addEventListener('click', function () {
+    if (current < QUESTIONS.length - 1) { current++; renderQuestion(); }
+    else finish();
+  });
+
+  /* Клавіші 1–3/4 */
+  document.addEventListener('keydown', function (e) {
+    if (screens.quiz.classList.contains('hidden')) return;
+    if (/^[1-4]$/.test(e.key)) {
+      var opts = $('[data-q-options]').children;
+      var idx = parseInt(e.key, 10) - 1;
+      if (opts[idx] && !opts[idx].hasAttribute('data-result')) opts[idx].click();
+    }
+    if (e.key === 'Enter' && !$('[data-next]').classList.contains('hidden')) $('[data-next]').click();
+  });
+
+  function finish() {
+    var right = answers.filter(function (a) { return a.ok; }).length;
+    var pct = Math.round((right / QUESTIONS.length) * 100);
+    var passed = pct >= 80;
+
+    show('result');
+
+    var CIRC = 446.1;
+    setTimeout(function () {
+      $('[data-ring]').style.strokeDashoffset = CIRC * (1 - pct / 100);
+      $('[data-ring-wrap]').setAttribute('data-complete', String(passed));
+      YASNO.countTo($('[data-score]'), pct, '%');
+      $('[data-score-cap]').textContent = right + ' з ' + QUESTIONS.length + ' правильних';
+    }, 250);
+
+    if (passed) {
+      $('[data-result-title]').textContent = pct === 100 ? 'Бездоганно!' : 'Модуль складено!';
+      $('[data-result-text]').textContent = pct === 100
+        ? 'Усі пʼять правильних. Світлофор даних тепер ваша друга натура.'
+        : 'Прохідний бал узято. Помилки розібрані нижче — зазирніть, і рухаймось далі.';
+      $('[data-result-actions]').innerHTML =
+        '<a class="btn btn-green btn-lg" href="cert.html">До атестації <svg width="19" height="19"><use href="#i-arrow"/></svg></a>' +
+        '<a class="btn btn-ghost" href="dashboard.html">У кабінет</a>';
+      setTimeout(function () { YASNO.confetti(pct === 100 ? 160 : 100); }, 700);
+      YASNO.announce('Тест складено. Результат ' + pct + ' відсотків.');
+    } else {
+      $('[data-result-title]').textContent = 'Майже! Не вистачило ' + (80 - pct) + '%';
+      $('[data-result-text]').textContent =
+        'Прохідний бал — 80%. Перегляньте розбір нижче: найчастіше плутають службові дані із забороненими. Спроби необмежені.';
+      $('[data-result-actions]').innerHTML =
+        '<button class="btn btn-blue btn-lg" data-retry>Спробувати ще раз</button>' +
+        '<a class="btn btn-ghost" href="lesson.html">Повторити урок</a>';
+      $('[data-retry]').addEventListener('click', function () {
+        current = 0; answers = [];
+        show('quiz'); renderQuestion();
+      });
+      YASNO.announce('Результат ' + pct + ' відсотків. Прохідний бал 80. Можна спробувати ще раз.');
+    }
+
+    var review = $('[data-review]');
+    review.innerHTML = '';
+    QUESTIONS.forEach(function (q, i) {
+      var a = answers[i];
+      var row = document.createElement('div');
+      row.className = 'clay-tint';
+      row.style.cssText = 'border-radius:var(--r-md);padding:16px 18px;display:flex;gap:13px;align-items:flex-start';
+      row.innerHTML =
+        '<span class="orb orb-sm ' + (a.ok ? 'orb-green' : 'orb-red') + '" style="width:32px;height:32px" aria-hidden="true">' +
+        '<svg width="15" height="15"><use href="#' + (a.ok ? 'i-check' : 'i-x') + '"/></svg></span>' +
+        '<div><p style="font-weight:500;font-size:14.5px">' + q.text + '</p>' +
+        (a.ok ? '' : '<p style="font-size:13.5px;color:var(--ink-soft);margin-top:5px">Правильно: ' + q.options[q.correct] + '</p>') +
+        '</div>';
+      review.appendChild(row);
+    });
+  }
+
+  $('[data-start]').addEventListener('click', function () {
+    show('quiz');
+    renderQuestion();
+  });
+})();
+</script>
+</body>
+</html>

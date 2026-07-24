@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Мій кабінет · Ясно</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@500;600;700&family=Rubik:wght@400;500;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<a class="skip" href="#main">Перейти до вмісту</a>
+
+<div class="nav-shell">
+  <nav class="nav" aria-label="Основна навігація">
+    <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span> Ясно</a>
+    <div class="nav-links">
+      <a href="dashboard.html" aria-current="page">Кабінет</a>
+      <a href="lesson.html">Урок</a>
+      <a href="quiz.html">Тест</a>
+      <a href="cert.html">Сертифікат</a>
+    </div>
+    <button class="burger" aria-label="Відкрити меню" aria-expanded="false"><svg width="21" height="21" style="margin:auto"><use href="#i-menu"/></svg></button>
+    <span class="orb orb-blue orb-sm" style="font-family:Comfortaa,sans-serif;font-size:14px;font-weight:700" aria-label="Профіль: Оксана Коваленко">ОК</span>
+  </nav>
+</div>
+
+<main id="main" class="wrap" style="padding-block:26px 90px">
+
+  <!-- Привітання -->
+  <header class="reveal" style="margin-bottom:26px">
+    <p class="kicker">Вівторок, 22 липня</p>
+    <h1 style="font-size:clamp(28px,3.4vw,40px);margin-top:8px">Привіт, Оксано! 5 днів поспіль</h1>
+  </header>
+
+  <!-- Продовжити + серія -->
+  <div style="display:grid;grid-template-columns:1.5fr 1fr;gap:22px;margin-bottom:22px" data-row-1>
+    <section class="clay reveal" style="padding:30px;display:flex;flex-direction:column;gap:16px" aria-labelledby="h-resume">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap">
+        <div>
+          <p class="kicker">Продовжити навчання</p>
+          <h2 id="h-resume" style="font-size:22px;margin-top:6px">Знеособлення документа</h2>
+          <p style="font-size:14.5px;color:var(--ink-soft);margin-top:4px">Модуль 2 · Безпека даних · урок 4 з 5</p>
+        </div>
+        <span class="orb orb-red" aria-hidden="true"><svg width="24" height="24"><use href="#i-shield"/></svg></span>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:13.5px;font-weight:600;margin-bottom:8px">
+          <span>Прогрес модуля</span><span>60%</span>
+        </div>
+        <div class="bar"><div class="bar-fill" style="width:60%"></div></div>
+      </div>
+      <a class="btn btn-blue" href="lesson.html" style="align-self:flex-start">
+        Продовжити · 12 хв <svg width="18" height="18"><use href="#i-arrow"/></svg>
+      </a>
+    </section>
+
+    <section class="clay-sun clay reveal" style="padding:30px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:8px" aria-labelledby="h-streak">
+      <span class="orb orb-sun orb-lg floaty" aria-hidden="true"><svg width="29" height="29"><use href="#i-flame"/></svg></span>
+      <p style="font-family:Comfortaa,sans-serif;font-size:44px;font-weight:700;line-height:1" data-streak>5</p>
+      <h2 id="h-streak" style="font-size:15px;font-weight:600;font-family:Rubik,sans-serif">днів поспіль</h2>
+      <p style="font-size:13.5px;color:var(--sun-deep);opacity:.85">Пропустите день — серія призупиниться, а не згорить</p>
+    </section>
+  </div>
+
+  <!-- Шлях до сертифіката -->
+  <section class="clay reveal" style="padding:26px 30px;margin-bottom:22px" aria-labelledby="h-path">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:18px">
+      <h2 id="h-path" style="font-size:18px">Шлях до сертифіката</h2>
+      <span class="chip chip-blue">5 з 8 модулів</span>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center" data-path role="img" aria-label="Завершено 5 модулів з 8, шостий у процесі">
+      <span class="orb orb-green orb-sm path-dot" title="Що таке ШІ"><svg width="16" height="16"><use href="#i-check"/></svg></span>
+      <span class="path-line done"></span>
+      <span class="orb orb-green orb-sm path-dot" title="Етика"><svg width="16" height="16"><use href="#i-check"/></svg></span>
+      <span class="path-line done"></span>
+      <span class="orb orb-green orb-sm path-dot" title="Галюцинації"><svg width="16" height="16"><use href="#i-check"/></svg></span>
+      <span class="path-line done"></span>
+      <span class="orb orb-green orb-sm path-dot" title="Промпти"><svg width="16" height="16"><use href="#i-check"/></svg></span>
+      <span class="path-line done"></span>
+      <span class="orb orb-green orb-sm path-dot" title="Документи"><svg width="16" height="16"><use href="#i-check"/></svg></span>
+      <span class="path-line half"></span>
+      <span class="orb orb-blue path-dot wiggle-loop" style="width:46px;height:46px" title="Безпека даних — ви тут"><svg width="20" height="20"><use href="#i-shield"/></svg></span>
+      <span class="path-line"></span>
+      <span class="orb orb-sm path-dot" style="background:var(--paper-2);color:var(--ink-mute);box-shadow:inset 0 3px 7px rgba(93,88,128,.16)" title="Аналітика">7</span>
+      <span class="path-line"></span>
+      <span class="orb orb-sm path-dot" style="background:var(--paper-2);color:var(--ink-mute);box-shadow:inset 0 3px 7px rgba(93,88,128,.16)" title="Інтеграція">8</span>
+      <span class="path-line"></span>
+      <span class="orb orb-gold path-dot" style="width:46px;height:46px" title="Атестація"><svg width="20" height="20"><use href="#i-award"/></svg></span>
+    </div>
+  </section>
+
+  <!-- Три колонки: сьогодні / промпти / досягнення -->
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:22px" data-row-3>
+
+    <section class="clay reveal" style="padding:26px" aria-labelledby="h-today">
+      <h2 id="h-today" style="font-size:17px;margin-bottom:16px">План на сьогодні</h2>
+      <div data-tasks>
+        <button class="task" aria-pressed="true" data-min="10"><span class="box"><svg width="16" height="16"><use href="#i-check"/></svg></span><span class="tname">Персональні дані громадян</span><span class="tmin">10 хв</span></button>
+        <button class="task" aria-pressed="false" data-min="12"><span class="box"><svg width="16" height="16"><use href="#i-check"/></svg></span><span class="tname">Знеособлення документа</span><span class="tmin">12 хв</span></button>
+        <button class="task" aria-pressed="false" data-min="8"><span class="box"><svg width="16" height="16"><use href="#i-check"/></svg></span><span class="tname">Кібербезпека і фішинг</span><span class="tmin">8 хв</span></button>
+      </div>
+      <p class="chip" style="margin-top:14px;width:100%;justify-content:center;padding:12px" data-today-note aria-live="polite">Ще 20 хвилин — і модуль ваш</p>
+    </section>
+
+    <section class="clay reveal" style="padding:26px" aria-labelledby="h-prompts">
+      <h2 id="h-prompts" style="font-size:17px;margin-bottom:16px">Улюблені промпти</h2>
+      <div style="display:flex;flex-direction:column;gap:11px">
+        <div class="clay-tint lift" style="border-radius:var(--r-md);padding:14px 16px;display:flex;align-items:center;gap:12px">
+          <span class="orb orb-blue orb-sm" style="width:36px;height:36px" aria-hidden="true"><svg width="16" height="16"><use href="#i-mail"/></svg></span>
+          <div style="flex:1;min-width:0">
+            <p style="font-weight:500;font-size:14.5px">Відповідь на звернення</p>
+            <p style="font-size:12.5px;color:var(--ink-mute)">Скопійовано 14 разів</p>
+          </div>
+          <button class="icon-btn" style="width:38px;height:38px" data-copy="#p-hidden-1" aria-label="Скопіювати промпт відповіді на звернення"><svg width="15" height="15"><use href="#i-copy"/></svg></button>
+        </div>
+        <div class="clay-tint lift" style="border-radius:var(--r-md);padding:14px 16px;display:flex;align-items:center;gap:12px">
+          <span class="orb orb-green orb-sm" style="width:36px;height:36px" aria-hidden="true"><svg width="16" height="16"><use href="#i-doc"/></svg></span>
+          <div style="flex:1;min-width:0">
+            <p style="font-weight:500;font-size:14.5px">Протокол наради</p>
+            <p style="font-size:12.5px;color:var(--ink-mute)">Скопійовано 9 разів</p>
+          </div>
+          <button class="icon-btn" style="width:38px;height:38px" data-copy="#p-hidden-2" aria-label="Скопіювати промпт протоколу наради"><svg width="15" height="15"><use href="#i-copy"/></svg></button>
+        </div>
+        <div class="clay-tint lift" style="border-radius:var(--r-md);padding:14px 16px;display:flex;align-items:center;gap:12px">
+          <span class="orb orb-amber orb-sm" style="width:36px;height:36px" aria-hidden="true"><svg width="16" height="16"><use href="#i-chart"/></svg></span>
+          <div style="flex:1;min-width:0">
+            <p style="font-weight:500;font-size:14.5px">Аналітична довідка</p>
+            <p style="font-size:12.5px;color:var(--ink-mute)">Скопійовано 6 разів</p>
+          </div>
+          <button class="icon-btn" style="width:38px;height:38px" data-copy="#p-hidden-3" aria-label="Скопіювати промпт аналітичної довідки"><svg width="15" height="15"><use href="#i-copy"/></svg></button>
+        </div>
+      </div>
+      <div hidden>
+        <div id="p-hidden-1">Підготуй відповідь на звернення [ЗАЯВНИК] щодо [ПРЕДМЕТ]. Офіційний стиль, послатися на Закон України «Про звернення громадян», до 250 слів, не вигадувати реквізити.</div>
+        <div id="p-hidden-2">Склади протокол наради з цього конспекту: [КОНСПЕКТ]. Виділи рішення, доручення, відповідальних і строки.</div>
+        <div id="p-hidden-3">Підготуй аналітичну довідку на основі: [ДАНІ]. Структура: висновки, ризики, рекомендації. До однієї сторінки.</div>
+      </div>
+    </section>
+
+    <section class="clay reveal" style="padding:26px" aria-labelledby="h-badges">
+      <h2 id="h-badges" style="font-size:17px;margin-bottom:16px">Досягнення</h2>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;text-align:center">
+        <div class="lift" style="display:flex;flex-direction:column;align-items:center;gap:7px">
+          <span class="orb orb-green" aria-hidden="true"><svg width="22" height="22"><use href="#i-safe"/></svg></span>
+          <span style="font-size:12px;font-weight:500">Світлофор<br>освоєно</span>
+        </div>
+        <div class="lift" style="display:flex;flex-direction:column;align-items:center;gap:7px">
+          <span class="orb orb-sun" aria-hidden="true"><svg width="22" height="22"><use href="#i-flame"/></svg></span>
+          <span style="font-size:12px;font-weight:500">Тиждень<br>поспіль</span>
+        </div>
+        <div class="lift" style="display:flex;flex-direction:column;align-items:center;gap:7px">
+          <span class="orb orb-blue" aria-hidden="true"><svg width="22" height="22"><use href="#i-spark"/></svg></span>
+          <span style="font-size:12px;font-weight:500">Перший<br>промпт</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:7px;opacity:.45">
+          <span class="orb" style="background:var(--paper-2);color:var(--ink-mute);box-shadow:inset 0 3px 7px rgba(93,88,128,.16)" aria-hidden="true"><svg width="22" height="22"><use href="#i-eye-off"/></svg></span>
+          <span style="font-size:12px;font-weight:500">Мисливець на<br>галюцинації</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:7px;opacity:.45">
+          <span class="orb" style="background:var(--paper-2);color:var(--ink-mute);box-shadow:inset 0 3px 7px rgba(93,88,128,.16)" aria-hidden="true"><svg width="22" height="22"><use href="#i-doc"/></svg></span>
+          <span style="font-size:12px;font-weight:500">Модуль без<br>помилок</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:7px;opacity:.45">
+          <span class="orb" style="background:var(--paper-2);color:var(--ink-mute);box-shadow:inset 0 3px 7px rgba(93,88,128,.16)" aria-hidden="true"><svg width="22" height="22"><use href="#i-award"/></svg></span>
+          <span style="font-size:12px;font-weight:500">Атестовано</span>
+        </div>
+      </div>
+      <p style="font-size:13px;color:var(--ink-soft);margin-top:16px;text-align:center">3 з 6 відкрито. Наступне — за модуль про галюцинації</p>
+    </section>
+  </div>
+</main>
+
+<script src="app.js"></script>
+<script>
+(function () {
+  /* План на сьогодні: пружні галочки + жива підказка */
+  var tasks = Array.prototype.slice.call(document.querySelectorAll('[data-tasks] .task'));
+  var note = document.querySelector('[data-today-note]');
+  var streak = document.querySelector('[data-streak]');
+  var streakBumped = false;
+
+  function refresh(changed) {
+    var left = tasks.filter(function (t) { return t.getAttribute('aria-pressed') !== 'true'; });
+    var mins = left.reduce(function (s, t) { return s + parseInt(t.getAttribute('data-min'), 10); }, 0);
+
+    if (!left.length) {
+      note.textContent = 'Модуль завершено! Тест відкрито';
+      note.className = 'chip chip-green';
+      note.style.cssText = 'margin-top:14px;width:100%;justify-content:center;padding:12px';
+      YASNO.confetti(80);
+      if (!streakBumped) { streakBumped = true; YASNO.countTo(streak, 6); }
+    } else {
+      note.textContent = 'Ще ' + mins + ' хвилин — і модуль ваш';
+      note.className = 'chip';
+      note.style.cssText = 'margin-top:14px;width:100%;justify-content:center;padding:12px';
+    }
+    if (changed && changed.getAttribute('aria-pressed') === 'true') YASNO.pop(changed.querySelector('.box'));
+  }
+
+  tasks.forEach(function (t) {
+    t.addEventListener('click', function () {
+      t.setAttribute('aria-pressed', String(t.getAttribute('aria-pressed') !== 'true'));
+      refresh(t);
+    });
+  });
+})();
+</script>
+
+<style>
+.path-line { flex: 1; height: 8px; border-radius: 999px; background: var(--paper-2); box-shadow: inset 0 2px 5px rgba(93,88,128,.16); min-width: 12px; }
+.path-line.done { background: var(--green); box-shadow: inset 0 3px 6px rgba(255,255,255,.35); }
+.path-line.half { background: linear-gradient(90deg, var(--green) 50%, var(--paper-2) 50%); }
+.wiggle-loop { animation: wiggle 2.6s var(--spring) infinite; }
+@media (max-width: 1000px) {
+  [data-row-1] { grid-template-columns: 1fr !important; }
+  [data-row-3] { grid-template-columns: 1fr !important; }
+  [data-path] { flex-wrap: wrap; }
+  .path-line { min-width: 20px; }
+}
+@media (prefers-reduced-motion: reduce) { .wiggle-loop { animation: none; } }
+</style>
+</body>
+</html>

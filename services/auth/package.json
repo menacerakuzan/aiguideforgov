@@ -1,0 +1,29 @@
+{
+  "name": "@yasno/auth",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@better-auth/prisma-adapter": "^1.6.0",
+    "@yasno/db": "workspace:*",
+    "@yasno/infra": "workspace:*",
+    "@yasno/types": "workspace:*",
+    "better-auth": "^1.6.0"
+  },
+  "peerDependencies": {
+    "next": "^15.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@yasno/config": "workspace:*",
+    "typescript": "^5.7.0"
+  }
+}

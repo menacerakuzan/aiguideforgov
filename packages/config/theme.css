@@ -1,0 +1,228 @@
+/* ============================================================================
+   ЯСНО — Tailwind v4 тема (CSS-first, @theme)
+   Джерело істини: docs/design-reference/styles.css
+   Всі кольори пройшли WCAG AA перевірку в прототипі — не змінювати на око.
+   ========================================================================= */
+
+@theme {
+  /* --- Поверхні ---------------------------------------------------------- */
+  --color-paper: #fff9f0;
+  --color-paper-2: #fbf2e4;
+  /* Підняті поверхні (картки, поля вводу, кнопки-ghost) — навмисно ОКРЕМА
+     змінна від --color-paper: у світлій темі це чисто білий (контраст проти
+     кремового тла сторінки), у тёмній — світліший за тло відтінок, а не
+     жорстко закодований #fff, який ламав контраст при перемиканні теми. */
+  --color-surface: #ffffff;
+  --color-ink: #26224a;
+  --color-ink-soft: #5d5880;
+  --color-ink-mute: #6e6992;
+
+  /* --- Палітра ----------------------------------------------------------- */
+  --color-blue: #3763e8; /* білий текст: 5.11:1 */
+  --color-blue-deep: #2749b8;
+  --color-blue-tint: #e7edfe;
+  --color-sun: #ffc93d;
+  --color-sun-deep: #6b4a00; /* на sun: 5.25:1 */
+  --color-sun-tint: #fff3d4;
+
+  /* --- Світлофор даних (сигнатурна концепція) ---------------------------- */
+  --color-green: #0c8455; /* білий текст: 4.72:1 */
+  --color-green-deep: #0a5a3c;
+  --color-green-tint: #def7ec;
+  --color-amber: #f5a31a; /* темний текст #4a3410: 5.66:1 */
+  --color-amber-deep: #6e4600;
+  --color-amber-tint: #fdf0d7;
+  --color-red: #cc3e27; /* білий текст: 4.90:1 */
+  --color-red-deep: #86261a;
+  --color-red-tint: #fde7e2;
+
+  /* --- Золото сертифіката ------------------------------------------------ */
+  --color-gold: #d89a25; /* темний текст #4a3410: 4.79:1 */
+  --color-gold-deep: #5e4310;
+  --color-gold-tint: #fcf3dc;
+
+  /* --- Радіуси: ВСЕ КРУГЛЕ, мінімум у системі 18px ----------------------- */
+  --radius-sm: 18px;
+  --radius-md: 26px;
+  --radius-lg: 34px;
+  --radius-xl: 44px;
+  --radius-pill: 999px;
+
+  /* --- Пружини ----------------------------------------------------------- */
+  --ease-spring: cubic-bezier(0.34, 1.86, 0.44, 1);
+  --ease-spring-soft: cubic-bezier(0.3, 1.44, 0.48, 1);
+  --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* --- Шрифти (підключаються через next/font, тут лише імена змінних) ---- */
+  --font-display: var(--font-nunito), 'Nunito', system-ui, sans-serif;
+  --font-body: var(--font-rubik), 'Rubik', system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), 'JetBrains Mono', ui-monospace, monospace;
+
+  /* --- Свічення clay ----------------------------------------------------- */
+  --shadow-glow: 0 18px 36px -14px rgba(38, 34, 74, 0.14);
+
+  /* --- «Toon»-матеріал: товста темна облямівка + суцільна зсунута тінь --- */
+  --toon-border: 2.5px solid var(--color-ink);
+  --toon-shadow: 4px 5px 0 0 var(--color-ink);
+  --toon-shadow-sm: 3px 3px 0 0 var(--color-ink);
+  --toon-shadow-lg: 6px 7px 0 0 var(--color-ink);
+
+  /* --- Анімації ---------------------------------------------------------- */
+  --animate-pop: pop 0.5s var(--ease-spring);
+  --animate-wiggle: wiggle 0.5s var(--ease-spring);
+  --animate-floaty: float-y 4.5s ease-in-out infinite;
+  --animate-bump: bump 0.45s var(--ease-spring);
+
+  @keyframes pop {
+    from {
+      transform: scale(0.6);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+  @keyframes wiggle {
+    0%,
+    100% {
+      transform: rotate(0);
+    }
+    25% {
+      transform: rotate(-6deg) scale(1.06);
+    }
+    75% {
+      transform: rotate(5deg) scale(1.06);
+    }
+  }
+  @keyframes float-y {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+  @keyframes bump {
+    0% {
+      transform: scale(1);
+    }
+    40% {
+      transform: scale(1.35);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+}
+
+/* ============================================================================
+   Темна тема: перевизначення поверхонь і тінтів. Товста облямівка/тінь
+   малюється кольором --color-ink, який тут стає світлим — тому на темному
+   тлі рамки й тіні автоматично читаються як світлий контур, без окремої
+   переробки toon-утиліт.
+   ========================================================================= */
+:root[data-theme='dark'] {
+  --color-paper: #1c1a2e;
+  --color-paper-2: #262340;
+  --color-surface: #2c2847;
+  --color-ink: #f4f2ff;
+  --color-ink-soft: #cbc6ec;
+  --color-ink-mute: #a49dcf;
+
+  --color-blue-tint: #1f2b52;
+  --color-blue-deep: #a9bdff;
+  --color-sun-tint: #3a2f10;
+  --color-sun-deep: #ffdb7a;
+
+  --color-green-tint: #103527;
+  --color-green-deep: #6fe3b4;
+  --color-amber-tint: #3a2a0c;
+  --color-amber-deep: #ffc773;
+  --color-red-tint: #3a1712;
+  --color-red-deep: #ff9d8a;
+
+  --color-gold-tint: #3a2c0c;
+  --color-gold-deep: #f0c96a;
+}
+
+/* ============================================================================
+   CLAY-матеріал: «мультяшний» toon-стиль — товста темна облямівка +
+   суцільна (без розмиття) зсунута тінь, замість м'якого клеймо-градієнта.
+   ========================================================================= */
+@utility clay {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  border: var(--toon-border);
+  box-shadow: var(--toon-shadow);
+}
+
+@utility clay-tint {
+  background: var(--color-paper-2);
+  border-radius: var(--radius-lg);
+  border: var(--toon-border);
+  box-shadow: var(--toon-shadow);
+}
+
+@utility clay-blue {
+  background: var(--color-blue);
+  color: #ffffff;
+  border-radius: var(--radius-lg);
+  border: var(--toon-border);
+  box-shadow: var(--toon-shadow);
+}
+
+@utility clay-green {
+  background: var(--color-green-tint);
+  color: var(--color-green-deep);
+  border-radius: var(--radius-lg);
+  border: var(--toon-border);
+  box-shadow: var(--toon-shadow);
+}
+
+@utility clay-amber {
+  background: var(--color-amber-tint);
+  color: var(--color-amber-deep);
+  border-radius: var(--radius-lg);
+  border: var(--toon-border);
+  box-shadow: var(--toon-shadow);
+}
+
+@utility clay-red {
+  background: var(--color-red-tint);
+  color: var(--color-red-deep);
+  border-radius: var(--radius-lg);
+  border: var(--toon-border);
+  box-shadow: var(--toon-shadow);
+}
+
+@utility clay-sun {
+  background: var(--color-sun-tint);
+  color: var(--color-sun-deep);
+  border-radius: var(--radius-lg);
+  border: var(--toon-border);
+  box-shadow: var(--toon-shadow);
+}
+
+@utility clay-gold {
+  background: var(--color-gold-tint);
+  color: var(--color-gold-deep);
+  border-radius: var(--radius-lg);
+  border: var(--toon-border);
+  box-shadow: var(--toon-shadow);
+}
+
+/* Вдавлений жолоб (прогрес-бари, чекбокси-«ямки») — лишається м'яким навмисно:
+   це єдиний елемент, що має читатись як заглиблення, а не наліпка. */
+@utility clay-inset {
+  background: var(--color-paper-2);
+  border: 2px solid rgba(38, 34, 74, 0.16);
+  box-shadow: inset 0 3px 7px rgba(93, 88, 128, 0.18);
+}
+
+/* Опукла куля (orb) — товста облямівка замість внутрішніх тіней */
+@utility orb-shadow {
+  border: 2.5px solid var(--color-ink);
+  box-shadow: var(--toon-shadow-sm);
+}

@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ясно — безпечний ШІ для держслужби</title>
+<meta name="description" content="Ясно: навчальна платформа про безпечне використання штучного інтелекту в державній службі. Вісім модулів, світлофор даних, сертифікат.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@500;600;700&family=Rubik:wght@400;500;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<a class="skip" href="#main">Перейти до вмісту</a>
+
+<div class="nav-shell">
+  <nav class="nav" aria-label="Основна навігація">
+    <a class="brand" href="index.html">
+      <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+      Ясно
+    </a>
+    <div class="nav-links">
+      <a href="#svitlofor">Світлофор</a>
+      <a href="#moduli">Модулі</a>
+      <a href="dashboard.html">Кабінет</a>
+      <a href="lesson.html">Урок</a>
+      <a href="quiz.html">Тест</a>
+    </div>
+    <button class="burger" aria-label="Відкрити меню" aria-expanded="false"><svg width="21" height="21" style="margin:auto"><use href="#i-menu"/></svg></button>
+    <a class="btn btn-blue btn-sm" href="dashboard.html">Почати</a>
+  </nav>
+</div>
+
+<main id="main">
+
+<!-- ============================ ГЕРОЙ ============================ -->
+<header class="sec" style="padding-top:44px;overflow:hidden;position:relative">
+  <div class="blob" style="width:460px;height:460px;background:#C8D6FF;top:-160px;left:-140px"></div>
+  <div class="blob" style="width:360px;height:360px;background:#FFE6A6;top:120px;right:-110px"></div>
+  <div class="blob" style="width:300px;height:300px;background:#B9F0DB;bottom:-100px;left:42%"></div>
+
+  <div class="wrap" style="display:grid;grid-template-columns:1.05fr .95fr;gap:52px;align-items:center;position:relative;z-index:1" data-hero-grid>
+    <div>
+      <span class="chip chip-blue" style="padding:10px 18px 10px 12px;font-size:14px">
+        <span class="brand-mark" style="width:24px;height:24px;gap:2px" aria-hidden="true"><i style="width:4.5px;height:4.5px"></i><i style="width:4.5px;height:4.5px"></i><i style="width:4.5px;height:4.5px"></i></span>
+        Для працівників органів влади України
+      </span>
+
+      <h1 style="font-size:clamp(38px,5vw,62px);margin:20px 0 18px">
+        ШІ в роботі?<br>Тепер усе <span style="color:var(--blue)">ясно</span>
+      </h1>
+
+      <p style="font-size:19px;color:var(--ink-soft);max-width:46ch">
+        Навчіться готувати документи вдвічі швидше і жодного разу не передати
+        зайвого. Уроки по 10 хвилин, правила без занудства, сертифікат наприкінці.
+      </p>
+
+      <div style="display:flex;gap:14px;margin-top:32px;flex-wrap:wrap">
+        <a class="btn btn-blue btn-lg" href="dashboard.html">Почати безкоштовно <svg width="19" height="19"><use href="#i-arrow"/></svg></a>
+        <a class="btn btn-ghost btn-lg" href="lesson.html"><svg width="17" height="17"><use href="#i-play"/></svg> Спробувати урок</a>
+      </div>
+
+      <div style="display:flex;gap:26px;margin-top:32px;flex-wrap:wrap">
+        <div style="font-size:14px;color:var(--ink-soft)"><b style="display:block;font-family:Comfortaa,sans-serif;font-size:24px;color:var(--ink)">8</b>модулів</div>
+        <div style="font-size:14px;color:var(--ink-soft)"><b style="display:block;font-family:Comfortaa,sans-serif;font-size:24px;color:var(--ink)">7,5 год</b>всього</div>
+        <div style="font-size:14px;color:var(--ink-soft)"><b style="display:block;font-family:Comfortaa,sans-serif;font-size:24px;color:var(--ink)">10 482</b>вже вчаться</div>
+      </div>
+    </div>
+
+    <!-- Живий світлофор -->
+    <div style="position:relative;display:grid;gap:18px;justify-items:center">
+      <div class="clay floaty" style="padding:26px 30px;display:flex;align-items:center;gap:18px;width:min(360px,100%)">
+        <span class="orb orb-green" aria-hidden="true"><svg width="25" height="25"><use href="#i-safe"/></svg></span>
+        <div>
+          <p style="font-family:Comfortaa,sans-serif;font-weight:700;font-size:17px">Відкриті дані</p>
+          <p style="font-size:14px;color:var(--ink-soft)">Працюйте вільно</p>
+        </div>
+      </div>
+      <div class="clay floaty-2" style="padding:26px 30px;display:flex;align-items:center;gap:18px;width:min(360px,100%);margin-left:40px">
+        <span class="orb orb-amber" aria-hidden="true"><svg width="25" height="25"><use href="#i-caution"/></svg></span>
+        <div>
+          <p style="font-family:Comfortaa,sans-serif;font-weight:700;font-size:17px">Службові дані</p>
+          <p style="font-size:14px;color:var(--ink-soft)">Тільки знеособлено</p>
+        </div>
+      </div>
+      <div class="clay floaty" style="padding:26px 30px;display:flex;align-items:center;gap:18px;width:min(360px,100%);animation-delay:1.4s">
+        <span class="orb orb-red" aria-hidden="true"><svg width="25" height="25"><use href="#i-forbid"/></svg></span>
+        <div>
+          <p style="font-family:Comfortaa,sans-serif;font-weight:700;font-size:17px">Заборонені дані</p>
+          <p style="font-size:14px;color:var(--ink-soft)">Ніколи і нікуди</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ============================ СВІТЛОФОР ДЕТАЛЬНО ============================ -->
+<section class="sec" id="svitlofor" style="padding-top:30px">
+  <div class="wrap">
+    <div class="sec-head mid reveal">
+      <h2>Одне правило замість ста інструкцій</h2>
+      <p>Перш ніж щось написати в чат зі ШІ, визначте колір даних. Три кольори, три форми, нуль винятків.</p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:22px" data-pair>
+      <div class="clay-red clay reveal" style="padding:28px">
+        <p style="display:flex;align-items:center;gap:10px;font-weight:600;font-size:16px;margin-bottom:13px;color:var(--red-deep)">
+          <svg width="20" height="20"><use href="#i-forbid"/></svg> Ніколи так не робіть
+        </p>
+        <p style="font-size:15px;color:var(--red-deep);margin-bottom:13px">
+          Вставити звернення «як є» — разом з ним підуть імʼя, адреса й телефон заявника.
+        </p>
+        <div class="mono">Підготуй відповідь на звернення Коваленко
+Марії Петрівни, вул. Городоцька 15, кв. 8,
+тел. 067 341 20 88, щодо ремонту дороги…</div>
+      </div>
+
+      <div class="clay-green clay reveal" style="padding:28px">
+        <p style="display:flex;align-items:center;gap:10px;font-weight:600;font-size:16px;margin-bottom:13px;color:var(--green-deep)">
+          <svg width="20" height="20"><use href="#i-safe"/></svg> Ось як безпечно
+        </p>
+        <p style="font-size:15px;color:var(--green-deep);margin-bottom:13px">
+          Позначки замість персональних даних. Якість та сама, ризик нульовий.
+        </p>
+        <div class="mono">Підготуй відповідь на звернення <span class="ph">[ЗАЯВНИК]</span>
+щодо ремонту дороги за адресою <span class="ph">[АДРЕСА]</span>.
+Стиль офіційний, послатися на Закон України
+«Про звернення громадян».</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ МОДУЛІ ============================ -->
+<section class="sec" id="moduli" style="background:linear-gradient(180deg,transparent,#FBF2E4 16%,#FBF2E4 84%,transparent)">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <h2>Вісім модулів. Кожен по ділу</h2>
+      <p>Від «що таке ШІ» до впевненої щоденної роботи. Уроки короткі, приклади з реальних кабінетів.</p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px" data-mods-grid>
+      <a class="clay lift reveal" href="lesson.html" style="padding:24px;display:flex;flex-direction:column;gap:12px">
+        <span class="orb orb-blue orb-sm" aria-hidden="true"><svg width="19" height="19"><use href="#i-book"/></svg></span>
+        <h3 style="font-size:17px">Що таке ШІ</h3>
+        <p style="font-size:14px;color:var(--ink-soft)">Без математики і магії</p>
+        <span class="chip chip-green" style="margin-top:auto;align-self:flex-start"><svg width="13" height="13"><use href="#i-check"/></svg> Пройдено</span>
+      </a>
+      <a class="clay lift reveal" href="lesson.html" style="padding:24px;display:flex;flex-direction:column;gap:12px;outline:3px solid var(--blue);outline-offset:-3px">
+        <span class="orb orb-red orb-sm" aria-hidden="true"><svg width="19" height="19"><use href="#i-shield"/></svg></span>
+        <h3 style="font-size:17px">Безпека даних</h3>
+        <p style="font-size:14px;color:var(--ink-soft)">Світлофор і знеособлення</p>
+        <span class="chip chip-blue" style="margin-top:auto;align-self:flex-start">Ви тут · 3 з 5</span>
+      </a>
+      <a class="clay lift reveal" href="lesson.html" style="padding:24px;display:flex;flex-direction:column;gap:12px">
+        <span class="orb orb-amber orb-sm" aria-hidden="true"><svg width="19" height="19"><use href="#i-eye-off"/></svg></span>
+        <h3 style="font-size:17px">Галюцинації</h3>
+        <p style="font-size:14px;color:var(--ink-soft)">Як зловити вигаданий закон</p>
+        <span class="chip" style="margin-top:auto;align-self:flex-start">40 хв</span>
+      </a>
+      <a class="clay lift reveal" href="lesson.html" style="padding:24px;display:flex;flex-direction:column;gap:12px">
+        <span class="orb orb-sun orb-sm" aria-hidden="true"><svg width="19" height="19"><use href="#i-spark"/></svg></span>
+        <h3 style="font-size:17px">Промпти</h3>
+        <p style="font-size:14px;color:var(--ink-soft)">Роль, завдання, формат</p>
+        <span class="chip" style="margin-top:auto;align-self:flex-start">60 хв</span>
+      </a>
+      <a class="clay lift reveal" href="lesson.html" style="padding:24px;display:flex;flex-direction:column;gap:12px">
+        <span class="orb orb-blue orb-sm" aria-hidden="true"><svg width="19" height="19"><use href="#i-mail"/></svg></span>
+        <h3 style="font-size:17px">Документи</h3>
+        <p style="font-size:14px;color:var(--ink-soft)">Листи, звернення, протоколи</p>
+        <span class="chip" style="margin-top:auto;align-self:flex-start">70 хв</span>
+      </a>
+      <a class="clay lift reveal" href="lesson.html" style="padding:24px;display:flex;flex-direction:column;gap:12px">
+        <span class="orb orb-green orb-sm" aria-hidden="true"><svg width="19" height="19"><use href="#i-chart"/></svg></span>
+        <h3 style="font-size:17px">Аналітика</h3>
+        <p style="font-size:14px;color:var(--ink-soft)">Довідки та презентації</p>
+        <span class="chip" style="margin-top:auto;align-self:flex-start">55 хв</span>
+      </a>
+      <a class="clay lift reveal" href="lesson.html" style="padding:24px;display:flex;flex-direction:column;gap:12px">
+        <span class="orb orb-amber orb-sm" aria-hidden="true"><svg width="19" height="19"><use href="#i-flame"/></svg></span>
+        <h3 style="font-size:17px">Етика</h3>
+        <p style="font-size:14px;color:var(--ink-soft)">Відповідальність і право</p>
+        <span class="chip" style="margin-top:auto;align-self:flex-start">40 хв</span>
+      </a>
+      <a class="clay-gold clay lift reveal" href="cert.html" style="padding:24px;display:flex;flex-direction:column;gap:12px">
+        <span class="orb orb-gold orb-sm" aria-hidden="true"><svg width="19" height="19"><use href="#i-award"/></svg></span>
+        <h3 style="font-size:17px">Атестація</h3>
+        <p style="font-size:14px;color:var(--gold-deep)">30 питань, сертифікат</p>
+        <span class="chip chip-sun" style="margin-top:auto;align-self:flex-start">Фінал</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ CTA ============================ -->
+<section class="sec">
+  <div class="wrap">
+    <div class="clay-blue clay reveal" style="padding:56px 46px;text-align:center;position:relative;overflow:hidden">
+      <div style="position:absolute;width:260px;height:260px;border-radius:50%;background:rgba(255,255,255,.10);top:-110px;left:-70px"></div>
+      <div style="position:absolute;width:190px;height:190px;border-radius:50%;background:rgba(255,255,255,.10);bottom:-90px;right:-50px"></div>
+      <div style="position:relative;z-index:1">
+        <h2 style="font-size:clamp(28px,3.6vw,42px);color:#fff">Перший урок — вісім хвилин</h2>
+        <p style="color:#fff;opacity:.94;font-size:18px;margin:15px auto 30px;max-width:48ch">
+          Безкоштовно для всіх працівників органів влади. Реєстрація за робочою поштою.
+        </p>
+        <form style="display:flex;gap:12px;max-width:470px;margin-inline:auto;flex-wrap:wrap" data-form novalidate>
+          <label class="sr-only" for="email">Робоча електронна пошта</label>
+          <input class="input" id="email" type="email" placeholder="ім’я@орган.gov.ua" autocomplete="email" required style="flex:1;min-width:220px">
+          <button class="btn btn-sun" type="submit">Почати</button>
+        </form>
+        <p style="margin-top:17px;font-size:14.5px;color:#fff;opacity:.92" data-form-note>Приєдналися 10 482 службовці з 312 органів влади</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot">
+      <div>
+        <a class="brand" href="index.html" style="margin-bottom:13px">
+          <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span> Ясно
+        </a>
+        <p style="color:var(--ink-soft);max-width:34ch;font-size:15px">
+          Платформа безпечного використання штучного інтелекту в публічному управлінні.
+        </p>
+      </div>
+      <div>
+        <h3>Навчання</h3>
+        <a href="dashboard.html">Мій кабінет</a><a href="lesson.html">Уроки</a><a href="quiz.html">Тести</a><a href="cert.html">Сертифікат</a>
+      </div>
+      <div>
+        <h3>Ресурси</h3>
+        <a href="#svitlofor">Світлофор даних</a><a href="lesson.html">Бібліотека промптів</a><a href="#moduli">Програма</a><a href="index.html">Глосарій</a>
+      </div>
+      <div>
+        <h3>Підтримка</h3>
+        <a href="cert.html">Перевірка сертифіката</a><a href="index.html">Для організацій</a><a href="index.html">Питання</a><a href="index.html">Контакти</a>
+      </div>
+    </div>
+    <div class="foot-b">
+      <span>© 2026 Ясно · Безпечний ШІ для держслужби</span>
+      <span>Доступність: WCAG 2.1 AA</span>
+    </div>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+<script>
+(function () {
+  var form = document.querySelector('[data-form]');
+  if (!form) return;
+  var note = document.querySelector('[data-form-note]');
+  var input = form.querySelector('input');
+  var btn = form.querySelector('button');
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var v = input.value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) {
+      note.textContent = v ? 'Здається, в адресі помилка. Перевірте написання.' : 'Вкажіть робочу пошту, і ми створимо кабінет.';
+      YASNO.wiggle(input); input.focus(); return;
+    }
+    btn.disabled = true; btn.textContent = 'Створюємо…';
+    setTimeout(function () {
+      form.hidden = true;
+      note.innerHTML = '<strong>Готово!</strong> Лист надіслано на ' + v.replace(/[<>&]/g, '') + '. Перший урок чекає.';
+      note.style.fontSize = '17px';
+      YASNO.confetti(70);
+    }, 700);
+  });
+})();
+</script>
+
+<style>
+@media (max-width: 1000px) {
+  [data-hero-grid] { grid-template-columns: 1fr !important; gap: 56px !important; }
+  [data-pair] { grid-template-columns: 1fr !important; }
+  [data-mods-grid] { grid-template-columns: repeat(2, 1fr) !important; }
+}
+@media (max-width: 640px) {
+  [data-mods-grid] { grid-template-columns: 1fr !important; }
+}
+</style>
+</body>
+</html>

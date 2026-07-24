@@ -1,0 +1,70 @@
+import { NextResponse, type NextRequest } from 'next/server';
+import { prisma } from '@yasno/db';
+import { requireCurrentUser, requireAdmin } from '@yasno/auth';
+import { UpdateLessonInputSchema, type LessonBlock } from '@yasno/types';
+import { withApiErrors } from '@/lib/api-guard';
+
+/** Повний урок разом із розібраними блоками — для форми редагування в CMS. */
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  return withApiErrors(async () => {
+    const me = await requireCurrentUser();
+    requireAdmin(me.role);
+    const { id } = await params;
+
+    const lesson = await prisma.lesson.findUniqueOrThrow({ where: { id } });
+    return NextResponse.json({
+      lesson: {
+        id: lesson.id,
+        moduleId: lesson.moduleId,
+        slug: lesson.slug,
+        title: lesson.title,
+        minutes: lesson.minutes,
+        order: lesson.order,
+        kind: lesson.kind,
+        blocks: JSON.parse(lesson.content) as LessonBlock[],
+        updatedAt: lesson.updatedAt.toISOString(),
+        validAsOf: lesson.validAsOf ? lesson.validAsOf.toISOString() : null,
+      },
+    });
+  });
+}
+
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  return withApiErrors(async () => {
+    const me = await requireCurrentUser();
+    requireAdmin(me.role);
+    const { id } = await params;
+
+    const { blocks, validAsOf, ...rest } = UpdateLessonInputSchema.parse({ ...(await request.json()), id });
+
+    const lesson = await prisma.$transaction(async (tx) => {
+      const before = await tx.lesson.findUniqueOrThrow({ where: { id } });
+      // Знімок перед зміною — проста історія версій без відкату.
+      await tx.lessonRevision.create({
+        data: { lessonId: id, content: before.content, editedById: me.id },
+      });
+      return tx.lesson.update({
+        where: { id },
+        data: {
+          ...rest,
+          id: undefined,
+          ...(blocks ? { content: JSON.stringify(blocks) } : {}),
+          ...(validAsOf !== undefined ? { validAsOf: validAsOf ? new Date(validAsOf) : null } : {}),
+        },
+      });
+    });
+
+    return NextResponse.json({ lesson });
+  });
+}
+
+export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  return withApiErrors(async () => {
+    const me = await requireCurrentUser();
+    requireAdmin(me.role);
+    const { id } = await params;
+
+    await prisma.lesson.delete({ where: { id } });
+    return NextResponse.json({ ok: true });
+  });
+}

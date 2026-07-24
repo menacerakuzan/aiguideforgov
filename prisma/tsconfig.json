@@ -1,0 +1,9 @@
+{
+  "extends": "@yasno/config/tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2022"],
+    "types": ["node"],
+    "verbatimModuleSyntax": false
+  },
+  "include": ["src"]
+}

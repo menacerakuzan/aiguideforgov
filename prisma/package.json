@@ -1,0 +1,36 @@
+{
+  "name": "@yasno/db",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/client.ts",
+  "types": "./src/client.ts",
+  "exports": {
+    ".": "./src/client.ts"
+  },
+  "scripts": {
+    "generate": "dotenv -e ../.env -- prisma generate",
+    "migrate": "dotenv -e ../.env -- prisma migrate dev --name init",
+    "migrate:deploy": "dotenv -e ../.env -- prisma migrate deploy",
+    "reset": "dotenv -e ../.env -- prisma migrate reset --force",
+    "seed": "dotenv -e ../.env -- tsx src/seed.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "prisma": {
+    "schema": "schema.prisma",
+    "seed": "dotenv -e ../.env -- tsx src/seed.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.2.0",
+    "better-auth": "^1.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@yasno/config": "workspace:*",
+    "@yasno/types": "workspace:*",
+    "dotenv-cli": "^8.0.0",
+    "prisma": "^6.2.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}
