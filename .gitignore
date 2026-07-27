@@ -3,6 +3,13 @@ node_modules/
 dist/
 .turbo/
 *.tsbuildinfo
+.vexp/
+.claude/
+.vscode/
+
+plan.txt
+plan.md
+lessons.md
 
 # database
 prisma/*.db

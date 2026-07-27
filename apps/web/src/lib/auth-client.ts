@@ -10,7 +10,13 @@ import type { auth } from '@yasno/auth';
  * лише типи position/organizationId/role/streak, оголошені в instance.ts.
  */
 export const authClient = createAuthClient({
-  baseURL: process.env.NEXT_PUBLIC_APP_URL,
+  // У браузері беремо origin поточної сторінки, щоб клієнт не залежав від порту
+  // (напр. коли 3000 зайнятий і Next стартує на 3001). На сервері/білді —
+  // fallback на NEXT_PUBLIC_APP_URL.
+  baseURL:
+    typeof window !== 'undefined'
+      ? window.location.origin
+      : process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000',
   plugins: [inferAdditionalFields<typeof auth>()],
 });
 
