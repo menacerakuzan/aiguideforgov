@@ -20,6 +20,11 @@ prisma/*.db-journal
 .env
 .env.local
 
+# media production: сирі дублі — у ~/yasno-media/out (поза репо),
+# готові відео — у зовнішньому сховищі, у блок video() йде URL
+apps/web/public/media/
+.generate/
+
 # os / editor
 .DS_Store
 *.log
