@@ -4,8 +4,10 @@ dist/
 .turbo/
 *.tsbuildinfo
 .vexp/
-.claude/
 .vscode/
+.claude/
+.codex/
+.agents/
 
 plan.txt
 plan.md
