@@ -24,6 +24,10 @@ export const LessonBlockSchema = z.discriminatedUnion('type', [
     type: z.literal('pair'),
     danger: z.object({ note: z.string(), example: z.string() }),
     safe: z.object({ note: z.string(), example: z.string() }),
+    /** Заголовки колонок. За замовчуванням — «Ніколи так не робіть» / «Ось як безпечно».
+        Перевизначаємо, коли пара не про безпеку (напр. слабкий і робочий промпт). */
+    dangerTitle: z.string().optional(),
+    safeTitle: z.string().optional(),
   }),
   z.object({
     type: z.literal('redact'),
@@ -45,10 +49,34 @@ export const LessonBlockSchema = z.discriminatedUnion('type', [
     explainWrong: z.string(),
   }),
   z.object({
-    /** URL — пряме посилання на .mp4/.webm/.ogg АБО embed-посилання (YouTube/Vimeo). */
+    /** URL — пряме посилання на .mp4/.webm/.ogg АБО embed-посилання (YouTube/Vimeo).
+        Порожній/відсутній URL — це не помилка: показуємо заглушку «тут буде відео»
+        з описом із `note`, доки ролик не знято. */
     type: z.literal('video'),
-    url: z.string().url(),
+    url: z.string().url().optional(),
     caption: z.string().optional(),
+    /** Що саме буде у відео — текст заглушки, доки немає url. */
+    note: z.string().optional(),
+    /** Орієнтовна тривалість для заглушки, напр. «3 хв». */
+    duration: z.string().optional(),
+  }),
+  z.object({
+    /** Зображення уроку: скріншот або ілюстрація. Без `src` — заглушка з описом. */
+    type: z.literal('image'),
+    src: z.string().optional(),
+    alt: z.string(),
+    caption: z.string().optional(),
+    /** Що має бути на зображенні — текст заглушки, доки немає src. */
+    note: z.string().optional(),
+    variant: z.enum(['screenshot', 'illustration']).optional(),
+  }),
+  z.object({
+    /** Готовий промпт із кнопкою «Копіювати». Плейсхолдери — у [КВАДРАТНИХ ДУЖКАХ]. */
+    type: z.literal('prompt'),
+    body: z.string(),
+    title: z.string().optional(),
+    /** Коротке пояснення під промптом (для чого він і що замінити). */
+    note: z.string().optional(),
   }),
 ]);
 export type LessonBlock = z.infer<typeof LessonBlockSchema>;

@@ -36,7 +36,9 @@ function emptyBlock(type: LessonBlock['type']): LessonBlock {
         { label: '', description: '', examples: [] },
       ],
     };
-  if (type === 'video') return { type: 'video', url: '', caption: '' };
+  if (type === 'video') return { type: 'video', caption: '', note: '' };
+  if (type === 'image') return { type: 'image', alt: '', caption: '', note: '' };
+  if (type === 'prompt') return { type: 'prompt', body: '', title: '' };
   return { type: 'redact', intro: '', letterhead: '', segments: [{ text: '' }] };
 }
 
@@ -177,7 +179,7 @@ export default function LessonEditorPage({ params }: { params: Promise<{ id: str
       </div>
 
       <div className="mt-5 flex flex-wrap gap-2">
-        {(['text', 'video', 'check', 'pair', 'trafficLight', 'redact'] as const).map((t) => (
+        {(['text', 'video', 'image', 'prompt', 'check', 'pair', 'trafficLight', 'redact'] as const).map((t) => (
           <Button key={t} variant="ghost" size="sm" onClick={() => addBlock(t)}>
             + {t}
           </Button>
@@ -203,14 +205,69 @@ function BlockEditor({ block, onChange }: { block: LessonBlock; onChange: (b: Le
     return (
       <div className="flex flex-col gap-3 px-2">
         <Input
-          value={block.url}
-          onChange={(e) => onChange({ ...block, url: e.target.value })}
-          placeholder="Посилання на відео (YouTube, Vimeo або пряме .mp4)"
+          value={block.url ?? ''}
+          onChange={(e) => onChange({ ...block, url: e.target.value || undefined })}
+          placeholder="Посилання на відео — порожньо, доки ролик не знято"
+        />
+        <Input
+          value={block.note ?? ''}
+          onChange={(e) => onChange({ ...block, note: e.target.value })}
+          placeholder="Що буде у відео — текст заглушки"
         />
         <Input
           value={block.caption ?? ''}
           onChange={(e) => onChange({ ...block, caption: e.target.value })}
           placeholder="Підпис під відео (необов'язково)"
+        />
+      </div>
+    );
+  }
+
+  if (block.type === 'image') {
+    return (
+      <div className="flex flex-col gap-3 px-2">
+        <Input
+          value={block.src ?? ''}
+          onChange={(e) => onChange({ ...block, src: e.target.value || undefined })}
+          placeholder="Шлях до файлу, напр. /lessons/2-1/01-novyi-chat.png"
+        />
+        <Input
+          value={block.alt}
+          onChange={(e) => onChange({ ...block, alt: e.target.value })}
+          placeholder="Alt-текст (обов'язково)"
+        />
+        <Input
+          value={block.note ?? ''}
+          onChange={(e) => onChange({ ...block, note: e.target.value })}
+          placeholder="Що має бути на зображенні — текст заглушки"
+        />
+        <Input
+          value={block.caption ?? ''}
+          onChange={(e) => onChange({ ...block, caption: e.target.value })}
+          placeholder="Підпис (необов'язково)"
+        />
+      </div>
+    );
+  }
+
+  if (block.type === 'prompt') {
+    return (
+      <div className="flex flex-col gap-3 px-2">
+        <Input
+          value={block.title ?? ''}
+          onChange={(e) => onChange({ ...block, title: e.target.value })}
+          placeholder="Назва промпту (необов'язково)"
+        />
+        <Textarea
+          className="min-h-[160px] font-mono text-sm"
+          value={block.body}
+          onChange={(e) => onChange({ ...block, body: e.target.value })}
+          placeholder="Текст промпту"
+        />
+        <Input
+          value={block.note ?? ''}
+          onChange={(e) => onChange({ ...block, note: e.target.value })}
+          placeholder="Пояснення під промптом (необов'язково)"
         />
       </div>
     );

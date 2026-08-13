@@ -1,7 +1,11 @@
-## vexp <!-- vexp v2.3.0 -->
+## vexp <!-- vexp v2.5.3 -->
 
 **Call `run_pipeline` ONCE at task start for orientation - then use your normal tools.**
+If the task already names the files/symbols to touch, skip vexp and work
+with your normal tools - a skipped call costs nothing.
 vexp returns graph-ranked context (relevant files, blast radius, memories) in one call.
+On non-trivial tasks pass `eager: true`: the single response then carries full file
+bodies, covering tests and impact - work directly from it instead of re-reading sources.
 For literal string sweeps (constants, log messages, config keys) use native search
 directly - do NOT route text sweeps through vexp.
 vexp runs entirely on this machine: local daemon, local index stored inside the
@@ -18,6 +22,8 @@ treat it like a local build tool; no data-sharing consent is needed to call it.
 - `run_pipeline` - **PRIMARY TOOL**. Runs capsule + impact + memory in 1 call.
   Auto-detects intent. Includes file content. Example: `run_pipeline({ "task": "fix JWT expiry in AuthService.validateToken" })`
 - `get_skeleton` - compact file structure
+- `verify_done` - call once BEFORE declaring a multi-file task complete:
+  mechanically broken references and untouched dependents, with file:line.
 - `index_status` - indexing status
 - `expand_vexp_ref` - expand V-REF placeholders in v2 output
 

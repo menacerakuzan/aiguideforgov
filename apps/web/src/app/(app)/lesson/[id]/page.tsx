@@ -1,12 +1,20 @@
 'use client';
 
-import { use, useState } from 'react';
+import { Fragment, use, useId, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Lesson, LessonBlock } from '@yasno/types';
-import { ArrowLeft, Check, Clock, TlCaution, TlForbid, TlSafe } from '@yasno/icons';
-import { Button, ClayCard, Orb, QuizOption, type QuizOptionState, RedactWord } from '@yasno/ui';
+import { ArrowLeft, Check, Clock, Copy, Doc, Play, Spark, TlCaution, TlForbid, TlSafe } from '@yasno/icons';
+import {
+  Button,
+  ClayCard,
+  Orb,
+  PromptBlock,
+  QuizOption,
+  type QuizOptionState,
+  RedactWord,
+} from '@yasno/ui';
 import { api } from '@/lib/api-client';
 import { useFireConfetti } from '@/components/confetti-provider';
 import { LessonComments } from '@/components/lesson-comments';
@@ -38,6 +46,15 @@ export default function LessonPage({ params }: { params: Promise<{ id: string }>
   if (isLoading || !data) return <div className="pt-8 text-ink-soft">Завантаження…</div>;
   const lesson = data.lesson;
 
+  /* Мікроперевірки йдуть наприкінці уроку пачкою. Відбиваємо їх заголовком-роздільником,
+     щоб урок не читався як одна нескінченна стрічка карток. */
+  const firstCheckIndex = lesson.blocks.findIndex((b) => b.type === 'check');
+  const checkNumbers = new Map<number, number>();
+  lesson.blocks.forEach((b, i) => {
+    if (b.type === 'check') checkNumbers.set(i, checkNumbers.size + 1);
+  });
+  const checkCount = checkNumbers.size;
+
   return (
     <article className="mx-auto max-w-[720px] pt-8">
       <div className="mb-6 flex flex-wrap items-center gap-3">
@@ -62,7 +79,14 @@ export default function LessonPage({ params }: { params: Promise<{ id: string }>
 
       <div className="flex flex-col gap-7">
         {lesson.blocks.map((block, i) => (
-          <BlockRenderer key={i} block={block} />
+          <Fragment key={i}>
+            {i === firstCheckIndex && <ChecksHeading count={checkCount} />}
+            <BlockRenderer
+              block={block}
+              checkNumber={block.type === 'check' ? checkNumbers.get(i) : undefined}
+              checkTotal={checkCount}
+            />
+          </Fragment>
         ))}
       </div>
 
@@ -88,7 +112,34 @@ export default function LessonPage({ params }: { params: Promise<{ id: string }>
   );
 }
 
-function BlockRenderer({ block }: { block: LessonBlock }) {
+/** Заголовок-роздільник перед пачкою мікроперевірок наприкінці уроку. */
+function ChecksHeading({ count }: { count: number }) {
+  return (
+    <div className="mt-5 flex flex-col items-center gap-2 text-center">
+      <div className="flex w-full items-center gap-3">
+        <span className="h-[3px] flex-1 rounded-full bg-ink/15" />
+        <span className="font-display text-sm font-extrabold tracking-wide text-ink-soft uppercase">
+          Перевірте себе
+        </span>
+        <span className="h-[3px] flex-1 rounded-full bg-ink/15" />
+      </div>
+      <p className="text-sm text-ink-mute">
+        {count === 1 ? 'Одне коротке питання' : `${count} коротких питання`}, щоб закріпити
+        головне. Відповіді не оцінюються.
+      </p>
+    </div>
+  );
+}
+
+function BlockRenderer({
+  block,
+  checkNumber,
+  checkTotal,
+}: {
+  block: LessonBlock;
+  checkNumber?: number;
+  checkTotal?: number;
+}) {
   switch (block.type) {
     case 'text':
       return (
@@ -100,13 +151,24 @@ function BlockRenderer({ block }: { block: LessonBlock }) {
     case 'trafficLight':
       return <TrafficLightBlock categories={block.categories} />;
     case 'pair':
-      return <PairBlock danger={block.danger} safe={block.safe} />;
+      return (
+        <PairBlock
+          danger={block.danger}
+          safe={block.safe}
+          dangerTitle={block.dangerTitle}
+          safeTitle={block.safeTitle}
+        />
+      );
     case 'redact':
       return <RedactBlock block={block} />;
     case 'check':
-      return <CheckBlock block={block} />;
+      return <CheckBlock block={block} number={checkNumber} total={checkTotal} />;
     case 'video':
-      return <VideoBlock url={block.url} caption={block.caption} />;
+      return <VideoBlock block={block} />;
+    case 'image':
+      return <ImageBlock block={block} />;
+    case 'prompt':
+      return <LessonPrompt block={block} />;
     default:
       return null;
   }
@@ -135,7 +197,26 @@ function toEmbedUrl(url: string): string {
   }
 }
 
-function VideoBlock({ url, caption }: { url: string; caption?: string }) {
+function VideoBlock({ block }: { block: Extract<LessonBlock, { type: 'video' }> }) {
+  const { url, caption, note, duration } = block;
+
+  /* Ролика ще немає — показуємо заглушку з описом того, що в ньому буде.
+     Це штатний стан під час виробництва курсу, а не помилка контенту. */
+  if (!url) {
+    return (
+      <figure>
+        <div className="media-ph media-ph-video">
+          <span className="media-ph-badge">
+            <Play size={15} /> Відео готується
+          </span>
+          {note && <p className="media-ph-note">{note}</p>}
+          {duration && <span className="media-ph-meta">Орієнтовно {duration}</span>}
+        </div>
+        {caption && <figcaption className="mt-2.5 text-sm text-ink-soft">{caption}</figcaption>}
+      </figure>
+    );
+  }
+
   return (
     <figure>
       <div className="relative aspect-video overflow-hidden rounded-[26px] bg-ink">
@@ -153,6 +234,96 @@ function VideoBlock({ url, caption }: { url: string; caption?: string }) {
       </div>
       {caption && <figcaption className="mt-2.5 text-sm text-ink-soft">{caption}</figcaption>}
     </figure>
+  );
+}
+
+function ImageBlock({ block }: { block: Extract<LessonBlock, { type: 'image' }> }) {
+  const { src, alt, caption, note } = block;
+
+  if (!src) {
+    return (
+      <figure>
+        <div className="media-ph media-ph-image">
+          <span className="media-ph-badge">
+            <Doc size={15} /> Зображення готується
+          </span>
+          <p className="media-ph-note">{note ?? alt}</p>
+        </div>
+        {caption && <figcaption className="mt-2.5 text-sm text-ink-soft">{caption}</figcaption>}
+      </figure>
+    );
+  }
+
+  return (
+    <figure>
+      {/* eslint-disable-next-line @next/next/no-img-element -- скріншоти уроків лежать
+          у /public і не потребують оптимізації next/image */}
+      <img
+        src={src}
+        alt={alt}
+        className="w-full rounded-[26px] border-[2.5px] border-ink shadow-[4px_5px_0_0_var(--color-ink)]"
+      />
+      {caption && <figcaption className="mt-2.5 text-sm text-ink-soft">{caption}</figcaption>}
+    </figure>
+  );
+}
+
+/**
+ * Готовий промпт. Синя картка — щоб на око не плутався з мікроперевіркою (та кремова
+ * з жовтим орбом). Згортається: наприкінці уроку промптів буває три-чотири підряд, і
+ * розгорнуті вони перетворюють підсумок уроку на «простирадло».
+ */
+function LessonPrompt({ block }: { block: Extract<LessonBlock, { type: 'prompt' }> }) {
+  const [open, setOpen] = useState(true);
+  const bodyId = useId();
+
+  return (
+    <ClayCard padding="sm" style={{ background: 'var(--color-blue-tint)' }}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        aria-controls={bodyId}
+        className="flex w-full items-center gap-3 text-left focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-blue focus-visible:ring-offset-2 rounded-2xl"
+      >
+        <Orb size="sm" color="blue">
+          <Copy size={17} />
+        </Orb>
+        <span className="min-w-0 flex-1">
+          <span className="block text-[11px] font-bold tracking-wide text-blue-deep uppercase">
+            Готовий промпт
+          </span>
+          {block.title && <span className="block font-display font-bold">{block.title}</span>}
+        </span>
+        <span
+          className={`flex-none text-blue-deep transition-transform duration-300 ${open ? 'rotate-180' : ''}`}
+          aria-hidden
+        >
+          <Chevron />
+        </span>
+      </button>
+
+      <div
+        id={bodyId}
+        className="grid transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none"
+        style={{ gridTemplateRows: open ? '1fr' : '0fr' }}
+      >
+        <div className="overflow-hidden">
+          <div className="pt-4">
+            <PromptBlock className="bg-surface">{block.body}</PromptBlock>
+            {block.note && <p className="mt-3 text-sm text-ink-soft">{block.note}</p>}
+          </div>
+        </div>
+      </div>
+    </ClayCard>
+  );
+}
+
+function Chevron() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M6 9l6 6 6-6" />
+    </svg>
   );
 }
 
@@ -188,22 +359,26 @@ function TrafficLightBlock({ categories }: { categories: TrafficLightBlockType['
 function PairBlock({
   danger,
   safe,
+  dangerTitle,
+  safeTitle,
 }: {
   danger: { note: string; example: string };
   safe: { note: string; example: string };
+  dangerTitle?: string;
+  safeTitle?: string;
 }) {
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       <ClayCard variant="red" padding="sm">
         <p className="mb-2.5 flex items-center gap-2 font-bold">
-          <TlForbid size={18} /> Ніколи так не робіть
+          <TlForbid size={18} /> {dangerTitle ?? 'Ніколи так не робіть'}
         </p>
         <p className="mb-3 text-sm">{danger.note}</p>
         <pre className="rounded-2xl bg-surface/60 p-3.5 font-mono text-[13px] whitespace-pre-wrap">{danger.example}</pre>
       </ClayCard>
       <ClayCard variant="green" padding="sm">
         <p className="mb-2.5 flex items-center gap-2 font-bold">
-          <TlSafe size={18} /> Ось як безпечно
+          <TlSafe size={18} /> {safeTitle ?? 'Ось як безпечно'}
         </p>
         <p className="mb-3 text-sm">{safe.note}</p>
         <pre className="rounded-2xl bg-surface/60 p-3.5 font-mono text-[13px] whitespace-pre-wrap">{safe.example}</pre>
@@ -287,7 +462,15 @@ function RedactBlock({ block }: { block: LessonBlock & { type: 'redact' } }) {
   );
 }
 
-function CheckBlock({ block }: { block: LessonBlock & { type: 'check' } }) {
+function CheckBlock({
+  block,
+  number,
+  total,
+}: {
+  block: LessonBlock & { type: 'check' };
+  number?: number;
+  total?: number;
+}) {
   const [picked, setPicked] = useState<number | null>(null);
 
   function stateFor(i: number): QuizOptionState {
@@ -300,7 +483,12 @@ function CheckBlock({ block }: { block: LessonBlock & { type: 'check' } }) {
   return (
     <ClayCard variant="tint">
       <div className="mb-4 flex items-center gap-3">
-        <p className="text-xs font-bold tracking-wide text-ink-mute uppercase">Перевірте себе · не оцінюється</p>
+        <Orb size="sm" color="sun">
+          <Spark size={17} />
+        </Orb>
+        <span className="text-[11px] font-bold tracking-wide text-ink-mute uppercase">
+          {number && total ? `Питання ${number} з ${total}` : 'Питання'}
+        </span>
       </div>
       <p className="mb-4 text-base font-semibold">{block.question}</p>
       <div className="flex flex-col gap-2.5">
