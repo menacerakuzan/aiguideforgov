@@ -18,6 +18,7 @@ import {
 import { api } from '@/lib/api-client';
 import { useFireConfetti } from '@/components/confetti-provider';
 import { LessonComments } from '@/components/lesson-comments';
+import { LessonSkeleton } from '@/components/lesson-skeleton';
 
 export default function LessonPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -29,6 +30,10 @@ export default function LessonPage({ params }: { params: Promise<{ id: string }>
     queryKey: ['lessons', id],
     queryFn: () => api.get<{ lesson: Lesson }>(`/api/lessons/${id}`),
   });
+
+  /* Відповіді на мікроперевірки: ключ — індекс блоку, значення — чи відповіли правильно.
+     Тримаємо стан тут, а не в самих картках, бо від нього залежить кнопка «Завершити». */
+  const [solved, setSolved] = useState<Record<number, boolean>>({});
 
   const complete = useMutation({
     mutationFn: () => api.post<{ moduleCompleted: boolean }>('/api/progress/complete-lesson', { lessonId: id }),
@@ -43,7 +48,7 @@ export default function LessonPage({ params }: { params: Promise<{ id: string }>
     },
   });
 
-  if (isLoading || !data) return <div className="pt-8 text-ink-soft">Завантаження…</div>;
+  if (isLoading || !data) return <LessonSkeleton />;
   const lesson = data.lesson;
 
   /* Мікроперевірки йдуть наприкінці уроку пачкою. Відбиваємо їх заголовком-роздільником,
@@ -54,6 +59,9 @@ export default function LessonPage({ params }: { params: Promise<{ id: string }>
     if (b.type === 'check') checkNumbers.set(i, checkNumbers.size + 1);
   });
   const checkCount = checkNumbers.size;
+  const solvedCount = Object.values(solved).filter(Boolean).length;
+  /* Урок без питань завершується вільно; з питаннями — коли на всі є правильна відповідь. */
+  const checksPassed = checkCount === 0 || solvedCount === checkCount;
 
   return (
     <article className="mx-auto max-w-[720px] pt-8">
@@ -85,6 +93,7 @@ export default function LessonPage({ params }: { params: Promise<{ id: string }>
               block={block}
               checkNumber={block.type === 'check' ? checkNumbers.get(i) : undefined}
               checkTotal={checkCount}
+              onSolved={() => setSolved((s) => ({ ...s, [i]: true }))}
             />
           </Fragment>
         ))}
@@ -100,11 +109,30 @@ export default function LessonPage({ params }: { params: Promise<{ id: string }>
         <Button
           variant="green"
           size="lg"
-          disabled={complete.isPending}
+          disabled={complete.isPending || !checksPassed}
           onClick={() => complete.mutate()}
         >
           <Check size={18} /> {complete.isPending ? 'Зберігаємо…' : 'Завершити урок'}
         </Button>
+
+        {!checksPassed && (
+          <p className="mt-4 text-sm font-semibold text-ink-soft">
+            Спершу дайте відповідь на питання —{' '}
+            <span className="text-blue-deep">
+              {solvedCount} з {checkCount}
+            </span>
+            .{' '}
+            <button
+              type="button"
+              className="underline underline-offset-2 hover:text-blue"
+              onClick={() =>
+                document.getElementById('lesson-checks')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+              }
+            >
+              Перейти до питань
+            </button>
+          </p>
+        )}
       </ClayCard>
 
       <LessonComments lessonId={id} />
@@ -115,7 +143,7 @@ export default function LessonPage({ params }: { params: Promise<{ id: string }>
 /** Заголовок-роздільник перед пачкою мікроперевірок наприкінці уроку. */
 function ChecksHeading({ count }: { count: number }) {
   return (
-    <div className="mt-5 flex flex-col items-center gap-2 text-center">
+    <div id="lesson-checks" className="mt-5 flex scroll-mt-6 flex-col items-center gap-2 text-center">
       <div className="flex w-full items-center gap-3">
         <span className="h-[3px] flex-1 rounded-full bg-ink/15" />
         <span className="font-display text-sm font-extrabold tracking-wide text-ink-soft uppercase">
@@ -135,10 +163,12 @@ function BlockRenderer({
   block,
   checkNumber,
   checkTotal,
+  onSolved,
 }: {
   block: LessonBlock;
   checkNumber?: number;
   checkTotal?: number;
+  onSolved?: () => void;
 }) {
   switch (block.type) {
     case 'text':
@@ -162,7 +192,7 @@ function BlockRenderer({
     case 'redact':
       return <RedactBlock block={block} />;
     case 'check':
-      return <CheckBlock block={block} number={checkNumber} total={checkTotal} />;
+      return <CheckBlock block={block} number={checkNumber} total={checkTotal} onSolved={onSolved} />;
     case 'video':
       return <VideoBlock block={block} />;
     case 'image':
@@ -466,25 +496,37 @@ function CheckBlock({
   block,
   number,
   total,
+  onSolved,
 }: {
   block: LessonBlock & { type: 'check' };
   number?: number;
   total?: number;
+  onSolved?: () => void;
 }) {
   const [picked, setPicked] = useState<number | null>(null);
 
+  const answered = picked !== null;
+  const isCorrect = picked === block.correctIndex;
+
+  /* Помилка не блокує урок: показуємо пояснення й даємо спробувати ще раз. Питання
+     не оцінюється — воно має навчити, а не покарати. Зарахування — за правильну відповідь. */
+  function select(i: number) {
+    setPicked(i);
+    if (i === block.correctIndex) onSolved?.();
+  }
+
   function stateFor(i: number): QuizOptionState {
-    if (picked === null) return 'idle';
-    if (i === block.correctIndex) return 'correct';
-    if (i === picked) return 'wrong';
+    if (!answered) return 'idle';
+    if (isCorrect && i === block.correctIndex) return 'correct';
+    if (!isCorrect && i === picked) return 'wrong';
     return 'idle';
   }
 
   return (
     <ClayCard variant="tint">
       <div className="mb-4 flex items-center gap-3">
-        <Orb size="sm" color="sun">
-          <Spark size={17} />
+        <Orb size="sm" color={isCorrect ? 'green' : 'sun'}>
+          {isCorrect ? <Check size={17} /> : <Spark size={17} />}
         </Orb>
         <span className="text-[11px] font-bold tracking-wide text-ink-mute uppercase">
           {number && total ? `Питання ${number} з ${total}` : 'Питання'}
@@ -498,15 +540,26 @@ function CheckBlock({
             index={i}
             text={opt}
             state={stateFor(i)}
-            disabled={picked !== null}
-            onSelect={() => setPicked(i)}
+            disabled={isCorrect}
+            onSelect={() => select(i)}
           />
         ))}
       </div>
-      {picked !== null && (
-        <p className={`mt-3.5 text-sm font-medium ${picked === block.correctIndex ? 'text-green-deep' : 'text-amber-deep'}`}>
-          {picked === block.correctIndex ? block.explainCorrect : block.explainWrong}
-        </p>
+      {answered && (
+        <div className="mt-3.5">
+          <p className={`text-sm font-medium ${isCorrect ? 'text-green-deep' : 'text-amber-deep'}`}>
+            {isCorrect ? block.explainCorrect : block.explainWrong}
+          </p>
+          {!isCorrect && (
+            <button
+              type="button"
+              className="mt-2.5 text-sm font-bold text-blue underline underline-offset-2 hover:text-blue-deep"
+              onClick={() => setPicked(null)}
+            >
+              Спробувати ще раз
+            </button>
+          )}
+        </div>
       )}
     </ClayCard>
   );

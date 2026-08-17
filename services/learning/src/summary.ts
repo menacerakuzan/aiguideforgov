@@ -1,7 +1,6 @@
 import { prisma } from '@yasno/db';
 import type { MyProgressResponse } from '@yasno/types';
 import { getCourseOverview } from './courses';
-import { hasCompletedAllModules } from './lib/completion';
 
 /** Зведення для дашборда: єдиний курс з прогресом, серія, допуск до атестації. */
 export async function getMyProgress(userId: string, courseSlug: string): Promise<MyProgressResponse | null> {
@@ -11,10 +10,13 @@ export async function getMyProgress(userId: string, courseSlug: string): Promise
   ]);
   if (!course) return null;
 
-  const [examEligible, hasCertificate] = await Promise.all([
-    hasCompletedAllModules(userId, course.id),
-    prisma.certificate.findFirst({ where: { userId, revoked: false } }).then((c) => !!c),
-  ]);
+  // getCourseOverview уже порахував проходження кожного модуля — повторний
+  // hasCompletedAllModules() означав би ще один повний обхід курсу по базі.
+  const examEligible = (course.moduleCount ?? 0) > 0 && (course.completedModules ?? 0) === course.moduleCount;
+
+  const hasCertificate = await prisma.certificate
+    .findFirst({ where: { userId, revoked: false } })
+    .then((c) => !!c);
 
   let totalMinutes = 0;
   for (const s of course.sections ?? []) {

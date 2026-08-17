@@ -1,6 +1,6 @@
 import { prisma } from '@yasno/db';
 import type { Course, Lesson, LessonBlock, LessonSummary, Module, Section } from '@yasno/types';
-import { isModuleCompleted } from './lib/completion';
+import { getModuleCompletion, isModuleCompleted } from './lib/completion';
 
 /** Курс з повною ієрархією розділів і модулів (без списку уроків — лише лічильники). */
 export async function getCourseOverview(userId: string, courseSlug: string): Promise<Course | null> {
@@ -20,6 +20,10 @@ export async function getCourseOverview(userId: string, courseSlug: string): Pro
   });
   if (!course) return null;
 
+  // Прогрес по всьому курсу — двома запитами разом, а не по 3 на кожен модуль.
+  const allModules = course.sections.flatMap((s) => s.modules);
+  const { completedModuleIds, completedLessonIds } = await getModuleCompletion(userId, allModules);
+
   const sections: Section[] = [];
   let totalModules = 0;
   let totalLessons = 0;
@@ -30,10 +34,8 @@ export async function getCourseOverview(userId: string, courseSlug: string): Pro
     let sectionCompleted = 0;
 
     for (const m of s.modules) {
-      const completedLessons = await prisma.progress.count({
-        where: { userId, lessonId: { in: m.lessons.map((l) => l.id) } },
-      });
-      const completed = await isModuleCompleted(userId, m.id);
+      const completedLessons = m.lessons.filter((l) => completedLessonIds.has(l.id)).length;
+      const completed = completedModuleIds.has(m.id);
       if (completed) {
         sectionCompleted++;
         totalCompletedModules++;

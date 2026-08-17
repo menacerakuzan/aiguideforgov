@@ -15,6 +15,7 @@
     "reset": "dotenv -e ../.env -- prisma migrate reset --force",
     "seed": "dotenv -e ../.env -- tsx src/seed.ts",
     "sync-content": "dotenv -e ../.env -- tsx src/sync-content.ts",
+    "split-course": "dotenv -e ../.env -- tsx src/split-course.ts",
     "typecheck": "tsc --noEmit"
   },
   "prisma": {

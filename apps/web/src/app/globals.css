@@ -22,8 +22,9 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Фоновий патерн платформи: сітка дрібних крапок, що повільно дрейфує по
-   діагоналі — тримає сторінку живою, не заважаючи читанню (opacity 6%). */
+/* Фоновий патерн платформи: статична сітка дрібних крапок (opacity 6%).
+   Без анімації: дрейф background-position перемальовував увесь екран кожен
+   кадр і з'їдав кадровий бюджет на переходах між сторінками. */
 .bg-pattern {
   position: fixed;
   inset: 0;
@@ -32,22 +33,9 @@ body {
   background-image: radial-gradient(circle, var(--color-ink) 1.6px, transparent 1.6px);
   background-size: 28px 28px;
   opacity: 0.06;
-  animation: bg-pattern-drift 40s linear infinite;
-}
-
-@keyframes bg-pattern-drift {
-  from {
-    background-position: 0 0;
-  }
-  to {
-    background-position: 168px 168px;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .bg-pattern {
-    animation: none;
-  }
   .animate-floaty {
     animation: none;
   }
