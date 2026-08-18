@@ -114,6 +114,32 @@ body {
   font-weight: 800;
 }
 
+/* Посилання в тексті уроку. Зовнішні відкриваємо в новій вкладці й позначаємо стрілкою:
+   людина не має втрачати місце в уроці, перейшовши на сайт сервісу. */
+.prose-lesson a {
+  color: var(--color-blue-deep);
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+  border-radius: 4px;
+}
+.prose-lesson a:hover {
+  color: var(--color-blue);
+  background: var(--color-blue-tint);
+}
+.prose-lesson a:focus-visible {
+  outline: 3px solid var(--color-blue);
+  outline-offset: 2px;
+}
+.prose-lesson a[target='_blank']::after {
+  content: '↗';
+  margin-left: 0.15em;
+  font-size: 0.85em;
+  text-decoration: none;
+  display: inline-block;
+}
+
 .prose-lesson blockquote {
   margin: 1.2rem 0;
   padding: 1.1rem 1.4rem;

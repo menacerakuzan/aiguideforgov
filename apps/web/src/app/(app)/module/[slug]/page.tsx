@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { requireCurrentUser } from '@yasno/auth';
 import { getModuleBySlug } from '@yasno/learning';
-import { Award, Book, Check, Clock, Lock, Play } from '@yasno/icons';
+import { ArrowLeft, Award, Book, Check, Clock, Lock, Play } from '@yasno/icons';
 import { ClayCard } from '@yasno/ui';
 
 export default async function ModuleDetailPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -17,6 +17,17 @@ export default async function ModuleDetailPage({ params }: { params: Promise<{ s
 
   return (
     <div className="pt-8">
+      {module_.courseSlug && (
+        <div className="mb-6">
+          <Link
+            href={`/courses/${module_.courseSlug}`}
+            className="inline-flex items-center gap-1.5 rounded-full bg-surface px-4 py-2 text-sm font-semibold text-ink-soft shadow-[0_9px_18px_-9px_rgba(38,34,74,0.14)]"
+          >
+            <ArrowLeft size={14} /> {module_.courseTitle ?? 'До курсу'}
+          </Link>
+        </div>
+      )}
+
       <ClayCard className="mb-6">
         <div className="mb-3 flex flex-wrap items-center gap-2">
           <span className="rounded-full bg-blue-tint px-3 py-1 text-xs font-bold text-blue-deep">

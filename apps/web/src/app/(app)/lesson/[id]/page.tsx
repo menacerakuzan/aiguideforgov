@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Lesson, LessonBlock } from '@yasno/types';
-import { ArrowLeft, Check, Clock, Copy, Doc, Play, Spark, TlCaution, TlForbid, TlSafe } from '@yasno/icons';
+import { ArrowLeft, Check, Clock, Copy, Doc, Play, Spark, TlCaution, TlForbid, TlSafe, Upload } from '@yasno/icons';
 import {
   Button,
   ClayCard,
@@ -199,6 +199,8 @@ function BlockRenderer({
       return <ImageBlock block={block} />;
     case 'prompt':
       return <LessonPrompt block={block} />;
+    case 'file':
+      return <FileBlock block={block} />;
     default:
       return null;
   }
@@ -303,6 +305,29 @@ function ImageBlock({ block }: { block: Extract<LessonBlock, { type: 'image' }> 
  * з жовтим орбом). Згортається: наприкінці уроку промптів буває три-чотири підряд, і
  * розгорнуті вони перетворюють підсумок уроку на «простирадло».
  */
+/** Файл для завантаження: демонстраційний документ, чек-лист, шаблон. */
+function FileBlock({ block }: { block: Extract<LessonBlock, { type: 'file' }> }) {
+  return (
+    <ClayCard padding="sm">
+      <div className="flex flex-wrap items-center gap-4">
+        <Orb size="default" color="sun">
+          <Doc size={22} />
+        </Orb>
+        <div className="min-w-0 flex-1">
+          <p className="font-display font-bold">{block.name}</p>
+          {block.note && <p className="mt-0.5 text-sm text-ink-soft">{block.note}</p>}
+          {block.meta && <p className="mt-1 text-xs font-semibold text-ink-mute">{block.meta}</p>}
+        </div>
+        <Button asChild variant="blue" size="sm">
+          <a href={block.url} download>
+            <Upload size={16} className="rotate-180" /> Завантажити
+          </a>
+        </Button>
+      </div>
+    </ClayCard>
+  );
+}
+
 function LessonPrompt({ block }: { block: Extract<LessonBlock, { type: 'prompt' }> }) {
   const [open, setOpen] = useState(true);
   const bodyId = useId();

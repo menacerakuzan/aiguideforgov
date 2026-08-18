@@ -71,6 +71,16 @@ export const LessonBlockSchema = z.discriminatedUnion('type', [
     variant: z.enum(['screenshot', 'illustration']).optional(),
   }),
   z.object({
+    /** Файл для завантаження: демонстраційний документ, чек-лист, шаблон. */
+    type: z.literal('file'),
+    url: z.string(),
+    name: z.string(),
+    /** Навіщо цей файл слухачеві — рядок під назвою. */
+    note: z.string().optional(),
+    /** Дрібним: формат, обсяг, розмір. Напр. «Markdown · 34 сторінки · 56 КБ». */
+    meta: z.string().optional(),
+  }),
+  z.object({
     /** Готовий промпт із кнопкою «Копіювати». Плейсхолдери — у [КВАДРАТНИХ ДУЖКАХ]. */
     type: z.literal('prompt'),
     body: z.string(),
@@ -139,6 +149,9 @@ export const ModuleSchema = z.object({
   sectionId: z.string().optional(),
   sectionSlug: z.string().optional(),
   sectionTitle: z.string().optional(),
+  /** Курс, якому належить модуль — для навігації «модуль → курс». */
+  courseSlug: z.string().optional(),
+  courseTitle: z.string().optional(),
   lessons: z.array(LessonSummarySchema).optional(),
   lessonCount: z.number().int().optional(),
   completedLessons: z.number().int().optional(),

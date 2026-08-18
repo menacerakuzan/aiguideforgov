@@ -95,7 +95,7 @@ export async function getModuleBySlug(userId: string, slug: string): Promise<Mod
     include: {
       lessons: { orderBy: { order: 'asc' } },
       quiz: { select: { id: true } },
-      section: { select: { slug: true, title: true } },
+      section: { select: { slug: true, title: true, course: { select: { slug: true, title: true } } } },
     },
   });
   if (!m) return null;
@@ -132,6 +132,8 @@ export async function getModuleBySlug(userId: string, slug: string): Promise<Mod
     passScore: m.passScore,
     sectionSlug: m.section.slug,
     sectionTitle: m.section.title,
+    courseSlug: m.section.course.slug,
+    courseTitle: m.section.course.title,
     lessons,
     lessonCount: lessons.length,
     completedLessons: lessons.filter((l) => l.completed).length,

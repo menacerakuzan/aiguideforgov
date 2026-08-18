@@ -39,6 +39,7 @@ function emptyBlock(type: LessonBlock['type']): LessonBlock {
   if (type === 'video') return { type: 'video', caption: '', note: '' };
   if (type === 'image') return { type: 'image', alt: '', caption: '', note: '' };
   if (type === 'prompt') return { type: 'prompt', body: '', title: '' };
+  if (type === 'file') return { type: 'file', url: '', name: '', note: '', meta: '' };
   return { type: 'redact', intro: '', letterhead: '', segments: [{ text: '' }] };
 }
 
@@ -179,7 +180,7 @@ export default function LessonEditorPage({ params }: { params: Promise<{ id: str
       </div>
 
       <div className="mt-5 flex flex-wrap gap-2">
-        {(['text', 'video', 'image', 'prompt', 'check', 'pair', 'trafficLight', 'redact'] as const).map((t) => (
+        {(['text', 'video', 'image', 'prompt', 'file', 'check', 'pair', 'trafficLight', 'redact'] as const).map((t) => (
           <Button key={t} variant="ghost" size="sm" onClick={() => addBlock(t)}>
             + {t}
           </Button>
@@ -245,6 +246,33 @@ function BlockEditor({ block, onChange }: { block: LessonBlock; onChange: (b: Le
           value={block.caption ?? ''}
           onChange={(e) => onChange({ ...block, caption: e.target.value })}
           placeholder="Підпис (необов'язково)"
+        />
+      </div>
+    );
+  }
+
+  if (block.type === 'file') {
+    return (
+      <div className="flex flex-col gap-3 px-2">
+        <Input
+          value={block.url}
+          onChange={(e) => onChange({ ...block, url: e.target.value })}
+          placeholder="Шлях до файлу, напр. /lessons/2-2/zvit-3-kvartal.md"
+        />
+        <Input
+          value={block.name}
+          onChange={(e) => onChange({ ...block, name: e.target.value })}
+          placeholder="Назва файлу для слухача"
+        />
+        <Input
+          value={block.note ?? ''}
+          onChange={(e) => onChange({ ...block, note: e.target.value })}
+          placeholder="Навіщо цей файл (необов'язково)"
+        />
+        <Input
+          value={block.meta ?? ''}
+          onChange={(e) => onChange({ ...block, meta: e.target.value })}
+          placeholder="Формат, обсяг, розмір (необов'язково)"
         />
       </div>
     );
