@@ -17,6 +17,7 @@
     "sync-content": "dotenv -e ../.env -- tsx src/sync-content.ts",
     "split-course": "dotenv -e ../.env -- tsx src/split-course.ts",
     "export-lessons": "dotenv -e ../.env -- tsx src/export-lessons.ts",
+    "audit-lessons": "tsx src/audit-lessons.ts",
     "typecheck": "tsc --noEmit"
   },
   "prisma": {

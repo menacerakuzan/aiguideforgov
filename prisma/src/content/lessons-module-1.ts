@@ -59,6 +59,36 @@ export function pickExercise(
   return { type: 'pick', intro, options, cards };
 }
 
+/** Конструктор промпту: поля за формулою → зібрана заготовка з кнопкою «Копіювати». */
+export function builder(
+  intro: string,
+  fields: {
+    label: string;
+    hint: string;
+    placeholder: string;
+    examples?: string[];
+    optional?: boolean;
+    suffix?: string;
+  }[],
+  outro?: string,
+): LessonBlock {
+  return { type: 'builder', intro, fields, outro };
+}
+
+/** Вправа «знайди помилки»: документ із клікабельними фрагментами (помилки + приманки). */
+export function spotExercise(
+  intro: string,
+  docHead: string,
+  paragraphs: ({ text: string } | { text: string; flag: true; wrong: boolean; why: string })[][],
+): LessonBlock {
+  return { type: 'spot', intro, docHead, paragraphs };
+}
+
+/** Клікабельний фрагмент для `spotExercise`: справжня помилка або приманка. */
+export function flag(text: string, wrong: boolean, why: string) {
+  return { text, flag: true as const, wrong, why };
+}
+
 /** Файл для завантаження зі сторінки уроку (демо-документ, чек-лист, шаблон). */
 export function file(url: string, name: string, note?: string, meta?: string): LessonBlock {
   return { type: 'file', url, name, note, meta };

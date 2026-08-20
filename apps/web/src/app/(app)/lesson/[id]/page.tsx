@@ -59,9 +59,13 @@ export default function LessonPage({ params }: { params: Promise<{ id: string }>
     if (b.type === 'check') checkNumbers.set(i, checkNumbers.size + 1);
   });
   const checkCount = checkNumbers.size;
+  /* Завершення уроку блокують не лише питання, а й тренажери: сортувальник, картки,
+     конструктор, пошук помилок. Усі вони повідомляють про успіх через `onSolved`, тому
+     рахувати треба саме їх, а не самі `check` — інакше пройдений тренажер «зараховувався б»
+     замість неотвіченого питання. */
+  const gatedCount = lesson.blocks.filter((b) => GATED_TYPES.has(b.type)).length;
   const solvedCount = Object.values(solved).filter(Boolean).length;
-  /* Урок без питань завершується вільно; з питаннями — коли на всі є правильна відповідь. */
-  const checksPassed = checkCount === 0 || solvedCount === checkCount;
+  const checksPassed = gatedCount === 0 || solvedCount === gatedCount;
 
   return (
     <article className="mx-auto max-w-[720px] pt-8">
@@ -117,9 +121,9 @@ export default function LessonPage({ params }: { params: Promise<{ id: string }>
 
         {!checksPassed && (
           <p className="mt-4 text-sm font-semibold text-ink-soft">
-            Спершу дайте відповідь на питання —{' '}
+            {gatedCount > checkCount ? 'Спершу пройдіть завдання уроку' : 'Спершу дайте відповідь на питання'} —{' '}
             <span className="text-blue-deep">
-              {solvedCount} з {checkCount}
+              {solvedCount} з {gatedCount}
             </span>
             .{' '}
             <button
@@ -139,6 +143,9 @@ export default function LessonPage({ params }: { params: Promise<{ id: string }>
     </article>
   );
 }
+
+/** Блоки, які треба пройти, щоб урок можна було завершити. */
+const GATED_TYPES = new Set<LessonBlock['type']>(['check', 'sort', 'pick', 'builder', 'spot']);
 
 /** Заголовок-роздільник перед пачкою мікроперевірок наприкінці уроку. */
 function ChecksHeading({ count }: { count: number }) {
@@ -205,6 +212,10 @@ function BlockRenderer({
       return <SortBlock block={block} onSolved={onSolved} />;
     case 'pick':
       return <PickBlock block={block} onSolved={onSolved} />;
+    case 'builder':
+      return <BuilderBlock block={block} onSolved={onSolved} />;
+    case 'spot':
+      return <SpotBlock block={block} onSolved={onSolved} />;
     default:
       return null;
   }
@@ -514,6 +525,248 @@ function PickBlock({
           {mistakes > 0 ? `, з них ${mistakes} — не з першої спроби` : ' з першої спроби'}. Саме такі
           рішення ви ухвалюватимете за секунду в реальній роботі.
         </p>
+      )}
+    </ClayCard>
+  );
+}
+
+/** Конструктор промпту: поля за формулою → зібрана заготовка. Знімає страх «чистого
+    поля вводу»: людина відповідає на чотири питання, а промпт складається сам. */
+function BuilderBlock({
+  block,
+  onSolved,
+}: {
+  block: Extract<LessonBlock, { type: 'builder' }>;
+  onSolved?: () => void;
+}) {
+  const [values, setValues] = useState<Record<number, string>>({});
+  const [built, setBuilt] = useState(false);
+
+  const required = block.fields
+    .map((f, i) => (f.optional ? -1 : i))
+    .filter((i) => i !== -1);
+  const ready = required.every((i) => (values[i] ?? '').trim().length > 0);
+
+  const assembled = block.fields
+    .map((f, i) => {
+      const v = (values[i] ?? '').trim();
+      if (!v) return '';
+      return f.suffix ? `${v} ${f.suffix}` : v;
+    })
+    .filter(Boolean)
+    .join('\n\n');
+
+  function build() {
+    setBuilt(true);
+    onSolved?.();
+  }
+
+  return (
+    <ClayCard>
+      <div className="mb-4 flex items-center gap-3">
+        <Orb size="sm" color={built ? 'green' : 'blue'}>
+          {built ? <Check size={17} /> : <Spark size={17} />}
+        </Orb>
+        <span className="text-[11px] font-bold tracking-wide text-ink-mute uppercase">
+          Конструктор · {block.fields.length} поля
+        </span>
+      </div>
+      <p className="mb-5 text-[15px] text-ink-soft">{block.intro}</p>
+
+      <div className="flex flex-col gap-4">
+        {block.fields.map((f, i) => (
+          <div key={i}>
+            <label className="mb-1 block font-display text-[15px] font-bold" htmlFor={`bf-${i}`}>
+              {f.label}
+              {f.optional && <span className="ml-2 text-xs font-semibold text-ink-mute">за потреби</span>}
+            </label>
+            <p className="mb-2 text-sm text-ink-soft">{f.hint}</p>
+            <textarea
+              id={`bf-${i}`}
+              rows={2}
+              value={values[i] ?? ''}
+              placeholder={f.placeholder}
+              onChange={(e) => {
+                const v = e.target.value;
+                setValues((s) => ({ ...s, [i]: v }));
+                setBuilt(false);
+              }}
+              className="w-full resize-y rounded-[18px] border-[2.5px] border-ink/15 bg-paper-2 px-4 py-3 text-[15px] leading-[1.6] placeholder:text-ink-mute focus-visible:border-blue focus-visible:outline-none"
+            />
+            {f.examples && f.examples.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {f.examples.map((ex, ei) => (
+                  <button
+                    key={ei}
+                    type="button"
+                    onClick={() => {
+                      setValues((s) => ({ ...s, [i]: ex }));
+                      setBuilt(false);
+                    }}
+                    className="rounded-full border-[2px] border-ink/15 bg-surface px-3 py-1 text-left text-[13px] font-medium text-ink-soft transition-colors hover:border-blue hover:text-blue-deep"
+                  >
+                    {ex}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-5 flex flex-wrap items-center gap-3.5">
+        {!built && (
+          <Button variant="blue" size="sm" disabled={!ready} onClick={build}>
+            Зібрати промпт
+          </Button>
+        )}
+        {!ready && (
+          <span className="text-sm text-ink-mute">Заповніть поля, позначені як обов'язкові.</span>
+        )}
+      </div>
+
+      {built && (
+        <div className="mt-5">
+          <p className="mb-2 text-[11px] font-bold tracking-wide text-ink-mute uppercase">
+            Ваш промпт
+          </p>
+          <PromptBlock>{assembled}</PromptBlock>
+          {block.outro && <p className="mt-3 text-sm text-ink-soft">{block.outro}</p>}
+        </div>
+      )}
+    </ClayCard>
+  );
+}
+
+/** Вправа «знайди помилки»: клікаємо підозрілі місця в документі. Серед клікабельних
+    фрагментів є приманки — правильні місця, що виглядають підозріло. Без них вправа
+    зводилася б до пошуку підсвіченого тексту. */
+function SpotBlock({
+  block,
+  onSolved,
+}: {
+  block: Extract<LessonBlock, { type: 'spot' }>;
+  onSolved?: () => void;
+}) {
+  const [marked, setMarked] = useState<Record<string, boolean>>({});
+  const [checked, setChecked] = useState(false);
+
+  const flags = block.paragraphs.flatMap((para, pi) =>
+    para.map((seg, si) => ('flag' in seg ? { key: `${pi}-${si}`, ...seg } : null)),
+  ).filter((f): f is { key: string; text: string; flag: true; wrong: boolean; why: string } => f !== null);
+
+  const errors = flags.filter((f) => f.wrong);
+  const found = errors.filter((f) => marked[f.key]).length;
+  const falseAlarms = flags.filter((f) => !f.wrong && marked[f.key]).length;
+  const solved = checked && found === errors.length && falseAlarms === 0;
+
+  function check() {
+    setChecked(true);
+    if (errors.every((f) => marked[f.key]) && flags.filter((f) => !f.wrong).every((f) => !marked[f.key])) {
+      onSolved?.();
+    }
+  }
+
+  return (
+    <ClayCard>
+      <div className="mb-4 flex items-center gap-3">
+        <Orb size="sm" color={solved ? 'green' : 'amber'}>
+          {solved ? <Check size={17} /> : <TlCaution size={17} />}
+        </Orb>
+        <span className="text-[11px] font-bold tracking-wide text-ink-mute uppercase">
+          Вправа · {errors.length} помилок у документі
+        </span>
+      </div>
+      <p className="mb-5 text-[15px] text-ink-soft">{block.intro}</p>
+
+      <div className="rounded-[26px] bg-paper-2 p-6">
+        <p className="mb-4 text-center text-xs font-bold tracking-wide text-ink-mute uppercase">
+          {block.docHead}
+        </p>
+        <div className="flex flex-col gap-3.5 text-[15px] leading-[1.9]">
+          {block.paragraphs.map((para, pi) => (
+            <p key={pi}>
+              {para.map((seg, si) => {
+                if (!('flag' in seg)) return <span key={si}>{seg.text}</span>;
+                const key = `${pi}-${si}`;
+                const on = !!marked[key];
+                const verdict = checked
+                  ? seg.wrong
+                    ? on ? 'hit' : 'missed'
+                    : on ? 'false' : 'ok'
+                  : null;
+                const style =
+                  verdict === 'hit'
+                    ? 'border-green bg-green-tint text-green-deep'
+                    : verdict === 'missed'
+                      ? 'border-red bg-red-tint text-red-deep'
+                      : verdict === 'false'
+                        ? 'border-amber bg-amber-tint text-amber-deep'
+                        : on
+                          ? 'border-blue bg-blue-tint text-blue-deep'
+                          : 'border-transparent bg-ink/[0.06] hover:border-ink/30';
+                return (
+                  <button
+                    key={si}
+                    type="button"
+                    aria-pressed={on}
+                    onClick={() => {
+                      setMarked((m) => ({ ...m, [key]: !m[key] }));
+                      setChecked(false);
+                    }}
+                    className={`rounded-[10px] border-[2px] px-1 py-0.5 text-left font-medium transition-colors ${style}`}
+                  >
+                    {seg.text}
+                  </button>
+                );
+              })}
+            </p>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-5 flex flex-wrap items-center gap-3.5">
+        {!solved && (
+          <Button variant="blue" size="sm" onClick={check}>
+            Перевірити
+          </Button>
+        )}
+        {checked && !solved && (
+          <span className="text-sm font-semibold text-amber-deep">
+            Знайдено {found} з {errors.length}
+            {falseAlarms > 0 && `, зайвих позначок — ${falseAlarms}`}. Розбір нижче.
+          </span>
+        )}
+        {solved && (
+          <span className="text-sm font-bold text-green-deep">
+            Усі {errors.length} знайдено, зайвого не позначено.
+          </span>
+        )}
+      </div>
+
+      {checked && (
+        <div className="mt-5 flex flex-col gap-3">
+          {flags
+            .filter((f) => f.wrong || marked[f.key])
+            .map((f) => {
+              const hit = f.wrong && marked[f.key];
+              const missed = f.wrong && !marked[f.key];
+              return (
+                <div
+                  key={f.key}
+                  className={`rounded-[22px] border-[2.5px] p-3.5 ${
+                    hit ? 'border-green bg-green-tint' : missed ? 'border-red bg-red-tint' : 'border-amber bg-amber-tint'
+                  }`}
+                >
+                  <p className="mb-1 text-[13px] font-bold uppercase tracking-wide">
+                    {hit ? 'Знайдено' : missed ? 'Пропущено' : 'Тут усе гаразд'}
+                  </p>
+                  <p className="mb-1.5 text-[15px] font-semibold">«{f.text}»</p>
+                  <p className="text-sm">{f.why}</p>
+                </div>
+              );
+            })}
+        </div>
       )}
     </ClayCard>
   );
