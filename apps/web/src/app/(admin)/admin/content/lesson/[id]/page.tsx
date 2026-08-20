@@ -40,6 +40,17 @@ function emptyBlock(type: LessonBlock['type']): LessonBlock {
   if (type === 'image') return { type: 'image', alt: '', caption: '', note: '' };
   if (type === 'prompt') return { type: 'prompt', body: '', title: '' };
   if (type === 'file') return { type: 'file', url: '', name: '', note: '', meta: '' };
+  if (type === 'sort')
+    return {
+      type: 'sort',
+      intro: '',
+      buckets: [
+        { label: '', tone: 'green' },
+        { label: '', tone: 'red' },
+      ],
+      items: [{ text: '', bucket: 0, why: '' }],
+    };
+  if (type === 'pick') return { type: 'pick', intro: '', options: ['', ''], cards: [{ text: '', answer: 0, why: '' }] };
   return { type: 'redact', intro: '', letterhead: '', segments: [{ text: '' }] };
 }
 
@@ -180,7 +191,7 @@ export default function LessonEditorPage({ params }: { params: Promise<{ id: str
       </div>
 
       <div className="mt-5 flex flex-wrap gap-2">
-        {(['text', 'video', 'image', 'prompt', 'file', 'check', 'pair', 'trafficLight', 'redact'] as const).map((t) => (
+        {(['text', 'video', 'image', 'prompt', 'file', 'check', 'sort', 'pick', 'pair', 'trafficLight', 'redact'] as const).map((t) => (
           <Button key={t} variant="ghost" size="sm" onClick={() => addBlock(t)}>
             + {t}
           </Button>
@@ -248,6 +259,16 @@ function BlockEditor({ block, onChange }: { block: LessonBlock; onChange: (b: Le
           placeholder="Підпис (необов'язково)"
         />
       </div>
+    );
+  }
+
+  if (block.type === 'sort' || block.type === 'pick') {
+    return (
+      <p className="px-2 text-sm text-ink-soft">
+        Тренажер редагується в контенті:{' '}
+        <code className="font-mono text-[13px]">prisma/src/content/lessons-module-*.ts</code>. Тут
+        показано лише те, що блок присутній у структурі уроку.
+      </p>
     );
   }
 

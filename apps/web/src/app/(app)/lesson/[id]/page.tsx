@@ -201,6 +201,10 @@ function BlockRenderer({
       return <LessonPrompt block={block} />;
     case 'file':
       return <FileBlock block={block} />;
+    case 'sort':
+      return <SortBlock block={block} onSolved={onSolved} />;
+    case 'pick':
+      return <PickBlock block={block} onSolved={onSolved} />;
     default:
       return null;
   }
@@ -305,6 +309,216 @@ function ImageBlock({ block }: { block: Extract<LessonBlock, { type: 'image' }> 
  * з жовтим орбом). Згортається: наприкінці уроку промптів буває три-чотири підряд, і
  * розгорнуті вони перетворюють підсумок уроку на «простирадло».
  */
+/* ============================================================================
+   Тренажери. Обидва зараховуються так само, як мікроперевірка: доки не пройдено,
+   кнопка «Завершити урок» неактивна. Помилка нічим не карається — показуємо
+   пояснення й даємо спробувати ще раз. Мета навчити, а не відсіяти.
+   ========================================================================= */
+
+const TONE: Record<string, string> = {
+  green: 'bg-green-tint text-green-deep border-green',
+  amber: 'bg-amber-tint text-amber-deep border-amber',
+  red: 'bg-red-tint text-red-deep border-red',
+  blue: 'bg-blue-tint text-blue-deep border-blue',
+};
+
+/** Сортувальник: розкласти фрагменти по категоріях. Кнопки замість перетягування —
+    працює з клавіатури й на телефоні. */
+function SortBlock({
+  block,
+  onSolved,
+}: {
+  block: Extract<LessonBlock, { type: 'sort' }>;
+  onSolved?: () => void;
+}) {
+  const [placed, setPlaced] = useState<Record<number, number>>({});
+  const [checked, setChecked] = useState(false);
+
+  const total = block.items.length;
+  const allPlaced = Object.keys(placed).length === total;
+  const wrong = block.items.filter((it, i) => placed[i] !== it.bucket);
+  const solved = checked && wrong.length === 0;
+
+  function check() {
+    setChecked(true);
+    if (block.items.every((it, i) => placed[i] === it.bucket)) onSolved?.();
+  }
+
+  return (
+    <ClayCard>
+      <div className="mb-4 flex items-center gap-3">
+        <Orb size="sm" color={solved ? 'green' : 'blue'}>
+          {solved ? <Check size={17} /> : <Spark size={17} />}
+        </Orb>
+        <span className="text-[11px] font-bold tracking-wide text-ink-mute uppercase">
+          Тренажер · {total} фрагментів
+        </span>
+      </div>
+      <p className="mb-5 text-[15px] text-ink-soft">{block.intro}</p>
+
+      <div className="flex flex-col gap-3">
+        {block.items.map((item, i) => {
+          const isWrong = checked && placed[i] !== item.bucket;
+          const isRight = checked && placed[i] === item.bucket;
+          return (
+            <div
+              key={i}
+              className={`rounded-[22px] border-[2.5px] p-3.5 transition-colors ${
+                isRight ? 'border-green bg-green-tint' : isWrong ? 'border-red bg-red-tint' : 'border-ink/15 bg-paper-2'
+              }`}
+            >
+              <p className="mb-2.5 text-[15px] font-medium">{item.text}</p>
+              <div className="flex flex-wrap gap-2">
+                {block.buckets.map((b, bi) => (
+                  <button
+                    key={bi}
+                    type="button"
+                    disabled={solved}
+                    onClick={() => {
+                      setPlaced((p) => ({ ...p, [i]: bi }));
+                      setChecked(false);
+                    }}
+                    className={`rounded-full border-[2.5px] px-3.5 py-1.5 text-sm font-bold transition-all ${
+                      placed[i] === bi
+                        ? TONE[b.tone]
+                        : 'border-ink/15 bg-surface text-ink-soft hover:border-ink/40'
+                    }`}
+                  >
+                    {b.label}
+                  </button>
+                ))}
+              </div>
+              {isWrong && <p className="mt-2.5 text-sm font-medium text-red-deep">{item.why}</p>}
+              {isRight && <p className="mt-2.5 text-sm font-medium text-green-deep">{item.why}</p>}
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="mt-5 flex flex-wrap items-center gap-3.5">
+        {!solved && (
+          <Button variant="blue" size="sm" disabled={!allPlaced} onClick={check}>
+            Перевірити
+          </Button>
+        )}
+        {!allPlaced && !checked && (
+          <span className="text-sm text-ink-mute">
+            Розкладено {Object.keys(placed).length} з {total}
+          </span>
+        )}
+        {checked && !solved && (
+          <span className="text-sm font-semibold text-amber-deep">
+            Правильно {total - wrong.length} з {total}. Виправте позначені й перевірте ще раз.
+          </span>
+        )}
+        {solved && (
+          <span className="text-sm font-bold text-green-deep">Усе правильно — рухаємось далі.</span>
+        )}
+      </div>
+    </ClayCard>
+  );
+}
+
+/** Картки на швидкість: одна за раз, миттєвий фідбек. Помилкові повертаються
+    в кінець черги — саме це й робить його тренажером, а не тестом. */
+function PickBlock({
+  block,
+  onSolved,
+}: {
+  block: Extract<LessonBlock, { type: 'pick' }>;
+  onSolved?: () => void;
+}) {
+  const [queue, setQueue] = useState<number[]>(() => block.cards.map((_, i) => i));
+  const [picked, setPicked] = useState<number | null>(null);
+  const [done, setDone] = useState(0);
+  const [mistakes, setMistakes] = useState(0);
+
+  const total = block.cards.length;
+  const head = queue[0];
+  const finished = head === undefined;
+  const current = head === undefined ? null : (block.cards[head] ?? null);
+  const isCorrect = current !== null && picked === current.answer;
+
+  function next() {
+    if (head === undefined || current === null) return;
+    const rest = queue.slice(1);
+    /* Правильно — картка йде геть; помилка — повертається в кінець черги. */
+    setQueue(isCorrect ? rest : [...rest, head]);
+    if (isCorrect) setDone((d) => d + 1);
+    else setMistakes((m) => m + 1);
+    if (isCorrect && rest.length === 0) onSolved?.();
+    setPicked(null);
+  }
+
+  return (
+    <ClayCard>
+      <div className="mb-4 flex items-center gap-3">
+        <Orb size="sm" color={finished ? 'green' : 'blue'}>
+          {finished ? <Check size={17} /> : <Spark size={17} />}
+        </Orb>
+        <span className="text-[11px] font-bold tracking-wide text-ink-mute uppercase">
+          Тренажер · {done} з {total}
+        </span>
+        <span className="ml-auto h-2 w-24 overflow-hidden rounded-full bg-paper-2">
+          <span
+            className="block h-full rounded-full bg-blue transition-[width] duration-300"
+            style={{ width: `${(done / total) * 100}%` }}
+          />
+        </span>
+      </div>
+
+      {!finished && current && (
+        <>
+          <p className="mb-4 text-[15px] text-ink-soft">{block.intro}</p>
+          <div className="mb-4 rounded-[22px] border-[2.5px] border-ink bg-paper-2 p-5">
+            <p className="text-[17px] font-semibold">{current.text}</p>
+          </div>
+          <div className="flex flex-wrap gap-2.5">
+            {block.options.map((opt, i) => (
+              <button
+                key={i}
+                type="button"
+                disabled={picked !== null}
+                onClick={() => setPicked(i)}
+                className={`rounded-full border-[2.5px] px-5 py-2.5 font-bold transition-all ${
+                  picked === null
+                    ? 'border-ink bg-surface hover:bg-paper-2'
+                    : i === current.answer
+                      ? 'border-green bg-green-tint text-green-deep'
+                      : i === picked
+                        ? 'border-red bg-red-tint text-red-deep'
+                        : 'border-ink/15 bg-surface text-ink-mute'
+                }`}
+              >
+                {opt}
+              </button>
+            ))}
+          </div>
+          {picked !== null && (
+            <div className="mt-4">
+              <p className={`text-sm font-medium ${isCorrect ? 'text-green-deep' : 'text-amber-deep'}`}>
+                {isCorrect ? '' : 'Не зовсім. '}
+                {current.why}
+              </p>
+              <Button variant="blue" size="sm" className="mt-3.5" onClick={next}>
+                {isCorrect ? 'Далі' : 'Далі — повернемось до цієї картки'}
+              </Button>
+            </div>
+          )}
+        </>
+      )}
+
+      {finished && (
+        <p className="text-[15px] font-semibold text-green-deep">
+          Пройдено всі {total}
+          {mistakes > 0 ? `, з них ${mistakes} — не з першої спроби` : ' з першої спроби'}. Саме такі
+          рішення ви ухвалюватимете за секунду в реальній роботі.
+        </p>
+      )}
+    </ClayCard>
+  );
+}
+
 /** Файл для завантаження: демонстраційний документ, чек-лист, шаблон. */
 function FileBlock({ block }: { block: Extract<LessonBlock, { type: 'file' }> }) {
   return (

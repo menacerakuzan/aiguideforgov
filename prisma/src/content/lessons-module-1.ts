@@ -41,6 +41,24 @@ export function image(
   return { type: 'image', alt, ...opts };
 }
 
+/** Тренажер-сортувальник: розкласти фрагменти по категоріях. */
+export function sortExercise(
+  intro: string,
+  buckets: { label: string; tone: 'green' | 'amber' | 'red' | 'blue' }[],
+  items: { text: string; bucket: number; why: string }[],
+): LessonBlock {
+  return { type: 'sort', intro, buckets, items };
+}
+
+/** Тренажер-картки: одне твердження за раз, помилкові повертаються в чергу. */
+export function pickExercise(
+  intro: string,
+  options: string[],
+  cards: { text: string; answer: number; why: string }[],
+): LessonBlock {
+  return { type: 'pick', intro, options, cards };
+}
+
 /** Файл для завантаження зі сторінки уроку (демо-документ, чек-лист, шаблон). */
 export function file(url: string, name: string, note?: string, meta?: string): LessonBlock {
   return { type: 'file', url, name, note, meta };

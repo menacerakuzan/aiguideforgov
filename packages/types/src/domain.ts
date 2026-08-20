@@ -71,6 +71,36 @@ export const LessonBlockSchema = z.discriminatedUnion('type', [
     variant: z.enum(['screenshot', 'illustration']).optional(),
   }),
   z.object({
+    /** Тренажер-сортувальник: розкласти фрагменти по 2–4 категоріях.
+        Перевірка одразу по всіх, з поясненням до кожної помилки. */
+    type: z.literal('sort'),
+    intro: z.string(),
+    buckets: z.array(z.object({
+      label: z.string(),
+      tone: z.enum(['green', 'amber', 'red', 'blue']),
+    })).min(2).max(4),
+    items: z.array(z.object({
+      text: z.string(),
+      /** Індекс правильної категорії у `buckets`. */
+      bucket: z.number().int().nonnegative(),
+      /** Чому саме сюди — показуємо після перевірки. */
+      why: z.string(),
+    })).min(3),
+  }),
+  z.object({
+    /** Тренажер-картки: по одному твердженню за раз, миттєвий фідбек.
+        Помилкові картки повертаються в кінець черги, доки не будуть пройдені. */
+    type: z.literal('pick'),
+    intro: z.string(),
+    options: z.array(z.string()).min(2).max(3),
+    cards: z.array(z.object({
+      text: z.string(),
+      /** Індекс правильної відповіді в `options`. */
+      answer: z.number().int().nonnegative(),
+      why: z.string(),
+    })).min(3),
+  }),
+  z.object({
     /** Файл для завантаження: демонстраційний документ, чек-лист, шаблон. */
     type: z.literal('file'),
     url: z.string(),
