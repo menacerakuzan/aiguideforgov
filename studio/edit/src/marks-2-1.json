@@ -1,0 +1,78 @@
+[
+  {
+    "name": "1-zvernennia",
+    "t": 0.001
+  },
+  {
+    "name": "1-vydilennia",
+    "t": 9.545
+  },
+  {
+    "name": "2-novyi-chat",
+    "t": 24.964
+  },
+  {
+    "name": "3-zapyt-pochatok",
+    "t": 33.463
+  },
+  {
+    "name": "3-vstavka",
+    "t": 41.282
+  },
+  {
+    "name": "3-zapyt-hvist",
+    "t": 43.186
+  },
+  {
+    "name": "4-nadislano",
+    "t": 76.907
+  },
+  {
+    "name": "4-chernetka-hotova",
+    "t": 88.74
+  },
+  {
+    "name": "4-prochytano",
+    "t": 93.629
+  },
+  {
+    "name": "5-utochnennia-1",
+    "t": 93.63
+  },
+  {
+    "name": "5-vidpovid-1",
+    "t": 113.83
+  },
+  {
+    "name": "5-utochnennia-2",
+    "t": 118.077
+  },
+  {
+    "name": "5-vidpovid-2",
+    "t": 134.71
+  },
+  {
+    "name": "5-utochnennia-3",
+    "t": 139.009
+  },
+  {
+    "name": "5-vidpovid-3",
+    "t": 157.259
+  },
+  {
+    "name": "6-kopiyuvannia",
+    "t": 161.513
+  },
+  {
+    "name": "6-blank",
+    "t": 172.343
+  },
+  {
+    "name": "6-marker",
+    "t": 183.986
+  },
+  {
+    "name": "kinets",
+    "t": 192.765
+  }
+]

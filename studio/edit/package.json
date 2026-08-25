@@ -1,0 +1,25 @@
+{
+  "name": "yasno-edit",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Монтаж уроків: Remotion поверх сирих дублів зі studio/out.",
+  "scripts": {
+    "dev": "remotion studio",
+    "render": "remotion render",
+    "lint": "tsc"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.514",
+    "@remotion/google-fonts": "4.0.514",
+    "@remotion/media": "4.0.514",
+    "@remotion/shapes": "4.0.514",
+    "@remotion/transitions": "4.0.514",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "remotion": "4.0.514"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.7",
+    "typescript": "5.9.3"
+  }
+}

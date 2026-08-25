@@ -1,0 +1,17 @@
+{
+  "name": "yasno-studio",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Виробництво відео та скріншотів для уроків. Windows-нативна оснастка: gdigrab + Chrome по CDP + ElevenLabs.",
+  "scripts": {
+    "check": "node lib/doctor.mjs",
+    "chrome": "node lib/chrome.mjs",
+    "smoke": "node record/smoke.mjs",
+    "voice": "node voice/tts.mjs",
+    "media": "node lib/media-audit.mjs"
+  },
+  "devDependencies": {
+    "playwright-core": "^1.56.0"
+  }
+}
