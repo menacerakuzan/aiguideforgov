@@ -1,0 +1,50 @@
+[
+  {
+    "name": "1-zapyt-pochatok",
+    "t": 0.001
+  },
+  {
+    "name": "1-zapyt-hotovyi",
+    "t": 13.404
+  },
+  {
+    "name": "1-nadislano",
+    "t": 15.152
+  },
+  {
+    "name": "1-vidpovid-hotova",
+    "t": 26.381
+  },
+  {
+    "name": "1-prochytano",
+    "t": 31.522
+  },
+  {
+    "name": "2-zapyt2-pochatok",
+    "t": 33.214
+  },
+  {
+    "name": "2-zapyt2-hotovyi",
+    "t": 38.297
+  },
+  {
+    "name": "2-nadislano2",
+    "t": 39.867
+  },
+  {
+    "name": "2-vidpovid2-hotova",
+    "t": 49.385
+  },
+  {
+    "name": "2-prochytano2",
+    "t": 54.418
+  },
+  {
+    "name": "3-final",
+    "t": 57.702
+  },
+  {
+    "name": "kinets",
+    "t": 60.11
+  }
+]

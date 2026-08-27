@@ -1,36 +1,14 @@
 /**
- * Монтажний план уроку 2.1.
- *
- * Тримається на двох файлах, які виробив сам дубль: `marks-2-1.json` (де на
- * плівці починається кожен крок) і `voice-2-1.json` (скільки насправді звучить
- * кожна репліка). Нічого не вигадано на око — і тому картинка не розходиться
- * з голосом.
- *
- * Правило довжини сегмента: скільки триває мовлення, стільки триває й сегмент.
- * Якщо відео коротше — останній кадр завмирає, і глядач дочитує те, про що
- * говорить диктор. Якщо довше — сегмент триває стільки, скільки відео, а голос
- * просто закінчується раніше.
+ * Дані уроку 2.1 для спільного будівника плану (`../lesson/planBuilder.ts`).
+ * Сам розрахунок кадрів — там; тут лише сегменти, паузи й межі, специфічні
+ * для цього дубля.
  */
 import marks from '../marks-2-1.json';
 import voice from '../voice-2-1.json';
-import { FPS } from '../theme';
+import { buildPlan, markAt, type Segment, type VoiceLine } from '../lesson/planBuilder';
 
-type VoiceLine = { file: string; seconds: number; text: string };
 const V = voice as Record<string, VoiceLine>;
-const at = (name: string) => marks.find((m) => m.name === name)!.t;
-
-export type Segment = {
-  id: string;
-  /** Підпис кроку в кадрі. Порожній — підпису немає. */
-  label: string;
-  /** Межі на сирому дублі, у секундах. */
-  from: number;
-  to: number;
-  /** Прискорення. 1 — чесний темп. */
-  speed: number;
-  /** Репліки, які звучать над цим сегментом, по черзі. */
-  vo: string[];
-};
+const at = (name: string) => markAt(marks, name);
 
 /**
  * Де прискорюємо і чому.
@@ -42,86 +20,48 @@ export type Segment = {
  * Перевірку перед підписом не прискорюємо навмисно — саме вона має виглядати
  * вагомо (стандарт уроків, §1.17 і розкадровка 2.1).
  */
-export const SEGMENTS: Segment[] = [
+const SEGMENTS: Segment[] = [
   {
-    id: 'zvernennia',
-    label: 'Звернення на столі',
-    from: at('1-zvernennia'),
-    to: at('2-novyi-chat'),
-    speed: 1,
+    id: 'zvernennia', label: 'Звернення на столі',
+    from: at('1-zvernennia'), to: at('2-novyi-chat'), speed: 1,
     vo: ['k1-a', 'k1-b', 'k1-c', 'k1-d', 'k1-e'],
   },
   {
-    id: 'novyi-chat',
-    label: 'Крок 1. Новий чат',
-    from: at('2-novyi-chat'),
-    to: at('3-zapyt-pochatok'),
-    speed: 1,
+    id: 'novyi-chat', label: 'Крок 1. Новий чат',
+    from: at('2-novyi-chat'), to: at('3-zapyt-pochatok'), speed: 1,
     vo: ['k2-a', 'k2-b'],
   },
   {
-    id: 'zapyt-pochatok',
-    label: 'Крок 2. Складаємо запит',
-    from: at('3-zapyt-pochatok'),
-    to: at('3-zapyt-hvist'),
-    speed: 1,
+    id: 'zapyt-pochatok', label: 'Крок 2. Складаємо запит',
+    from: at('3-zapyt-pochatok'), to: at('3-zapyt-hvist'), speed: 1,
     vo: ['k3-a', 'k3-b'],
   },
   {
-    id: 'zapyt-hvist',
-    label: 'Крок 2. Складаємо запит',
-    from: at('3-zapyt-hvist'),
-    to: at('4-nadislano'),
-    speed: 1.25,
+    id: 'zapyt-hvist', label: 'Крок 2. Складаємо запит',
+    from: at('3-zapyt-hvist'), to: at('4-nadislano'), speed: 1.25,
     vo: ['k3-c', 'k3-d', 'k3-e', 'k3-f'],
   },
   {
-    id: 'chernetka',
-    label: 'Крок 3. Що ми отримали',
-    from: at('4-nadislano'),
-    to: at('4-prochytano'),
-    speed: 1,
+    id: 'chernetka', label: 'Крок 3. Що ми отримали',
+    from: at('4-nadislano'), to: at('4-prochytano'), speed: 1,
     vo: ['k4-a', 'k4-b', 'k4-c'],
   },
   {
     // Репліка k4-d («доводимо до розуму») звучить уже над уточненнями: вона їх
     // і оголошує, а сегмент із чернеткою без неї точно збігається з відео.
-    id: 'utochnennia',
-    label: 'Крок 4. Уточнюємо',
-    from: at('5-utochnennia-1'),
-    to: at('6-kopiyuvannia'),
+    id: 'utochnennia', label: 'Крок 4. Уточнюємо',
+    from: at('5-utochnennia-1'), to: at('6-kopiyuvannia'),
     // Було ×2, але з паузами між уточненнями мовлення стало довшим за відео —
     // і в кінці кроку висів довгий стоп-кадр. ×1,7 зводить їх майже впритул.
     speed: 1.7,
     vo: ['k4-d', 'k5-a', 'k5-b', 'k5-c', 'k5-d', 'k5-e'],
   },
   {
-    id: 'perevirka',
-    label: 'Крок 5. Перевірка перед підписом',
-    from: at('6-kopiyuvannia'),
-    to: at('kinets'),
-    speed: 1,
+    id: 'perevirka', label: 'Крок 5. Перевірка перед підписом',
+    from: at('6-kopiyuvannia'), to: at('kinets'), speed: 1,
     vo: ['k6-a', 'k6-b', 'k6-c', 'k6-d', 'k6-e'],
   },
 ];
-
-export const TITLE_SEC = 3.6;
-export const OUTRO_SEC = 4.4;
-
-/**
- * Розчинення лишилось тільки на титрах — на вході й на виході.
- *
- * Між кроками його немає навмисно. Дубль знято однією стрічкою, і сусідні
- * сегменти — це сусідні кадри того самого запису: стик між ними невидимий сам
- * собою. А розчинення на темній сцені давало провал у чорне: обидва кадри на
- * мить напівпрозорі, і крізь них проступає тло. У кадрі це читається як
- * «щось вирізали», хоча нічого не вирізано.
- */
-export const FADE_SEC = 0.4;
-
-/** Пауза перед першою реплікою сегмента й подих між репліками. */
-const LEAD_SEC = 0.35;
-const GAP_SEC = 0.18;
 
 /**
  * Довша пауза після конкретної репліки — там, де змінюється тема.
@@ -129,91 +69,18 @@ const GAP_SEC = 0.18;
  * Рівний ритм без зупинок читається як суцільний потік: слухач не помічає, що
  * мова перейшла з «копіюємо текст» на «а шапку не беремо, це персональні
  * дані». Пауза й є той розділовий знак, якого в мовленні інакше немає.
- *
- * Ставимо не між усіма фразами, а саме на межах тем — інакше ролик почне
- * тягнутись.
  */
 const GAP_AFTER: Record<string, number> = {
-  'k1-c': 0.9,   // рішення «що потрапить у чат» → сама дія
-  'k1-d': 0.9,   // копіюємо текст → а шапку не беремо
-  'k2-a': 0.8,   // правило → чому саме так
-  'k3-a': 0.8,   // завдання → контекст
-  'k3-b': 0.8,   // контекст → те, чого помічник не знає
-  'k3-c': 0.8,   // контекст → формат
-  'k3-d': 0.8,   // формат → обмеження
-  'k3-e': 0.5,   // обмеження → чим їх замінюємо
-  'k4-a': 0.8,   // «ось чернетка» → що в ній доброго
-  'k4-b': 0.8,   // що доброго → на що дивитись
-  'k4-d': 0.8,   // оцінка чернетки → перше уточнення
-  'k5-a': 0.8,   // правило уточнень → самі уточнення
-  'k5-b': 0.6,
-  'k5-c': 0.6,
-  'k5-d': 0.6,
-  'k6-a': 0.8,   // копіюємо → перевіряємо
-  'k6-b': 0.8,   // реквізити → строк
-  'k6-c': 0.6,   // строк → обіцянки
-  'k6-d': 0.8,   // обіцянки → підсумок
+  'k1-c': 0.9, 'k1-d': 0.9, 'k2-a': 0.8, 'k3-a': 0.8, 'k3-b': 0.8, 'k3-c': 0.8,
+  'k3-d': 0.8, 'k3-e': 0.5, 'k4-a': 0.8, 'k4-b': 0.8, 'k4-d': 0.8, 'k5-a': 0.8,
+  'k5-b': 0.6, 'k5-c': 0.6, 'k5-d': 0.6, 'k6-a': 0.8, 'k6-b': 0.8, 'k6-c': 0.6, 'k6-d': 0.8,
 };
 
-const gapAfter = (key: string) => GAP_AFTER[key] ?? GAP_SEC;
-/** Хвіст після останньої репліки: без нього кінець фрази зрізає межа сегмента. */
-const TAIL_SEC = 0.45;
+export const TITLE_SEC = 3.6;
+export const OUTRO_SEC = 4.4;
+export const FADE_SEC = 0.4;
 
-/**
- * Скільки насправді займає мовлення в сегменті.
- *
- * Рахуємо не суму реплік, а всю доріжку разом із паузами й хвостом. Перша
- * версія рахувала лише суму — і остання фраза кожного кроку обривалася на
- * останньому складі, бо сегмент закінчувався раніше за неї.
- */
-const secs = (keys: string[]) =>
-  LEAD_SEC +
-  keys.reduce((s, k, i) => s + V[k].seconds + (i < keys.length - 1 ? gapAfter(k) : 0), 0) +
-  TAIL_SEC;
-
-export type PlannedSegment = Segment & {
-  /** Кадр початку сегмента в готовому ролику. */
-  start: number;
-  /** Скільки кадрів триває сегмент. */
-  duration: number;
-  /** Скільки кадрів займає рухома частина (решта — завмерлий кадр). */
-  motion: number;
-  /** Репліки з кадром початку кожної, від початку сегмента. */
-  lines: { key: string; text: string; file: string; from: number; duration: number }[];
-};
-
-export const PLAN: PlannedSegment[] = (() => {
-  const out: PlannedSegment[] = [];
-  let cursor = Math.round(TITLE_SEC * FPS);
-
-  for (const seg of SEGMENTS) {
-    // Рахуємо з КАДРІВ, а не з секунд.
-    //
-    // Обрізка відео задається кадрами: trimBefore = round(from×fps),
-    // trimAfter = round(to×fps). Якщо довжину рухомої частини рахувати окремо,
-    // із секунд, округлення можуть розійтись на один кадр — і останній кадр
-    // сегмента випадає за межу обрізки. У кадрі це один чорний спалах на
-    // тридцяту частку секунди: помітити оком можна, знайти — важко.
-    const srcFrames = Math.round(seg.to * FPS) - Math.round(seg.from * FPS);
-    const motion = Math.floor(srcFrames / seg.speed);
-    const speech = Math.round(secs(seg.vo) * FPS);
-    const duration = Math.max(motion, speech);
-
-    let voCursor = Math.round(LEAD_SEC * FPS);
-    const lines = seg.vo.map((key) => {
-      const from = voCursor;
-      const d = Math.round(V[key].seconds * FPS);
-      voCursor += d + Math.round(gapAfter(key) * FPS);
-      return { key, text: V[key].text, file: V[key].file, from, duration: d };
-    });
-
-    out.push({ ...seg, start: cursor, duration, motion, lines });
-    cursor += duration;   // впритул: запис іде без розривів
-  }
-  return out;
-})();
-
-export const TOTAL =
-  PLAN[PLAN.length - 1].start +
-  PLAN[PLAN.length - 1].duration +
-  Math.round(OUTRO_SEC * FPS);
+export const { plan: PLAN, total: TOTAL } = buildPlan({
+  segments: SEGMENTS, voice: V, marks, gapAfter: GAP_AFTER,
+  titleSec: TITLE_SEC, outroSec: OUTRO_SEC,
+});

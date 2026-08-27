@@ -1,0 +1,70 @@
+[
+  {
+    "name": "1-zapyt-pochatok",
+    "t": 0.001
+  },
+  {
+    "name": "1-zapyt-hotovyi",
+    "t": 26.993
+  },
+  {
+    "name": "2-nadislano",
+    "t": 28.725
+  },
+  {
+    "name": "2-vidpovid-hotova",
+    "t": 36.762
+  },
+  {
+    "name": "2-prochytano",
+    "t": 40.643
+  },
+  {
+    "name": "2-kopiiuvannia",
+    "t": 40.644
+  },
+  {
+    "name": "3-zapyt2-pochatok",
+    "t": 43.557
+  },
+  {
+    "name": "3-zapyt2-hotovyi",
+    "t": 56.366
+  },
+  {
+    "name": "3-nadislano2",
+    "t": 57.812
+  },
+  {
+    "name": "3-vidpovid2-hotova",
+    "t": 65.862
+  },
+  {
+    "name": "3-prochytano2",
+    "t": 70.187
+  },
+  {
+    "name": "4-dokument-pochatok",
+    "t": 70.187
+  },
+  {
+    "name": "4-myakshyi-vstavleno",
+    "t": 91.746
+  },
+  {
+    "name": "4-tverdishyi-vstavleno",
+    "t": 101.544
+  },
+  {
+    "name": "4-vidformatovano",
+    "t": 102.923
+  },
+  {
+    "name": "5-final",
+    "t": 105.906
+  },
+  {
+    "name": "kinets",
+    "t": 109.553
+  }
+]

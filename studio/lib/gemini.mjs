@@ -6,10 +6,14 @@
  *
  * Перевірено на українському інтерфейсі 2026-08-20.
  */
+import { basename, dirname, extname } from 'node:path';
+
 import { chromium } from 'playwright-core';
 
 import { CDP_PORT, cdpAlive } from './chrome.mjs';
 import { beat, focusEnd, hold, pause, pointAndClick, sleep, typeText } from './human.mjs';
+import { elementOnScreen } from './mouse.mjs';
+import { bringChromeToFront } from './stage.mjs';
 
 export const S = {
   editor: 'rich-textarea .ql-editor',
@@ -19,9 +23,28 @@ export const S = {
   // прихована копія в згорнутій бічній панелі, і клац по ній нічого не робить.
   newChat: '[data-test-id="new-chat-button"] a',
   answer: 'model-response',
+  /** Мікрофон у композері — лише щоб показати, де він, без реального диктування. */
+  dictate: 'button[aria-label^="Диктувати"]',
   /** Кнопки під відповіддю з'являються, коли на неї наводять курсор. */
   copy: 'button[aria-label="Копіювати"]',
 };
+
+/**
+ * Вивести вікно демо-Chrome наперед — за PID процесу на CDP-порту, не за
+ * заголовком.
+ *
+ * Заголовок ненадійний навіть коли він "повний, унікальний": одразу після
+ * `newChat()`, до першого повідомлення, заголовок сторінки ще загальний
+ * ("Gemini") — а якщо на столі одночасно відкритий особистий акаунт Gemini
+ * користувача (теж "Gemini" в заголовку), пошук за підрядком на рівні ОС
+ * бере перше-ліпше вікно з таким заголовком і може вивести наперед чуже —
+ * сталося на репетиції уроку 2.9 (2026-08-26): фізичні кліки миші й
+ * набраний текст пішли б у чуже вікно. PID процесу на CDP-порту завжди
+ * однозначний — саме той Chrome, до якого підключений Playwright.
+ */
+export async function frontGemini() {
+  return bringChromeToFront();
+}
 
 /** Під'єднатись до вже відкритого браузера (у ньому людина входила руками). */
 export async function connect() {
@@ -118,6 +141,61 @@ export async function copyAnswer(page) {
 }
 
 /**
+ * Додати файл через кнопку «+» → «Додати файли».
+ *
+ * Не перетягування з провідника: справжній OLE drag-and-drop між вікнами
+ * синтетичні події миші не запускають — Explorer ініціює перетягування
+ * інакше, ніж клацання. Перевірено окремим дослідом: та сама дія рукою
+ * працює, автоматизована — ні. Це обмеження платформи, не наш баг.
+ *
+ * Клацання — справжньою системною мишею (`mouse`), не синтетичним
+ * `page.mouse`: на живій сторінці клац CDP іноді не відкривав меню взагалі.
+ *
+ * Діалог «Відкрити» тут СПРАВЖНІЙ і видимий у кадрі — навмисно без
+ * `page.waitForEvent('filechooser')`. Перехоплення діалогу до появи додало б
+ * файл миттєво й непомітно, а мета відео — показати кожен крок. Діалог є
+ * дочірнім вікном chrome.exe й власного запису серед процесів не має, тому
+ * шукається за класом Windows `#32770`.
+ *
+ * Шлях НЕ набирається текстом: перевірено дослідом — клавіші одразу після
+ * зміни фокуса гублять перші символи («C:\Users\...» приходило як
+ * «:\Users\...»). Клікаємо по ярлику теки в «Швидкому доступі», а тоді по
+ * самому файлу — і надійніше, і чесніше: живі люди шляхи руками не набирають.
+ *
+ * Тека з матеріалами (`studio/assets`) має бути закріплена в «Швидкому
+ * доступі» заздалегідь — разова ручна дія в Провіднику.
+ */
+export async function uploadFile(page, mouse, filePath) {
+  const clickAt = async ({ x, y }, { ms = 500 } = {}) => {
+    await mouse.glide(x, y, { ms });
+    await pause(250);
+    await mouse.click();
+  };
+  const clickEl = async (locator) => clickAt(await elementOnScreen(page, locator));
+
+  await clickEl(page.locator(S.attach));
+  await pause(500);
+  await clickEl(page.locator('[role="menuitem"][aria-label*="Додати файли"]').first());
+
+  // Діалог тут СПРАВЖНІЙ і видимий у кадрі — навмисно без
+  // page.waitForEvent('filechooser'): перехоплення додало б файл миттєво й
+  // непомітно, а глядач має побачити кожен крок.
+  await mouse.front({ class_name: '#32770', title: 'Open', timeout: 12 });
+  await pause(700);
+
+  const folder = basename(dirname(filePath));
+  await clickAt(await mouse.dialogFind(folder), { ms: 700 });
+  await pause(900); // вміст теки промальовується не миттєво
+
+  const stem = basename(filePath, extname(filePath));
+  const file = await mouse.dialogFind(stem);
+  await clickAt(file, { ms: 600 });
+  await pause(400);
+  await mouse.doubleClick(); // відкриває файл і закриває діалог
+  await pause(1500); // мініатюра файлу з'являється із затримкою
+}
+
+/**
  * Надіслати запит.
  *
  * Перед натисканням «будимо» поле справжнім натисканням клавіші. Після вставки
@@ -128,6 +206,15 @@ export async function copyAnswer(page) {
  * Якщо кнопки все одно немає — надсилаємо Enter. Так це робить і людина.
  */
 export async function send(page) {
+  // Скільки відповідей уже є в чаті ДО цього повідомлення. Повертаємо —
+  // `waitForAnswer` має знати, з якого блока починати чекати: інакше на
+  // повторний запит у тому самому чаті він ловить стабільний текст
+  // ПОПЕРЕДНЬОЇ, уже завершеної відповіді, і повертається миттєво з чужим
+  // текстом (перевірено дослідом на уроці 2.8 — другий запит повернув
+  // дослівно перший, а справжня друга відповідь так і не встигла
+  // домалюватись до кінця дубля).
+  const before = await page.locator(S.answer).count();
+
   await page.keyboard.type(' ');
   await page.keyboard.press('Backspace');
   await pause(600);
@@ -144,6 +231,7 @@ export async function send(page) {
   // і вона висить у кадрі всю генерацію.
   await page.mouse.move(1500, 300, { steps: 12 });
   await beat();
+  return before;
 }
 
 /**
@@ -153,15 +241,24 @@ export async function send(page) {
  * версіями. Тому дивимось на сам текст: коли він перестав рости на дві з
  * половиною секунди, генерація закінчилась.
  */
-export async function waitForAnswer(page, { timeout = 180000, quiet = 2500 } = {}) {
+export async function waitForAnswer(page, { timeout = 180000, quiet = 2500, before = 0 } = {}) {
   const started = Date.now();
+
+  // Спершу дочекатись НОВОГО блока відповіді. Без цього кроку стабільність
+  // тексту перевіряється на тому, що вже є в DOM просто зараз, — а на
+  // повторний запит там ще лежить стара, вже стабільна відповідь.
+  while (Date.now() - started < timeout) {
+    if ((await page.locator(S.answer).count()) > before) break;
+    await sleep(300);
+  }
+
   let last = '';
   let stableSince = 0;
 
   while (Date.now() - started < timeout) {
     const blocks = page.locator(S.answer);
     const n = await blocks.count();
-    const text = n ? await blocks.nth(n - 1).innerText().catch(() => '') : '';
+    const text = n > before ? await blocks.nth(n - 1).innerText().catch(() => '') : '';
 
     if (text && text === last) {
       if (!stableSince) stableSince = Date.now();

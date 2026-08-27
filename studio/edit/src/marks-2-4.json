@@ -1,0 +1,62 @@
+[
+  {
+    "name": "1-chernetka-pochatok",
+    "t": 0.002
+  },
+  {
+    "name": "1-chernetka-hotova",
+    "t": 7.201
+  },
+  {
+    "name": "2-kopiiuvannia",
+    "t": 9.012
+  },
+  {
+    "name": "2-vstavka",
+    "t": 14.915
+  },
+  {
+    "name": "2-zapyt-hotovyi",
+    "t": 34.075
+  },
+  {
+    "name": "3-nadislano",
+    "t": 35.849
+  },
+  {
+    "name": "3-vidpovid-hotova",
+    "t": 47.437
+  },
+  {
+    "name": "3-prochytano",
+    "t": 53.224
+  },
+  {
+    "name": "4-povernennia-pochatok",
+    "t": 53.224
+  },
+  {
+    "name": "4-pravka-1",
+    "t": 57.348
+  },
+  {
+    "name": "4-pravka-2",
+    "t": 62.116
+  },
+  {
+    "name": "4-pravky-hotovi",
+    "t": 67.115
+  },
+  {
+    "name": "5-final-pochatok",
+    "t": 68.664
+  },
+  {
+    "name": "5-final",
+    "t": 70.199
+  },
+  {
+    "name": "kinets",
+    "t": 72.942
+  }
+]

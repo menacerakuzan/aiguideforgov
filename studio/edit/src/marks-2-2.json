@@ -1,0 +1,66 @@
+[
+  {
+    "name": "0-zvit-pochatok",
+    "t": 0.002
+  },
+  {
+    "name": "0-zvit-progortano",
+    "t": 40.148
+  },
+  {
+    "name": "0-zvit-hotovo",
+    "t": 43.969
+  },
+  {
+    "name": "1-dodavannya-pochatok",
+    "t": 50.286
+  },
+  {
+    "name": "1-dodavannya-hotovo",
+    "t": 62.644
+  },
+  {
+    "name": "2-zapyt",
+    "t": 64.332
+  },
+  {
+    "name": "3-nadislano",
+    "t": 85.484
+  },
+  {
+    "name": "3-zvedennya-hotove",
+    "t": 105.623
+  },
+  {
+    "name": "3-prochytano",
+    "t": 113.599
+  },
+  {
+    "name": "4-kopiiuvannia-pochatok",
+    "t": 113.6
+  },
+  {
+    "name": "4-vstavleno",
+    "t": 135.72
+  },
+  {
+    "name": "4-prybrano-zayve",
+    "t": 140.32
+  },
+  {
+    "name": "4-vidformatovano",
+    "t": 143.804
+  },
+  {
+    "name": "5-vidkryttia-dzherela",
+    "t": 146.667
+  },
+  {
+    "name": "5-poshuk",
+    "t": 161.801
+  },
+  {
+    "name": "kinets",
+    "t": 168.087
+  }
+]

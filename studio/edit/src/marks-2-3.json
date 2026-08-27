@@ -1,0 +1,54 @@
+[
+  {
+    "name": "1-mikrofon-pochatok",
+    "t": 0
+  },
+  {
+    "name": "1-mikrofon-hotovo",
+    "t": 2.161
+  },
+  {
+    "name": "2-zapyt-pochatok",
+    "t": 3.621
+  },
+  {
+    "name": "2-zapyt-hotovyi",
+    "t": 52.57
+  },
+  {
+    "name": "3-nadislano",
+    "t": 54.17
+  },
+  {
+    "name": "3-vidpovid-hotova",
+    "t": 65.163
+  },
+  {
+    "name": "3-prochytano",
+    "t": 71.228
+  },
+  {
+    "name": "4-kopiiuvannia-pochatok",
+    "t": 71.229
+  },
+  {
+    "name": "4-vstavleno",
+    "t": 82.858
+  },
+  {
+    "name": "4-vidformatovano",
+    "t": 86.063
+  },
+  {
+    "name": "5-final-pochatok",
+    "t": 87.789
+  },
+  {
+    "name": "5-final-abzac",
+    "t": 89.726
+  },
+  {
+    "name": "kinets",
+    "t": 92.152
+  }
+]

@@ -15,7 +15,7 @@
 
 param(
   [Parameter(Mandatory = $true)]
-  [ValidateSet('open', 'point', 'span', 'select', 'paste', 'copy', 'close', 'show', 'scroll', 'top', 'highlight', 'highlightAll', 'zoom')]
+  [ValidateSet('open', 'new', 'point', 'span', 'select', 'paste', 'copy', 'copyall', 'close', 'show', 'scroll', 'top', 'bottom', 'highlight', 'highlightAll', 'zoom', 'format', 'cleanup', 'trimlead')]
   [string]$Action,
   [string]$Path,
   [string]$Find,
@@ -23,6 +23,7 @@ param(
   [string]$Name,
   [int]$Lines = 3,
   [int]$Percent = 130,
+  [int]$Size = 14,
   [ValidateSet('start', 'end')][string]$At = 'start'
 )
 
@@ -59,6 +60,26 @@ switch ($Action) {
 
     $word.Activate()
     "opened $($doc.Name)"
+  }
+
+  'new' {
+    # Порожній документ — щоб покласти в нього вивід ШІ, а не переказувати
+    # його на словах. Те саме форматування, що й у 'open': без нього
+    # координати з GetPoint (а тут — і сам шрифт вставки) поїдуть від дубля
+    # до дубля.
+    $word = Get-Word
+    if (-not $word) { $word = New-Object -ComObject Word.Application }
+    $word.Visible = $true
+    $doc = $word.Documents.Add()
+    $word.WindowState = 1
+    $word.ActiveWindow.WindowState = 1
+    $word.ActiveWindow.View.Type = 3
+    $word.ActiveWindow.View.Zoom.Percentage = 100
+    $doc.Content.LanguageID = 1058
+    $doc.ShowSpellingErrors = $false
+    $doc.ShowGrammaticalErrors = $false
+    $word.Activate()
+    "new $($doc.Name)"
   }
 
   'point' {
@@ -161,6 +182,16 @@ switch ($Action) {
     'top'
   }
 
+  'bottom' {
+    # Кінець документа — там, де в службовій записці лежить конкретна
+    # пропозиція. Незалежно від точного формулювання ШІ: кінець є кінець.
+    $word = Get-Word
+    if (-not $word) { throw 'Word не запущено.' }
+    $word.Selection.EndKey(6) | Out-Null   # wdStory
+    $word.ActiveWindow.ScrollIntoView($word.Selection.Range)
+    'bottom'
+  }
+
   'zoom' {
     $word = Get-Word
     if (-not $word) { throw 'Word не запущено.' }
@@ -208,10 +239,86 @@ switch ($Action) {
     "highlighted $count"
   }
 
+  'trimlead' {
+    # ШІ часто починає відповідь зайвим вступним реченням («Ось зведення
+    # звіту...») перед тим самим заголовком по суті. Людина таке прибирає
+    # не читаючи — і ми показуємо рівно цю дію: перший абзац геть.
+    $word = Get-Word
+    if (-not $word) { throw 'Word не запущено.' }
+    $doc = $word.ActiveDocument
+    $doc.Paragraphs(1).Range.Select()
+    $word.Selection.Delete()
+    'trimmed'
+  }
+
+  'cleanup' {
+    # Те саме прибирання слідів чату, що й у 'format', але без зміни
+    # шрифту: для дублів, де зміну шрифту знімаємо окремо, видимим кліком
+    # по стрічці (`changeWordFontVisibly` у word.mjs), а не миттєвою
+    # командою, яку глядач не встигає прочитати.
+    $word = Get-Word
+    if (-not $word) { throw 'Word не запущено.' }
+    $doc = $word.ActiveDocument
+
+    for ($i = 0; $i -lt 5; $i++) {
+      $doc.Content.Find.Execute('^13^13', $false, $false, $false, $false, $false,
+        $true, 1, $false, '^13', 2) | Out-Null
+    }
+
+    $doc.Content.Select() | Out-Null
+    $word.Selection.Font.Bold = 0
+    $word.Selection.Font.Italic = 0
+    # Повертає курсор на початок документа — див. застереження у 'format'.
+    $word.Selection.HomeKey(6) | Out-Null
+    'cleaned'
+  }
+
+  'format' {
+    # Вставлений із чату текст тягне за собою три сліди походження одразу:
+    # шрифт сайту, порожні абзаци між кожним реченням (Gemini розбиває
+    # відповідь так у своїй розмітці) і жирні «лід-іни» на кшталт «Мета:»,
+    # «Про що:» — так ІІ форматує списки, жива людина в документі так не
+    # пише. Прибираємо все це одним проходом, перш ніж показати результат.
+    $word = Get-Word
+    if (-not $word) { throw 'Word не запущено.' }
+    $doc = $word.ActiveDocument
+
+    # Подвійні (потрійні тощо) порожні абзаци — до одного. П'ять проходів
+    # з запасом: кожен вдвічі скорочує найдовший ланцюжок порожніх рядків.
+    for ($i = 0; $i -lt 5; $i++) {
+      $doc.Content.Find.Execute('^13^13', $false, $false, $false, $false, $false,
+        $true, 1, $false, '^13', 2) | Out-Null
+    }
+
+    $doc.Content.Select() | Out-Null
+    $word.Selection.Font.Name = $Name
+    $word.Selection.Font.Size = $Size
+    # Жирне й курсив — прибираємо геть: у живому документі жирним виділяють
+    # свідомо й рідко, а не через кожен другий підпункт.
+    $word.Selection.Font.Bold = 0
+    $word.Selection.Font.Italic = 0
+    # wdStory: прибрати виділення, повернутись на початок. УВАГА: якщо після
+    # цього треба дописувати текст У КІНЕЦЬ документа — курсор туди сам не
+    # повернеться, спершу викликати scrollToBottom() (перевірено дослідом
+    # на уроці 2.8: рядок дописався на початку, а не в кінці).
+    $word.Selection.HomeKey(6) | Out-Null
+    "formatted $Name $Size"
+  }
+
   'copy' {
     # Копіює те, що виділено зараз, — тобто рівно те, що глядач бачив на екрані.
     $word = Get-Word
     if (-not $word) { throw 'Word не запущено.' }
+    $word.Selection.Copy()
+    'copied'
+  }
+
+  'copyall' {
+    # Виділити весь документ і скопіювати — так людина копіює короткий лист
+    # цілком, а не виловлює абзаци Find'ом.
+    $word = Get-Word
+    if (-not $word) { throw 'Word не запущено.' }
+    $word.ActiveDocument.Content.Select() | Out-Null
     $word.Selection.Copy()
     'copied'
   }

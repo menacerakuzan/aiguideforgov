@@ -1,94 +1,136 @@
 /**
- * Курсор на рівні системи, а не сторінки.
+ * Миша, клавіатура й вікна Windows — клієнт до `lib/win.py`.
  *
- * Навіщо: у модулі 2 треба показати, як людина перетягує файл із провідника у
- * вікно чату. Playwright такого не вміє — він живе всередині сторінки й про
- * провідник не знає. Тому рухаємо справжній курсор Windows через user32.dll.
+ * Сам механізм живе в Python (pywinauto): там UI Automation, і те, на що в
+ * PowerShell ішло по сто рядків, робиться в один. Тут лишається тонкий
+ * клієнт: підняти процес, слати JSON по рядку, чекати відповідь.
  *
- * Один довгий процес PowerShell, який читає команди з stdin: піднімати окремий
- * PowerShell на кожен крок руху — це секунда на крок, і плавного руху не вийде.
+ * Протокол — JSON, а не пробіли, як було: шлях «C:\\...\\Рабочий стол\\...»
+ * містить пробіли, і в рядковому протоколі його доводилось паковати в
+ * base64. Тепер це просто значення поля.
  *
- * Координати — ФІЗИЧНІ пікселі екрана, ті самі, що бачить gdigrab. Тому в
- * PowerShell одразу вмикаємо DPI-обізнаність: без неї Windows перерахує
- * координати за масштабом 125 % і курсор поїде не туди.
+ * Рухи інтерполює Python. Раніше Node слав по команді на кожен крок у 16 мс
+ * — сорок із гаком обмінів на один рух, і курсор від цього смикався.
  */
 import { spawn } from 'node:child_process';
+import { createInterface } from 'node:readline';
+import { join } from 'node:path';
 
+import { STUDIO_DIR } from './paths.mjs';
 import { sleep } from './human.mjs';
 
-const PS_BACKEND = `
-Add-Type @"
-using System;
-using System.Runtime.InteropServices;
-public class Cur {
-  [DllImport("user32.dll")] public static extern bool SetCursorPos(int X, int Y);
-  [DllImport("user32.dll")] public static extern void mouse_event(uint f, uint dx, uint dy, uint d, int e);
-  [DllImport("user32.dll")] public static extern bool SetProcessDPIAware();
-}
-"@
-[Cur]::SetProcessDPIAware() | Out-Null
-while ($line = [Console]::In.ReadLine()) {
-  $p = $line.Split(' ')
-  switch ($p[0]) {
-    'move' { [Cur]::SetCursorPos([int]$p[1], [int]$p[2]) | Out-Null }
-    'down' { [Cur]::mouse_event(0x0002, 0, 0, 0, 0) }
-    'up'   { [Cur]::mouse_event(0x0004, 0, 0, 0, 0) }
-    'bye'  { exit }
-  }
-  [Console]::Out.WriteLine('ok')
-}
-`;
+const WIN_PY = join(STUDIO_DIR, 'lib', 'win.py');
 
 export function openMouse() {
-  const proc = spawn('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', '-'], {
+  const proc = spawn('python', [WIN_PY, 'serve'], {
     stdio: ['pipe', 'pipe', 'pipe'],
-  });
-  proc.stdin.write(PS_BACKEND + '\n');
-
-  const send = (cmd) => new Promise((resolve) => {
-    proc.stdout.once('data', () => resolve());
-    proc.stdin.write(cmd + '\n');
+    env: { ...process.env, PYTHONIOENCODING: 'utf-8', PYTHONUNBUFFERED: '1' },
   });
 
-  let at = { x: 0, y: 0 };
+  /**
+   * Черга обіцянок по рядках stdout: одна відповідь — один resolve.
+   *
+   * Не `.once('data')`: Windows складає кілька відповідей в один chunk, і
+   * `.once` бачить лише перший рядок — решта тихо губиться, а всі наступні
+   * команди починають чекати вже не своєї відповіді.
+   */
+  const pending = [];
+  createInterface({ input: proc.stdout }).on('line', (line) => {
+    const next = pending.shift();
+    if (!next) return;
+    try {
+      const msg = JSON.parse(line);
+      msg.ok ? next.resolve(msg) : next.reject(new Error(msg.error));
+    } catch {
+      next.reject(new Error(`Незрозуміла відповідь: ${line.slice(0, 200)}`));
+    }
+  });
+
+  // stderr читаємо завжди, навіть якщо він нікому не потрібен: досить одного
+  // попередження, щоб забити буфер каналу, — тоді дочірній процес блокується
+  // на записі назавжди, а разом з ним і весь дубль. Симптом підступний —
+  // скрипт просто зависає без жодної помилки.
+  let stderrBuf = '';
+  proc.stderr.on('data', (d) => { stderrBuf += d.toString(); });
+
+  const exited = new Promise((resolve) => proc.on('exit', resolve));
+
+  const send = (msg, { timeoutMs = 15000 } = {}) => new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error(
+        `Немає відповіді на ${msg.cmd} за ${timeoutMs} мс. `
+        + `stderr: ${stderrBuf.slice(-500) || '(порожньо)'}`,
+      ));
+    }, timeoutMs);
+    pending.push({
+      resolve: (r) => { clearTimeout(timer); resolve(r); },
+      reject: (e) => { clearTimeout(timer); reject(e); },
+    });
+    proc.stdin.write(JSON.stringify(msg) + '\n');
+  });
 
   return {
     /** Миттєве перенесення — тільки коли курсор поза кадром. */
-    async jump(x, y) { at = { x, y }; await send(`move ${Math.round(x)} ${Math.round(y)}`); },
+    jump: (x, y) => send({ cmd: 'jump', x: Math.round(x), y: Math.round(y) }),
+
+    /** Довести курсор до точки: рух зі сповільненням наприкінці, як рукою. */
+    glide: (x, y, { ms = 700 } = {}) => send(
+      { cmd: 'glide', x: Math.round(x), y: Math.round(y), ms },
+      { timeoutMs: ms + 15000 },
+    ),
+
+    down: () => send({ cmd: 'down' }),
+    up: () => send({ cmd: 'up' }),
+    click: () => send({ cmd: 'click' }),
+    doubleClick: () => send({ cmd: 'doubleclick' }),
+
+    /** Перетягнути: натиснути, довезти, відпустити. */
+    dragTo: (x, y, { ms = 1400 } = {}) => send(
+      { cmd: 'drag', x: Math.round(x), y: Math.round(y), ms },
+      { timeoutMs: ms + 15000 },
+    ),
+
+    /** Друк у кадрі — по символу, людським темпом. */
+    type: (text, { cps = 14 } = {}) => send(
+      { cmd: 'type', text, cps },
+      { timeoutMs: (text.length / cps) * 1000 + 20000 },
+    ),
+
+    /** Спеціальна клавіша в нотації pywinauto, напр. '{ENTER}'. */
+    key: (name) => send({ cmd: 'key', name }),
+    enter: () => send({ cmd: 'key', name: '{ENTER}' }),
+    escape: () => send({ cmd: 'key', name: '{ESC}' }),
+
+    /** Що зараз відкрито — звірити сцену перед дублем. */
+    windows: () => send({ cmd: 'windows' }),
+
+    /** Згорнути все: чистий стіл перед першим кадром. */
+    clear: () => send({ cmd: 'clear' }, { timeoutMs: 20000 }),
 
     /**
-     * Довести курсор до точки за час `ms`. Рух зі сповільненням наприкінці:
-     * так людина й рухає мишею, і глядач встигає побачити ціль.
+     * Вивести вікно наперед — за підрядком заголовка або за класом.
+     * Нативний діалог «Відкрити» шукається тільки за класом `#32770`:
+     * він дочірнє вікно chrome.exe й власного запису серед процесів не має.
      */
-    async glide(x, y, { ms = 700 } = {}) {
-      const from = at;
-      const steps = Math.max(8, Math.round(ms / 16));
-      for (let i = 1; i <= steps; i++) {
-        const t = i / steps;
-        const e = 1 - Math.pow(1 - t, 3);
-        await send(`move ${Math.round(from.x + (x - from.x) * e)} ${Math.round(from.y + (y - from.y) * e)}`);
-        await sleep(16);
-      }
-      at = { x, y };
-    },
+    front: (opts) => send({ cmd: 'front', ...opts }, { timeoutMs: 25000 }),
 
-    async down() { await send('down'); },
-    async up() { await send('up'); },
+    /** Координати центру елемента в діалозі «Відкрити» (підрядок імені). */
+    dialogFind: (name) => send({ cmd: 'dialog_find', name }, { timeoutMs: 25000 }),
 
     /**
-     * Перетягування: натиснути, довезти, відпустити.
-     * Пауза після натискання обов'язкова — Windows має встигнути почати
-     * перетягування, інакше вийде звичайний клац, і файл нікуди не поїде.
+     * Прибрати діалог, якщо лишився відкритим.
+     * Забутий модальний діалог з'їдає ВСІ наступні кліки — вони йдуть йому,
+     * а не сторінці, і виглядає це так, ніби зламались кнопки на сайті.
      */
-    async dragTo(x, y, { ms = 1400 } = {}) {
-      await this.down();
-      await sleep(220);
-      await this.glide(x, y, { ms });
-      await sleep(320);
-      await this.up();
-    },
+    dialogClose: () => send({ cmd: 'dialog_close' }, { timeoutMs: 10000 }),
 
-    async close() { proc.stdin.write('bye\n'); proc.stdin.end(); },
+    async close() {
+      proc.stdin.write(JSON.stringify({ cmd: 'bye' }) + '\n');
+      proc.stdin.end();
+      // Чекаємо справжнього виходу: інакше наступний openMouse() у тому ж
+      // дублі може зіткнутися з ще живим попереднім процесом.
+      await Promise.race([exited, sleep(3000)]);
+    },
   };
 }
 

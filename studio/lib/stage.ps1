@@ -10,7 +10,8 @@
 
 param(
   [Parameter(Mandatory = $true)][ValidateSet('clear', 'front', 'list', 'paste', 'esc')][string]$Action,
-  [string]$Match
+  [string]$Match,
+  [int]$TargetPid
 )
 
 $ErrorActionPreference = 'Stop'
@@ -71,8 +72,19 @@ switch ($Action) {
   }
 
   'front' {
-    $p = Get-Process | Where-Object { $_.MainWindowTitle -like "*$Match*" } | Select-Object -First 1
-    if (-not $p) { throw "Вікно не знайдено: $Match" }
+    # PID — точний збіг, для власного Chrome-процесу зйомки (уникає плутанини,
+    # коли в системі відкрито ще одне вікно з таким самим заголовком — напр.
+    # особистий Chrome користувача теж може мати "Gemini" в заголовку).
+    # Підрядок заголовка — для решти (Word тощо), де такої двозначності нема.
+    if ($TargetPid -gt 0) {
+      $p = Get-Process -Id $TargetPid -ErrorAction SilentlyContinue
+      if (-not $p -or $p.MainWindowHandle -eq [IntPtr]::Zero) {
+        throw "Вікно не знайдено для PID: $TargetPid"
+      }
+    } else {
+      $p = Get-Process | Where-Object { $_.MainWindowTitle -like "*$Match*" } | Select-Object -First 1
+      if (-not $p) { throw "Вікно не знайдено: $Match" }
+    }
     if (-not (Bring-Front $p.MainWindowHandle)) {
       throw "Не вдалося вивести вікно наперед: $($p.MainWindowTitle)"
     }

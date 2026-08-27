@@ -24,11 +24,62 @@ async function ps(args) {
 }
 
 export const openInWord = (path) => ps(['-Action', 'open', '-Path', path]);
+export const newWordDoc = () => ps(['-Action', 'new']);
 export const pasteInWord = () => ps(['-Action', 'paste']);
 export const copyInWord = () => ps(['-Action', 'copy']);
+export const copyAllInWord = () => ps(['-Action', 'copyall']);
 export const closeWord = () => ps(['-Action', 'close']);
+/**
+ * Привести вставлений текст до шрифту документа: прибрати «шрифт сайту»,
+ * зайве жирне й подвійні порожні абзаци — усе це видає вставку з чату.
+ */
+export const formatWord = (name = 'Times New Roman', size = 14) =>
+  ps(['-Action', 'format', '-Name', name, '-Size', String(size)]);
+/** Те саме прибирання слідів чату, без зміни шрифту — див. changeWordFontVisibly. */
+export const cleanupPastedWord = () => ps(['-Action', 'cleanup']);
+
+/**
+ * Координати полів «Шрифт» і «Розмір» на стрічці Word (вкладка Home).
+ * Заміряно UI Automation на розгорнутому вікні 1920×1080 — стрічка на цій
+ * вкладці завжди в тому самому місці, тому координати не плавають між
+ * дублями.
+ */
+export const FONT_BOX = { x: 286, y: 108 };
+export const SIZE_BOX = { x: 386, y: 108 };
+
+/**
+ * Видима зміна шрифту: курсор іде до поля «Шрифт» на стрічці, тоді до
+ * «Розміру», і лише тоді сама зміна застосовується. Без цього формат
+ * документа міняється однією непомітною командою — глядач бачить миттєвий
+ * стрибок тексту й не розуміє, що саме відбулось.
+ *
+ * Клік і власноручний набір у полях стрічки виявився ненадійним: Word не
+ * завжди приймає текст, набраний туди синтетичною клавіатурою (перевірено
+ * дослідом — шрифт лишався попереднім). Тому клік лишається — він показує,
+ * куди дивитись, — а саму зміну застосовує ta сама надійна команда
+ * (`format`), яку раніше викликали без жодного видимого жесту.
+ */
+export async function changeWordFontVisibly(mouse, { name = 'Times New Roman', size = 14 } = {}) {
+  // Ctrl+A в документі — фокус там уже є одразу після друку чи вставки.
+  await mouse.key('^a');
+  await sleep(300);
+
+  await mouse.glide(FONT_BOX.x, FONT_BOX.y, { ms: 500 });
+  await mouse.click();
+  await sleep(400);
+
+  await mouse.glide(SIZE_BOX.x, SIZE_BOX.y, { ms: 450 });
+  await mouse.click();
+  await sleep(300);
+
+  await ps(['-Action', 'format', '-Name', name, '-Size', String(size)]);
+  await sleep(300);
+}
+/** Прибрати перший абзац — типове зайве вступне речення від ШІ. */
+export const trimLeadInWord = () => ps(['-Action', 'trimlead']);
 export const showDoc = (name) => ps(['-Action', 'show', '-Name', name]);
 export const scrollToTop = () => ps(['-Action', 'top']);
+export const scrollToBottom = () => ps(['-Action', 'bottom']);
 export const zoomWord = (percent) => ps(['-Action', 'zoom', '-Percent', String(percent)]);
 export const highlightInWord = (find) => ps(['-Action', 'highlight', '-Find', find]);
 export const highlightAllInWord = (find) => ps(['-Action', 'highlightAll', '-Find', find]);
