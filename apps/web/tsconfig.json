@@ -1,5 +1,5 @@
 {
-  "extends": "@yasno/config/tsconfig.next.json",
+  "extends": "@proai/config/tsconfig.next.json",
   "compilerOptions": {
     "paths": {
       "@/*": ["./src/*"]

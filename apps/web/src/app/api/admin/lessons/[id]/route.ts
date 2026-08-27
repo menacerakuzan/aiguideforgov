@@ -1,7 +1,8 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { prisma } from '@yasno/db';
-import { requireCurrentUser, requireAdmin } from '@yasno/auth';
-import { UpdateLessonInputSchema, type LessonBlock } from '@yasno/types';
+import { prisma } from '@proai/db';
+import { requireCurrentUser, requireAdmin } from '@proai/auth';
+import { sanitizeLessonBlocks } from '@proai/infra';
+import { UpdateLessonInputSchema, type LessonBlock } from '@proai/types';
 import { withApiErrors } from '@/lib/api-guard';
 
 /** Повний урок разом із розібраними блоками — для форми редагування в CMS. */
@@ -48,7 +49,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         data: {
           ...rest,
           id: undefined,
-          ...(blocks ? { content: JSON.stringify(blocks) } : {}),
+          ...(blocks ? { content: JSON.stringify(sanitizeLessonBlocks(blocks)) } : {}),
           ...(validAsOf !== undefined ? { validAsOf: validAsOf ? new Date(validAsOf) : null } : {}),
         },
       });

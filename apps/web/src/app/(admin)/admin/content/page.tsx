@@ -1,8 +1,8 @@
 import Link from 'next/link';
-import { prisma } from '@yasno/db';
-import { requireCurrentUser } from '@yasno/auth';
-import { Book } from '@yasno/icons';
-import { ClayCard, EmptyState } from '@yasno/ui';
+import { prisma } from '@proai/db';
+import { requireCurrentUser } from '@proai/auth';
+import { Book } from '@proai/icons';
+import { ClayCard, EmptyState } from '@proai/ui';
 import { requirePageAdmin } from '@/lib/page-guard';
 import { AddCourseForm } from '@/components/admin/content-forms';
 

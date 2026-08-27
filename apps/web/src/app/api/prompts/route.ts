@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { requireCurrentUser } from '@yasno/auth';
-import { listPrompts } from '@yasno/prompts';
-import { PromptsQuerySchema } from '@yasno/types';
+import { requireCurrentUser } from '@proai/auth';
+import { listPrompts } from '@proai/prompts';
+import { PromptsQuerySchema } from '@proai/types';
 import { withApiErrors } from '@/lib/api-guard';
 
 export async function GET(request: NextRequest) {

@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { requireCurrentUser } from '@yasno/auth';
-import { incrementCopyCount } from '@yasno/prompts';
-import { PromptIdInputSchema } from '@yasno/types';
+import { requireCurrentUser } from '@proai/auth';
+import { incrementCopyCount } from '@proai/prompts';
+import { PromptIdInputSchema } from '@proai/types';
 import { withApiErrors } from '@/lib/api-guard';
 
 export async function POST(request: NextRequest) {

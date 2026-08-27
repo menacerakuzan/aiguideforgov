@@ -1,9 +1,9 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { requireCurrentUser } from '@yasno/auth';
-import { getModuleBySlug } from '@yasno/learning';
-import { ArrowLeft, Award, Book, Check, Clock, Lock, Play } from '@yasno/icons';
-import { ClayCard } from '@yasno/ui';
+import { requireCurrentUser } from '@proai/auth';
+import { getModuleBySlug } from '@proai/learning';
+import { ArrowLeft, Award, Book, Check, Clock, Lock, Play } from '@proai/icons';
+import { ClayCard } from '@proai/ui';
 
 export default async function ModuleDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;

@@ -8,11 +8,11 @@
  * для тексту — контент на платформі, а `.md` лишається робочим документом автора
  * (задум, обґрунтування рішень, ТЗ на зйомку) з актуальним дзеркалом тексту всередині.
  *
- * Запуск: pnpm --filter @yasno/db export-lessons
+ * Запуск: pnpm --filter @proai/db export-lessons
  */
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import type { LessonBlock } from '@yasno/types';
+import type { LessonBlock } from '@proai/types';
 import { prisma } from './client';
 
 const LESSONS_DIR = join(process.cwd(), '..', 'lessons');
@@ -192,7 +192,7 @@ async function main() {
     const checkNo = { n: 0 };
     const body = blocks.map((b) => renderBlock(b, checkNo)).filter(Boolean).join('\n\n---\n\n');
 
-    const zone = `${START}\n\n> Згенеровано з контенту платформи (\`pnpm --filter @yasno/db export-lessons\`).\n> Правити текст уроку — у \`prisma/src/content/lessons-module-*.ts\`, а не тут.\n\n${body}\n\n---\n\n`;
+    const zone = `${START}\n\n> Згенеровано з контенту платформи (\`pnpm --filter @proai/db export-lessons\`).\n> Правити текст уроку — у \`prisma/src/content/lessons-module-*.ts\`, а не тут.\n\n${body}\n\n---\n\n`;
 
     writeFileSync(file, md.slice(0, i) + zone + md.slice(j), 'utf-8');
     updated += 1;

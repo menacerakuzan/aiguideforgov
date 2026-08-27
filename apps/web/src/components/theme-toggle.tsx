@@ -1,13 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Moon, Sun } from '@yasno/icons';
+import { Moon, Sun } from '@proai/icons';
 
 type Theme = 'light' | 'dark';
 
 function applyTheme(theme: Theme) {
   document.documentElement.setAttribute('data-theme', theme);
-  localStorage.setItem('yasno-theme', theme);
+  localStorage.setItem('proai-theme', theme);
 }
 
 export function ThemeToggle() {

@@ -11,10 +11,10 @@
  * читаючи питання. Знадобиться ще раз, коли переробимо 80 питань підсумкових тестів
  * (див. README §5).
  *
- * Запуск: pnpm --filter @yasno/db audit-lessons
- *         pnpm --filter @yasno/db audit-lessons 4 5   — лише вказані модулі
+ * Запуск: pnpm --filter @proai/db audit-lessons
+ *         pnpm --filter @proai/db audit-lessons 4 5   — лише вказані модулі
  */
-import type { LessonBlock } from '@yasno/types';
+import type { LessonBlock } from '@proai/types';
 import { module1Lessons } from './content/lessons-module-1';
 import { module2Lessons } from './content/lessons-module-2';
 import { module3Lessons } from './content/lessons-module-3';

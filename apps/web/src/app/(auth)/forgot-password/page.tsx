@@ -5,12 +5,13 @@ import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Button, ClayCard, FieldError, Input, Label } from '@yasno/ui';
+import { EmailSchema } from '@proai/types';
+import { Button, ClayCard, FieldError, Input, Label } from '@proai/ui';
 import { requestPasswordReset } from '@/lib/auth-client';
 
-const ForgotPasswordSchema = z.object({
-  email: z.string().email('Перевірте адресу'),
-});
+// EmailSchema, а не власна перевірка: адреса має прийти в нижньому регістрі,
+// інакше сервер шукатиме акаунт за рядком, якого в базі немає.
+const ForgotPasswordSchema = z.object({ email: EmailSchema });
 type ForgotPasswordInput = z.infer<typeof ForgotPasswordSchema>;
 
 export default function ForgotPasswordPage() {

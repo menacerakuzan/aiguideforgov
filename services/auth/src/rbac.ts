@@ -1,4 +1,4 @@
-import type { Role } from '@yasno/types';
+import type { Role } from '@proai/types';
 
 /**
  * RBAC спрощено до двох ролей: LEARNER вчиться, ADMIN бачить і керує всім.

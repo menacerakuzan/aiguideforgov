@@ -1,7 +1,7 @@
 'use client';
 
-import { Input, Textarea, Button, ClayCard } from '@yasno/ui';
-import { XIcon } from '@yasno/icons';
+import { Input, Textarea, Button, ClayCard } from '@proai/ui';
+import { XIcon } from '@proai/icons';
 
 export interface EditableQuestion {
   text: string;

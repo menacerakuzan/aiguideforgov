@@ -2,7 +2,7 @@
 
 import { createAuthClient } from 'better-auth/react';
 import { inferAdditionalFields } from 'better-auth/client/plugins';
-import type { auth } from '@yasno/auth';
+import type { auth } from '@proai/auth';
 
 /**
  * inferAdditionalFields<typeof auth>() — це type-only імпорт серверного

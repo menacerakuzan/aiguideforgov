@@ -1,4 +1,4 @@
-import type { LessonBlock } from '@yasno/types';
+import type { LessonBlock } from '@proai/types';
 import { tool } from './tool-logos';
 
 /** Урок для seed: мінімальний набір полів, що йдуть у Prisma Lesson.create(). */

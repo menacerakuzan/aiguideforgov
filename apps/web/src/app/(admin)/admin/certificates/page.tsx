@@ -1,7 +1,7 @@
-import { prisma } from '@yasno/db';
-import { requireCurrentUser } from '@yasno/auth';
-import { Award } from '@yasno/icons';
-import { ClayCard, EmptyState, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@yasno/ui';
+import { prisma } from '@proai/db';
+import { requireCurrentUser } from '@proai/auth';
+import { Award } from '@proai/icons';
+import { ClayCard, EmptyState, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@proai/ui';
 import { requirePageAdmin } from '@/lib/page-guard';
 import { AdminRevokeButton } from '@/components/admin/admin-revoke-button';
 

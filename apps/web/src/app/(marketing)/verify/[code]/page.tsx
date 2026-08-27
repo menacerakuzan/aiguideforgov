@@ -1,6 +1,6 @@
-import { verifyCertificate } from '@yasno/certificates';
-import { Award, Check, TlCaution, TlForbid } from '@yasno/icons';
-import { ClayCard, Orb } from '@yasno/ui';
+import { verifyCertificate } from '@proai/certificates';
+import { Award, Check, TlCaution, TlForbid } from '@proai/icons';
+import { ClayCard, Orb } from '@proai/ui';
 
 const STATUS_COPY: Record<string, { title: string; color: 'green' | 'amber' | 'red'; icon: React.ReactNode }> = {
   VALID: { title: 'Сертифікат чинний', color: 'green', icon: <Check size={22} /> },

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Сертифікат · Ясно</title>
+<title>Сертифікат · ПРО.ШІ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@500;600;700&family=Rubik:wght@400;500;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
@@ -15,7 +15,7 @@
 
 <div class="nav-shell">
   <nav class="nav" aria-label="Основна навігація">
-    <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span> Ясно</a>
+    <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span> ПРО.ШІ</a>
     <div class="nav-links">
       <a href="dashboard.html">Кабінет</a>
       <a href="lesson.html">Урок</a>
@@ -66,8 +66,8 @@
         </svg>
         <div style="text-align:left">
           <p style="font-size:12.5px;color:var(--gold-deep);opacity:.75;margin-bottom:3px">Код перевірки</p>
-          <p style="font-family:'JetBrains Mono',monospace;font-size:14px;letter-spacing:.06em" id="cert-code">ЯСНО-2026-4F19C7</p>
-          <p style="font-size:12.5px;color:var(--gold-deep);opacity:.75;margin-top:8px">yasno.gov.ua/verify</p>
+          <p style="font-family:'JetBrains Mono',monospace;font-size:14px;letter-spacing:.06em" id="cert-code">ПРО.ШІ-2026-4F19C7</p>
+          <p style="font-size:12.5px;color:var(--gold-deep);opacity:.75;margin-top:8px">proai.gov.ua/verify</p>
         </div>
       </div>
 
@@ -116,7 +116,7 @@
         </p>
         <form style="display:flex;gap:10px;flex-wrap:wrap" data-verify novalidate>
           <label class="sr-only" for="vcode">Код сертифіката</label>
-          <input class="input" id="vcode" style="flex:1;min-width:200px;font-family:'JetBrains Mono',monospace;font-size:14px" value="ЯСНО-2026-4F19C7" autocomplete="off">
+          <input class="input" id="vcode" style="flex:1;min-width:200px;font-family:'JetBrains Mono',monospace;font-size:14px" value="ПРО.ШІ-2026-4F19C7" autocomplete="off">
           <button class="btn btn-ghost" type="submit">Перевірити</button>
         </form>
         <div class="hidden clay-green" style="border-radius:var(--r-md);padding:16px 18px;margin-top:14px;display:flex;gap:12px;align-items:flex-start" data-verify-ok>
@@ -133,7 +133,7 @@
           <div>
             <p style="font-weight:600;font-size:15px;color:var(--amber-deep)">Сертифікат не знайдено</p>
             <p style="font-size:13.5px;color:var(--amber-deep);opacity:.85;margin-top:3px">
-              Перевірте код: можливо, помилка в символі. Формат: ЯСНО-РРРР-XXXXXX
+              Перевірте код: можливо, помилка в символі. Формат: ПРО.ШІ-РРРР-XXXXXX
             </p>
           </div>
         </div>
@@ -198,7 +198,7 @@
     e.preventDefault();
     var v = document.getElementById('vcode').value.trim().toUpperCase();
     ok.classList.add('hidden'); none.classList.add('hidden');
-    var target = v === 'ЯСНО-2026-4F19C7' ? ok : none;
+    var target = v === 'ПРО.ШІ-2026-4F19C7' ? ok : none;
     target.classList.remove('hidden');
     YASNO.pop(target);
     YASNO.announce(target === ok ? 'Сертифікат чинний.' : 'Сертифікат не знайдено.');

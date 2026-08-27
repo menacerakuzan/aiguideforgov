@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
-import { useReducedMotion } from '@yasno/ui';
+import { useReducedMotion } from '@proai/ui';
 
 /**
  * Плавний вхід кожної сторінки: легкий fade + зсув знизу замість різкого

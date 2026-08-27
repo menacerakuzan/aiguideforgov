@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@yasno/db';
-import { requireCurrentUser } from '@yasno/auth';
+import { prisma } from '@proai/db';
+import { requireCurrentUser } from '@proai/auth';
 import { withApiErrors } from '@/lib/api-guard';
 
 /** Публічний (для будь-якого авторизованого) перелік бібліотеки — керування лише через /api/admin/resources. */

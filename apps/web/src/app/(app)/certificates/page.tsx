@@ -1,8 +1,8 @@
 import Link from 'next/link';
-import { prisma } from '@yasno/db';
-import { requireCurrentUser } from '@yasno/auth';
-import { Award, Book } from '@yasno/icons';
-import { Button, ClayCard, EmptyState, Orb } from '@yasno/ui';
+import { prisma } from '@proai/db';
+import { requireCurrentUser } from '@proai/auth';
+import { Award, Book } from '@proai/icons';
+import { Button, ClayCard, EmptyState, Orb } from '@proai/ui';
 import { CertificateActions } from '@/components/certificate-actions';
 
 export default async function CertificatesPage() {

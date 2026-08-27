@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef } from 'react';
-import { Check, Copy } from '@yasno/icons';
+import { Check, Copy } from '@proai/icons';
 import { cn } from '../lib/utils';
 import { useCopyToClipboard } from '../hooks/use-copy-to-clipboard';
 import { IconButton } from './icon-button';

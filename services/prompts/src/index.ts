@@ -1,5 +1,5 @@
-import { prisma } from '@yasno/db';
-import type { Prompt, PromptsQuery } from '@yasno/types';
+import { prisma } from '@proai/db';
+import type { Prompt, PromptsQuery } from '@proai/types';
 
 function toDto(p: {
   id: string;

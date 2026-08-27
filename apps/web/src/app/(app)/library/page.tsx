@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Book, Check, Copy, Search, Spark } from '@yasno/icons';
+import { Book, Check, Copy, Search, Spark } from '@proai/icons';
 import {
   ClayCard,
   Dialog,
@@ -14,9 +14,9 @@ import {
   Input,
   Orb,
   useCopyToClipboard,
-} from '@yasno/ui';
-import type { LibraryResponse, Prompt, Resource, ResourceKind } from '@yasno/types';
-import { RESOURCE_KIND_LABELS } from '@yasno/types';
+} from '@proai/ui';
+import type { LibraryResponse, Prompt, Resource, ResourceKind } from '@proai/types';
+import { RESOURCE_KIND_LABELS } from '@proai/types';
 import { api } from '@/lib/api-client';
 
 type Filter = 'all' | 'prompts' | ResourceKind;

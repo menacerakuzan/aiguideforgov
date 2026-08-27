@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { z } from 'zod';
-import { prisma } from '@yasno/db';
-import { requireCurrentUser } from '@yasno/auth';
+import { prisma } from '@proai/db';
+import { requireCurrentUser } from '@proai/auth';
 import { withApiErrors } from '@/lib/api-guard';
 
 const ReactSchema = z.object({ value: z.union([z.literal(1), z.literal(-1)]) });

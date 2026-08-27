@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { requireCurrentUser, requireAdmin } from '@yasno/auth';
-import { revokeCertificate } from '@yasno/certificates';
-import { RevokeCertificateInputSchema } from '@yasno/types';
+import { requireCurrentUser, requireAdmin } from '@proai/auth';
+import { revokeCertificate } from '@proai/certificates';
+import { RevokeCertificateInputSchema } from '@proai/types';
 import { withApiErrors } from '@/lib/api-guard';
 
 export async function POST(request: NextRequest) {

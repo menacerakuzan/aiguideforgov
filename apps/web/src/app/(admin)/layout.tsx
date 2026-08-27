@@ -1,19 +1,24 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { getCurrentUser } from '@yasno/auth';
-import { ArrowLeft } from '@yasno/icons';
-import { Navbar } from '@yasno/ui';
+import { getCurrentUser, isAdmin } from '@proai/auth';
+import { ArrowLeft } from '@proai/icons';
+import { Navbar } from '@proai/ui';
 
 const LINKS = [
   { href: '/admin', label: 'Огляд' },
-  { href: '/admin/org', label: 'Організація' },
+  { href: '/admin/content', label: 'Контент' },
+  { href: '/admin/library', label: 'Бібліотека' },
+  { href: '/admin/organizations', label: 'Організації' },
+  { href: '/admin/certificates', label: 'Сертифікати' },
+  { href: '/admin/analytics', label: 'Аналітика' },
 ];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const user = await getCurrentUser();
   if (!user) redirect('/login');
-  // Кожна сторінка розділу сама вимагає свою мінімальну роль (ADMIN для /admin,
-  // HR для /admin/org) — тут лише перевіряємо, що користувач узагалі увійшов.
+  // Роль перевіряємо тут, а не лише на кожній сторінці окремо: забути одну
+  // сторінку легко, забути єдиний layout цілого розділу — ні.
+  if (!isAdmin(user.role)) redirect('/dashboard');
 
   return (
     <>

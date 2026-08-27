@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { verifyCertificate } from '@yasno/certificates';
+import { verifyCertificate } from '@proai/certificates';
 import { withApiErrors } from '@/lib/api-guard';
 
 /** Публічний ендпоінт — без авторизації. Саме на ньому тримається довіра до сертифіката. */

@@ -7,6 +7,7 @@ import {
   OrganizationSchema,
   PromptCategorySchema,
   PromptSchema,
+  PublicCertificateSchema,
   ResourceKindSchema,
   ResourceSchema,
   SectionColorSchema,
@@ -24,17 +25,44 @@ export const ApiErrorSchema = z.object({
 export type ApiError = z.infer<typeof ApiErrorSchema>;
 
 /* --- Реєстрація/вхід (Better Auth приймає ці поля напряму) ------------------ */
+
+/**
+ * Пошта як ідентифікатор акаунта мусить бути в одному регістрі: Better Auth
+ * шукає користувача точним збігом, тож «Ivan@gov.ua» на реєстрації і
+ * «ivan@gov.ua» на вході — це два різні рядки й «невірний пароль».
+ */
+export const EmailSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .email('Перевірте адресу')
+  .max(254, 'Задовга адреса');
+
+/**
+ * Порожній рядок із <select> («Оберіть зі списку») — це «не обрано», а не
+ * ідентифікатор організації. Без цього перетворення він доходив до бази й
+ * ламав реєстрацію порушенням зовнішнього ключа.
+ */
+const OptionalTrimmed = (max: number) =>
+  z
+    .string()
+    .trim()
+    .max(max)
+    .transform((v) => v || undefined)
+    .optional();
+
 export const RegisterInputSchema = z.object({
-  name: z.string().min(2, 'Вкажіть імʼя'),
-  email: z.string().email('Перевірте адресу'),
-  password: z.string().min(8, 'Мінімум 8 символів'),
-  organizationId: z.string().optional(),
-  position: z.string().optional(),
+  name: z.string().trim().min(2, 'Вкажіть імʼя').max(120, 'Задовге імʼя'),
+  email: EmailSchema,
+  // Верхня межа — щоб довгий пароль не перетворювався на навантаження на хешування.
+  password: z.string().min(8, 'Мінімум 8 символів').max(128, 'Задовгий пароль'),
+  organizationId: OptionalTrimmed(64),
+  position: OptionalTrimmed(160),
 });
 export type RegisterInput = z.infer<typeof RegisterInputSchema>;
 
 export const LoginInputSchema = z.object({
-  email: z.string().email('Перевірте адресу'),
+  email: EmailSchema,
   password: z.string().min(1, 'Вкажіть пароль'),
 });
 export type LoginInput = z.infer<typeof LoginInputSchema>;
@@ -66,9 +94,22 @@ export const UpdateUserRoleInputSchema = z.object({
 export type UpdateUserRoleInput = z.infer<typeof UpdateUserRoleInputSchema>;
 
 /* --- /api/profile ------------------------------------------------------------ */
+/**
+ * null — свідоме «прибрати значення»; undefined — «не чіпати це поле».
+ * Порожній рядок із форми означає перше, а не збереження порожнього рядка.
+ */
+const ClearableTrimmed = (max: number) =>
+  z
+    .string()
+    .trim()
+    .max(max)
+    .transform((v) => v || null)
+    .nullable()
+    .optional();
+
 export const UpdateProfileInputSchema = z.object({
-  position: z.string().max(160).optional(),
-  organizationId: z.string().optional(),
+  position: ClearableTrimmed(160),
+  organizationId: ClearableTrimmed(64),
 });
 export type UpdateProfileInput = z.infer<typeof UpdateProfileInputSchema>;
 
@@ -244,7 +285,7 @@ export type PromptIdInput = z.infer<typeof PromptIdInputSchema>;
 /* --- /api/certificates ---------------------------------------------------------- */
 export const VerifyCertificateResponseSchema = z.object({
   status: z.enum(['VALID', 'EXPIRED', 'REVOKED', 'NOT_FOUND']),
-  certificate: CertificateSchema.nullable(),
+  certificate: PublicCertificateSchema.nullable(),
 });
 export type VerifyCertificateResponse = z.infer<typeof VerifyCertificateResponseSchema>;
 
@@ -381,8 +422,14 @@ export type AssignUserOrgInput = z.infer<typeof AssignUserOrgInputSchema>;
 
 /* --- /api/admin/users/import (CSV, ADMIN) ------------------------------------------ */
 export const ImportUsersInputSchema = z.object({
-  organizationId: z.string().nullable(),
-  csv: z.string().min(1),
+  organizationId: z
+    .string()
+    .trim()
+    .max(64)
+    .transform((v) => v || null)
+    .nullable(),
+  // Верхня межа файлу: імпорт іде синхронно, рядок за рядком.
+  csv: z.string().min(1).max(1_000_000),
 });
 export type ImportUsersInput = z.infer<typeof ImportUsersInputSchema>;
 

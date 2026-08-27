@@ -1,5 +1,5 @@
-import { prisma } from '@yasno/db';
-import type { PlatformStatsResponse, PublicStatsResponse } from '@yasno/types';
+import { prisma } from '@proai/db';
+import type { PlatformStatsResponse, PublicStatsResponse } from '@proai/types';
 
 /**
  * Публічна статистика для лендингу — не прив'язана до жодного конкретного

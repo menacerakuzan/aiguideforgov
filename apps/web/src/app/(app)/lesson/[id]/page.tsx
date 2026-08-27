@@ -4,8 +4,8 @@ import { Fragment, use, useId, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { Lesson, LessonBlock } from '@yasno/types';
-import { ArrowLeft, Check, Clock, Copy, Doc, Play, Spark, TlCaution, TlForbid, TlSafe, Upload } from '@yasno/icons';
+import type { Lesson, LessonBlock } from '@proai/types';
+import { ArrowLeft, Check, Clock, Copy, Doc, Play, Spark, TlCaution, TlForbid, TlSafe, Upload } from '@proai/icons';
 import {
   Button,
   ClayCard,
@@ -14,7 +14,7 @@ import {
   QuizOption,
   type QuizOptionState,
   RedactWord,
-} from '@yasno/ui';
+} from '@proai/ui';
 import { api } from '@/lib/api-client';
 import { useFireConfetti } from '@/components/confetti-provider';
 import { LessonComments } from '@/components/lesson-comments';
@@ -621,7 +621,7 @@ function BuilderBlock({
           </Button>
         )}
         {!ready && (
-          <span className="text-sm text-ink-mute">Заповніть поля, позначені як обов'язкові.</span>
+          <span className="text-sm text-ink-mute">Заповніть поля, позначені як обовʼязкові.</span>
         )}
       </div>
 

@@ -4,9 +4,9 @@ import { use } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Award, Check, Clock, Shield } from '@yasno/icons';
-import { Button, ClayCard, Lift, Orb, ProgressBar, toast } from '@yasno/ui';
-import type { Course } from '@yasno/types';
+import { ArrowLeft, Award, Check, Clock, Shield } from '@proai/icons';
+import { Button, ClayCard, Lift, Orb, ProgressBar, toast } from '@proai/ui';
+import type { Course } from '@proai/types';
 import { api } from '@/lib/api-client';
 
 export default function CourseDetailPage({ params }: { params: Promise<{ slug: string }> }) {

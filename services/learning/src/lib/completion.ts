@@ -1,4 +1,4 @@
-import { prisma } from '@yasno/db';
+import { prisma } from '@proai/db';
 
 /**
  * Модуль вважається пройденим, коли: (а) відмічено прогрес по КОЖНОМУ уроку,

@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { prisma } from '@yasno/db';
-import { requireCurrentUser } from '@yasno/auth';
-import { CreateCommentInputSchema, type CommentsResponse } from '@yasno/types';
+import { prisma } from '@proai/db';
+import { requireCurrentUser } from '@proai/auth';
+import { CreateCommentInputSchema, type CommentsResponse } from '@proai/types';
 import { withApiErrors } from '@/lib/api-guard';
 
 export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {

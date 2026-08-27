@@ -1,27 +1,39 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
+import { headers } from 'next/headers';
 import Script from 'next/script';
-import { SkipLink } from '@yasno/ui';
+import { SkipLink } from '@proai/ui';
 import { nunito, jetbrainsMono, rubik } from '@/lib/fonts';
 import { Providers } from '@/components/providers';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: { default: 'Ясно', template: '%s · Ясно' },
+  title: { default: 'ПРО.ШІ', template: '%s · ПРО.ШІ' },
   description: 'Навчальна платформа безпечного використання ШІ для державної служби.',
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#fff9f0' },
+    { media: '(prefers-color-scheme: dark)', color: '#16142c' },
+  ],
 };
 
 /** Виставляє data-theme ДО першого малювання — без цього був би спалах світлої теми при заході в темну. */
 const NO_FLASH_THEME_SCRIPT = `
 (function () {
   try {
-    var saved = localStorage.getItem('yasno-theme');
+    var saved = localStorage.getItem('proai-theme');
     var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     document.documentElement.setAttribute('data-theme', theme);
   } catch (e) {}
 })();
 `;
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // nonce народжується в middleware для кожної відповіді; без нього
+  // інлайн-скрипт теми заблокує CSP і сторінка почне блимати світлою темою.
+  const nonce = (await headers()).get('x-nonce') ?? undefined;
+
   return (
     <html
       lang="uk"
@@ -34,7 +46,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         {/* beforeInteractive — Next сам переносить цей скрипт у справжній <head> до гідратації;
             вручну рендерити <head> в root layout не можна, це конфліктує з metadata API. */}
-        <Script id="no-flash-theme" strategy="beforeInteractive">
+        <Script id="no-flash-theme" strategy="beforeInteractive" nonce={nonce}>
           {NO_FLASH_THEME_SCRIPT}
         </Script>
         <div aria-hidden="true" className="bg-pattern" />

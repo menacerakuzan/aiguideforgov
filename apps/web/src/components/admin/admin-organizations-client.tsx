@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button, ClayCard, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Input, Textarea, toast } from '@yasno/ui';
-import { Upload, Users, XIcon } from '@yasno/icons';
-import type { ImportUsersResponse } from '@yasno/types';
+import { Button, ClayCard, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Input, Textarea, toast } from '@proai/ui';
+import { Upload, Users, XIcon } from '@proai/icons';
+import type { ImportUsersResponse } from '@proai/types';
 import { api } from '@/lib/api-client';
 
 interface OrgRow {

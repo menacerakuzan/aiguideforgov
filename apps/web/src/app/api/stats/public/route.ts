@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getPublicStats } from '@yasno/analytics';
+import { getPublicStats } from '@proai/analytics';
 import { withApiErrors } from '@/lib/api-guard';
 
 /** Публічна статистика для лендингу — без авторизації, універсальна незалежно від курсу в фокусі. */

@@ -1,5 +1,5 @@
 {
-  "name": "@yasno/icons",
+  "name": "@proai/icons",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -16,7 +16,7 @@
   },
   "devDependencies": {
     "@types/react": "^19.0.0",
-    "@yasno/config": "workspace:*",
+    "@proai/config": "workspace:*",
     "typescript": "^5.7.0"
   }
 }

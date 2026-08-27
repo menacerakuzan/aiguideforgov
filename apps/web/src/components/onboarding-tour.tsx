@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Award, Book, Shield, Spark } from '@yasno/icons';
-import { Button, Dialog, DialogContent, Orb } from '@yasno/ui';
+import { Award, Book, Shield, Spark } from '@proai/icons';
+import { Button, Dialog, DialogContent, Orb } from '@proai/ui';
 
 const STORAGE_KEY = 'yasno-onboarded';
 
@@ -15,7 +15,7 @@ interface Step {
 const STEPS: Step[] = [
   {
     icon: <Shield size={26} />,
-    title: 'Вітаємо в «Ясно»!',
+    title: 'Вітаємо в «ПРО.ШІ»!',
     description:
       'Це коротке знайомство з кабінетом за 4 кроки. Тут ви проходите курс, стежите за прогресом і отримуєте сертифікат.',
   },

@@ -1,5 +1,5 @@
 import { headers } from 'next/headers';
-import { RoleSchema, type Role } from '@yasno/types';
+import { RoleSchema, type Role } from '@proai/types';
 import { auth } from './instance';
 
 export interface CurrentUser {

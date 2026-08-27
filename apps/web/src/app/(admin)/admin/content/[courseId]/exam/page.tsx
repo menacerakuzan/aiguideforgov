@@ -3,8 +3,8 @@
 import { use, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, Check } from '@yasno/icons';
-import { Button, ClayCard, Input, toast } from '@yasno/ui';
+import { ArrowLeft, Check } from '@proai/icons';
+import { Button, ClayCard, Input, toast } from '@proai/ui';
 import { api } from '@/lib/api-client';
 import { QuestionBankEditor, emptyQuestion, type EditableQuestion } from '@/components/admin/question-bank-editor';
 

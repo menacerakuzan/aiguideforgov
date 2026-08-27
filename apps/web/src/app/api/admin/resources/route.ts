@@ -1,7 +1,8 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { prisma } from '@yasno/db';
-import { requireCurrentUser, requireAdmin } from '@yasno/auth';
-import { CreateResourceInputSchema } from '@yasno/types';
+import { prisma } from '@proai/db';
+import { requireCurrentUser, requireAdmin } from '@proai/auth';
+import { sanitizeRichHtml } from '@proai/infra';
+import { CreateResourceInputSchema } from '@proai/types';
 import { withApiErrors } from '@/lib/api-guard';
 
 export async function POST(request: NextRequest) {
@@ -10,7 +11,10 @@ export async function POST(request: NextRequest) {
     requireAdmin(me.role);
 
     const input = CreateResourceInputSchema.parse(await request.json());
-    const created = await prisma.resource.create({ data: input });
+    // resource.body рендериться через dangerouslySetInnerHTML у /library.
+    const created = await prisma.resource.create({
+      data: { ...input, body: sanitizeRichHtml(input.body) },
+    });
     return NextResponse.json({ resource: created }, { status: 201 });
   });
 }

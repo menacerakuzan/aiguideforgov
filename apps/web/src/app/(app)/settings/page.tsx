@@ -1,6 +1,6 @@
-import { prisma } from '@yasno/db';
-import { requireCurrentUser } from '@yasno/auth';
-import { ClayCard } from '@yasno/ui';
+import { prisma } from '@proai/db';
+import { requireCurrentUser } from '@proai/auth';
+import { ClayCard } from '@proai/ui';
 import { SettingsForm } from '@/components/settings-form';
 
 export default async function SettingsPage() {

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@yasno/db';
+import { prisma } from '@proai/db';
 import { withApiErrors } from '@/lib/api-guard';
 
 /** Публічний список організацій для форми реєстрації (не потребує входу). */

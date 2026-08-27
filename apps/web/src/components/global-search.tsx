@@ -3,9 +3,9 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
-import { Book, Search, Spark } from '@yasno/icons';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, Input } from '@yasno/ui';
-import type { SearchResponse, SearchResultItem } from '@yasno/types';
+import { Book, Search, Spark } from '@proai/icons';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, Input } from '@proai/ui';
+import type { SearchResponse, SearchResultItem } from '@proai/types';
 import { api } from '@/lib/api-client';
 
 const KIND_ICON: Record<SearchResultItem['kind'], React.ReactNode> = {

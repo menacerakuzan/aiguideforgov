@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'motion/react';
-import { Check } from '@yasno/icons';
+import { Check } from '@proai/icons';
 import { cn } from '../lib/utils';
 import { useReducedMotion } from '../hooks/use-reduced-motion';
 

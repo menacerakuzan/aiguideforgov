@@ -1,6 +1,6 @@
-import { requireCurrentUser } from '@yasno/auth';
-import { getLessonDropoff } from '@yasno/analytics';
-import { ClayCard, ProgressBar } from '@yasno/ui';
+import { requireCurrentUser } from '@proai/auth';
+import { getLessonDropoff } from '@proai/analytics';
+import { ClayCard, ProgressBar } from '@proai/ui';
 import { requirePageAdmin } from '@/lib/page-guard';
 
 export default async function AdminAnalyticsPage() {

@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { requireCurrentUser } from '@yasno/auth';
-import { submitFinalExam } from '@yasno/learning';
-import { SubmitFinalExamInputSchema } from '@yasno/types';
+import { requireCurrentUser } from '@proai/auth';
+import { submitFinalExam } from '@proai/learning';
+import { SubmitFinalExamInputSchema } from '@proai/types';
 import { withApiErrors } from '@/lib/api-guard';
 
 export async function POST(request: NextRequest) {

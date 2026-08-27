@@ -1,83 +1,103 @@
-# Ясно
+# ПРО.ШІ
 
-Production-платформа безпечного використання штучного інтелекту для державної служби.
-Дизайн-мова — приглушений claymorphism («Ясно»), світлофор даних як сигнатурна концепція.
+Платформа безпечного використання штучного інтелекту для державної служби.
+Майбутній домен — `proai.od.gov.ua`.
+
+Дизайн-мова — приглушений claymorphism, світлофор даних як сигнатурна концепція.
 Канонічний дизайн-референс (5 статичних HTML-прототипів) лежить у `docs/design-reference/`.
 
 ## Стек
 
 | Шар | Технологія |
 |---|---|
-| Frontend | Next.js 15 (App Router) · React 19 · TypeScript · Tailwind CSS v4 · shadcn/ui-примітиви · Motion · TanStack Query · Zod · React Hook Form |
+| Frontend | Next.js 15 (App Router) · React 19 · TypeScript · Tailwind CSS v4 · Motion · TanStack Query · Zod · React Hook Form |
 | Backend | Next.js Route Handlers, бізнес-логіка винесена в `services/*` |
 | База даних | SQLite |
 | ORM | Prisma |
-| Auth | Better Auth (email/password) + власна RBAC-матриця на 5 ролей |
+| Auth | Better Auth (email/password) + власний RBAC на дві ролі |
 | Кеш / файли / пошта | Локальні реалізації (`services/infra`) за інтерфейсами Storage/Cache/Mailer — під заміну на S3/Redis/Resend без зміни викликів |
 
 ## Структура монорепо
 
 ```
 apps/
-  web/                 Next.js застосунок: сторінки + API routes
+  web/                  Next.js застосунок: сторінки + API routes
 
 packages/
-  ui/                  Дизайн-система (clay-компоненти, порт docs/design-reference)
-  icons/                Іконки, включно з фірмовим тріо світлофора (коло/трикутник/восьмикутник)
-  config/               tsconfig-пресети, eslint, Tailwind v4 тема (@theme)
+  ui/                   Дизайн-система (clay-компоненти, порт docs/design-reference)
+  icons/                Іконки, включно з фірмовим тріо світлофора
+  config/               tsconfig-пресети, Tailwind v4 тема (@theme)
   types/                Zod-схеми домену й DTO — спільні для фронту й бекенду
 
 services/
-  auth/                 Better Auth інстанс, сесії, requireRole/can() RBAC-матриця
-  learning/             Курси, уроки, прогрес, тести, тригер сертифіката
+  auth/                 Better Auth інстанс, сесії, isAdmin/requireAdmin
+  learning/             Курси, уроки, прогрес, тести, фінальна атестація
   prompts/              Бібліотека промптів, обране, лічильник копіювань
   certificates/         Видача / публічна перевірка / відкликання сертифікатів
-  analytics/            Статистика для HR (організація) та ADMIN (платформа)
-  infra/                Storage / Cache / Mailer — інтерфейси + локальні реалізації
+  analytics/            Публічна статистика лендингу та статистика платформи
+  infra/                Env, санітизація HTML, Storage / Cache / Mailer
 
-prisma/                 @yasno/db: schema.prisma, міграції, seed, Prisma-клієнт
+prisma/                 @proai/db: schema.prisma, міграції, seed, Prisma-клієнт
 docs/
-  design-reference/     Оригінальні 5 HTML-прототипів «Ясно» (еталон дизайну)
+  design-reference/     Оригінальні 5 HTML-прототипів (еталон дизайну)
 ```
 
-## RBAC — 5 ролей
+## RBAC — дві ролі
 
-`LEARNER` → `HR` → `EDITOR` → `ADMIN` → `SUPERADMIN` (ієрархія за зростанням прав).
-Матриця дій `can(role, action)` і гард `requireRole(role, min)` — у `services/auth/src/rbac.ts`.
-Зміна ролі користувача можлива лише через `SUPERADMIN` (`PATCH /api/users`).
+`LEARNER` вчиться. `ADMIN` бачить і керує всім: користувачами, контентом,
+сертифікатами, статистикою. Проміжних ролей немає — перевірка зводиться до
+`isAdmin(role)` у `services/auth/src/rbac.ts`.
+
+Змінити роль можна лише через `PATCH /api/users` і лише адміністратором.
+Зняти адміністратора із себе не можна, як і прибрати останнього адміністратора
+платформи — інакше розділ адміністрування став би недосяжним для всіх.
+
+Роль **не приймається від клієнта на реєстрації**: у Better Auth поле `role`
+оголошено з `input: false`, тож підставити собі `ADMIN` у тілі запиту неможливо.
 
 ## Швидкий старт
 
 ```bash
 pnpm install
-cp .env.example .env          # BETTER_AUTH_SECRET згенеровано автоматично при першому запуску
-pnpm db:migrate                # створює SQLite-базу + застосовує схему
-pnpm db:seed                   # наповнює демо-контентом (якщо не виконалось разом із migrate)
-pnpm dev                       # http://localhost:3000
+
+cp .env.example .env
+# те саме продублюйте в apps/web/.env — Next читає .env з теки застосунку,
+# а скрипти prisma — з кореня. BETTER_AUTH_SECRET в обох мусить збігатися.
+
+# Згенеруйте власний секрет і підставте в обидва файли:
+node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
+
+pnpm db:migrate   # створює SQLite-базу + застосовує схему
+pnpm db:seed      # наповнює демо-контентом
+pnpm dev          # http://localhost:3000
 ```
+
+> У продакшні застосунок **не стартує** з шаблонним або відсутнім
+> `BETTER_AUTH_SECRET` — перевірка в `services/infra/src/env.ts`. Це навмисно:
+> без неї Better Auth мовчки взяв би запасний ключ, і сесії підписувалися б
+> передбачуваним секретом.
 
 Перевірка якості:
 
 ```bash
-pnpm typecheck   # tsc --noEmit по всіх 11 пакетах
+pnpm typecheck   # tsc --noEmit по всіх пакетах
 pnpm lint
+pnpm test        # vitest: сертифікати, санітизація HTML, схеми реєстрації
 pnpm build
 ```
 
 ## Демо-акаунти
 
-Пароль для всіх — **`Yasno2026!`**
+Пароль для всіх — **`ProAI2026!`**
 
 | Роль | Email | Ім'я | Що подивитись |
 |---|---|---|---|
-| LEARNER | `o.kovalenko@loda.gov.ua` | Оксана Коваленко | Кабінет із серією 5 днів, курс 2 в процесі |
-| LEARNER (атестована) | `n.osadcha@loda.gov.ua` | Наталія Осадча | Готовий сертифікат `ЯСНО-2026-4F19C7` |
-| HR | `i.melnyk@loda.gov.ua` | Ірина Мельник | `/admin/org` — статистика організації |
-| EDITOR | `s.hrytsenko@loda.gov.ua` | Світлана Гриценко | Роль редактора контенту |
-| ADMIN | `d.hrytsenko@loda.gov.ua` | Дмитро Гриценко | `/admin` — користувачі, платформенна статистика |
-| SUPERADMIN | `superadmin@yasno.dev` | Супер Адмін | Єдиний, хто може змінювати ролі |
+| LEARNER | `o.kovalenko@loda.gov.ua` | Оксана Коваленко | Кабінет із серією 5 днів, курс у процесі |
+| LEARNER (атестована) | `n.osadcha@loda.gov.ua` | Наталія Осадча | Готовий сертифікат `PROAI-2026-4F19C7` |
+| LEARNER (новачок) | `s.bondarenko@loda.gov.ua` | Світлана Бондаренко | Порожній кабінет, нульовий прогрес |
+| ADMIN | `d.hrytsenko@loda.gov.ua` | Дмитро Гриценко | `/admin` — користувачі, контент, статистика |
 
-Публічна перевірка сертифіката без входу: `/verify/ЯСНО-2026-4F19C7`.
+Публічна перевірка сертифіката без входу: `/verify/PROAI-2026-4F19C7`.
 
 ## Модель курсу
 
@@ -109,14 +129,42 @@ Perplexity, NotebookLM і DeepL (8). Модулі-знайомства позн�
 кожен обов'язково містить блок про безкоштовні ліміти сервісу.
 
 Фінальна атестація: 30 питань, прохідний **80%** і окремо **90%** за питання з міткою
-`isSecurity`. Курс вважається пройденим, коли відмічено прогрес по кожному уроку **і**
+`isSecurity`. Допуск перевіряється на сервері, а не лише кнопкою на сторінці.
+Курс вважається пройденим, коли відмічено прогрес по кожному уроку **і**
 (якщо в модуля є тест) останню спробу зараховано. Сертифікат видається автоматично
 (`services/learning` → `services/certificates`).
+
+## Безпека
+
+Коротко про рішення, які легко зламати необережною правкою:
+
+- **CSP із nonce** формується в `apps/web/src/middleware.ts` і мусить лишатися
+  саме там: nonce різний на кожну відповідь, тож у `next.config.ts` його
+  віддати неможливо. Інлайн-скрипт теми в `app/layout.tsx` отримує цей nonce
+  явно — без нього CSP заблокує його, і сторінка почне блимати світлою темою.
+- **Санітизація HTML** (`services/infra/src/html.ts`) застосовується на **записі**:
+  адмінське API, `seed.ts`, `sync-content.ts`. Контент уроків рендериться через
+  `dangerouslySetInnerHTML`, іншого фільтра між базою і слухачем немає.
+  Якщо зʼявиться новий шлях запису контенту — він теж мусить пройти через
+  `sanitizeLessonBlocks` / `sanitizeRichHtml`.
+- **Обмеження частоти** на `/sign-in/email`, `/sign-up/email`, `/forget-password`
+  налаштовано в `services/auth/src/instance.ts`. Без нього форма входу — стенд
+  для перебору паролів.
+- **Публічна перевірка сертифіката** віддає `PublicCertificate` (без `id` і
+  `userId`). Не повертайте туди повний рядок таблиці.
+- **middleware не перевіряє автентичність** сесії — лише наявність куки, бо
+  SQLite несумісний з Edge runtime. Справжня перевірка живе в layout'ах
+  (`getCurrentUser`) і в кожному API-роуті (`requireCurrentUser`).
 
 ## Відомі нюанси
 
 - `better-call` (внутрішня залежність `better-auth`) хоче `zod@^4`, у проєкті `zod@^3.24` —
   peer-warning при встановленні, на роботу не впливає (typecheck/build/рантайм чисті).
-- `@prisma/client` додано прямою залежністю `apps/web` (не лише через `@yasno/db`) — інакше
+- `@prisma/client` додано прямою залежністю `apps/web` (не лише через `@proai/db`) — інакше
   pnpm-ізоляція не дає Next.js `serverExternalPackages` знайти вже згенерований рушій під час
   бандлингу.
+- `sanitize-html` і `@react-pdf/renderer` перелічені в `serverExternalPackages`: обидва
+  тягнуть CJS/нативні ресурси, які не переживають трасування бандлером.
+- `node_modules` **не переносяться між ОС**. Каталог, встановлений на Linux, на Windows
+  дає биті симлінки й `Cannot find module` на будь-якому бінарнику. Після зміни машини —
+  `pnpm install` заново.

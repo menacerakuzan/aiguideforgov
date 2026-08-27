@@ -5,8 +5,9 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { LoginInputSchema, type LoginInput } from '@yasno/types';
-import { Button, ClayCard, FieldError, Input, Label } from '@yasno/ui';
+import { LoginInputSchema, type LoginInput } from '@proai/types';
+import { Button, ClayCard, FieldError, Input, Label } from '@proai/ui';
+import { authErrorMessage } from '@/lib/auth-errors';
 import { signIn } from '@/lib/auth-client';
 
 function LoginForm() {
@@ -24,7 +25,9 @@ function LoginForm() {
     setServerError(null);
     const { error } = await signIn.email({ email: values.email, password: values.password });
     if (error) {
-      setServerError('Неправильна пошта або пароль');
+      // Загальний текст навмисно: він однаковий для «немає такого акаунта» і
+      // «пароль не той», щоб форма входу не працювала як довідник адрес.
+      setServerError(authErrorMessage(error, 'Неправильна пошта або пароль'));
       return;
     }
     router.push(params.get('next') ?? '/dashboard');

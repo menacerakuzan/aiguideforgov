@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { BrandMark, Navbar } from '@yasno/ui';
+import { BrandMark, Navbar } from '@proai/ui';
 import { ThemeToggle } from '@/components/theme-toggle';
 
 const LINKS = [
@@ -16,7 +16,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
         links={LINKS}
         brand={
           <Link href="/" className="flex items-center gap-2.5 font-display text-lg font-bold">
-            <BrandMark size={36} /> Ясно
+            <BrandMark size={36} /> ПРО.ШІ
           </Link>
         }
         actions={
@@ -31,7 +31,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
       {children}
       <footer className="py-14">
         <div className="mx-auto flex max-w-[1180px] flex-col gap-4 px-6 text-sm text-ink-soft sm:flex-row sm:items-center sm:justify-between">
-          <span>© {new Date().getFullYear()} Ясно · Безпечний ШІ для держслужби</span>
+          <span>© {new Date().getFullYear()} ПРО.ШІ · Безпечний ШІ для держслужби</span>
           <span>Доступність: WCAG 2.1 AA</span>
         </div>
       </footer>

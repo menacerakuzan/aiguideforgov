@@ -1,5 +1,5 @@
-import { prisma } from '@yasno/db';
-import type { Certificate } from '@yasno/types';
+import { prisma } from '@proai/db';
+import type { Certificate } from '@proai/types';
 import { generateCertificateCode } from './code';
 
 export interface IssueCertificateInput {

@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { prisma } from '@yasno/db';
-import { requireCurrentUser, requireAdmin } from '@yasno/auth';
-import type { LessonRevisionsResponse } from '@yasno/types';
+import { prisma } from '@proai/db';
+import { requireCurrentUser, requireAdmin } from '@proai/auth';
+import type { LessonRevisionsResponse } from '@proai/types';
 import { withApiErrors } from '@/lib/api-guard';
 
 export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {

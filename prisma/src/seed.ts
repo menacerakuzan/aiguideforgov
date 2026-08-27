@@ -1,5 +1,6 @@
 import { hashPassword } from 'better-auth/crypto';
-import type { LessonBlock } from '@yasno/types';
+import { sanitizeLessonBlocks } from '@proai/infra';
+import type { LessonBlock } from '@proai/types';
 import { prisma } from './client';
 import { module1Lessons } from './content/lessons-module-1';
 import { module2Lessons } from './content/lessons-module-2';
@@ -9,7 +10,7 @@ import { module5Lessons } from './content/lessons-module-5';
 import type { SeedLesson } from './content/lessons-module-1';
 
 /**
- * Seed-контент платформи «Ясно». Джерело — plan.md (архітектура курсу) +
+ * Seed-контент платформи «ПРО.ШІ». Джерело — plan.md (архітектура курсу) +
  * lessons.md (повний контент Розділу 1 «Основи ШІ»). Розділи 2–8 наразі
  * позначені в lessons.md як «у роботі» — тут вони заведені як повноцінні
  * записи ієрархії (Section → Module → Lesson-заглушка), щоб адмін-CMS і
@@ -17,7 +18,7 @@ import type { SeedLesson } from './content/lessons-module-1';
  * додається пізніше через ту саму CMS.
  */
 
-const DEMO_PASSWORD = 'Yasno2026!';
+const DEMO_PASSWORD = 'ProAI2026!';
 
 async function credentialAccount(userId: string) {
   return {
@@ -29,7 +30,9 @@ async function credentialAccount(userId: string) {
 }
 
 function blocks(list: LessonBlock[]): string {
-  return JSON.stringify(list);
+  // Санітизуємо навіть власний seed: інакше «чистий HTML у базі» тримався б
+  // на обіцянці автора контенту, а не на коді.
+  return JSON.stringify(sanitizeLessonBlocks(list));
 }
 
 function stub(summary: string, tool?: string): string {
@@ -1017,7 +1020,7 @@ async function seedCourse(ctx: Awaited<ReturnType<typeof main>>) {
 
   await prisma.certificate.create({
     data: {
-      code: 'ЯСНО-2026-4F19C7',
+      code: 'PROAI-2026-4F19C7',
       userId: natalia.id,
       holderName: natalia.name,
       holderPosition: natalia.position,

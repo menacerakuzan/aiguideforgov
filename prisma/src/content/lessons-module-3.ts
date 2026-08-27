@@ -1,5 +1,5 @@
 import { check, image, sortExercise, text, videoSoon, type SeedLesson } from './lessons-module-1';
-import type { LessonBlock } from '@yasno/types';
+import type { LessonBlock } from '@proai/types';
 
 /* ============================================================================
    МОДУЛЬ 3. Безпека та відповідальність ⚠️ — ядро курсу, тест 90%

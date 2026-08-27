@@ -1,5 +1,5 @@
-import { prisma } from '@yasno/db';
-import type { Certificate } from '@yasno/types';
+import { prisma } from '@proai/db';
+import type { Certificate } from '@proai/types';
 
 /** Відкликання — виключно ADMIN+, причина обов'язкова (перевіряється на рівні API-схеми). */
 export async function revokeCertificate(certificateId: string, reason: string): Promise<Certificate> {

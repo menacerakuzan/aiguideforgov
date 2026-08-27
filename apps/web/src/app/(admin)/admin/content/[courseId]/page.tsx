@@ -1,9 +1,9 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { prisma } from '@yasno/db';
-import { requireCurrentUser } from '@yasno/auth';
-import { ArrowLeft, Award, Book, Check, Clock } from '@yasno/icons';
-import { Button, ClayCard } from '@yasno/ui';
+import { prisma } from '@proai/db';
+import { requireCurrentUser } from '@proai/auth';
+import { ArrowLeft, Award, Book, Check, Clock } from '@proai/icons';
+import { Button, ClayCard } from '@proai/ui';
 import { requirePageAdmin } from '@/lib/page-guard';
 import { AddSectionForm, AddModuleForm, AddLessonForm, DeleteEntityButton } from '@/components/admin/content-forms';
 

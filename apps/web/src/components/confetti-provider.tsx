@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext } from 'react';
-import { useConfetti } from '@yasno/ui';
+import { useConfetti } from '@proai/ui';
 
 const ConfettiContext = createContext<((amount?: number) => void) | null>(null);
 

@@ -3,9 +3,9 @@
 import { use, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import type { LessonBlock, LessonRevisionsResponse } from '@yasno/types';
-import { ArrowLeft, Check, XIcon } from '@yasno/icons';
-import { Button, ClayCard, Input, Label, Select, Textarea, toast } from '@yasno/ui';
+import type { LessonBlock, LessonRevisionsResponse } from '@proai/types';
+import { ArrowLeft, Check, XIcon } from '@proai/icons';
+import { Button, ClayCard, Input, Label, Select, Textarea, toast } from '@proai/ui';
 import { api } from '@/lib/api-client';
 
 interface AdminLesson {

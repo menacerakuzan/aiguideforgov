@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { ZodError } from 'zod';
-import { ForbiddenError, UnauthorizedError } from '@yasno/auth';
+import { ForbiddenError, UnauthorizedError } from '@proai/auth';
+import { NotEligibleError } from '@proai/learning';
 
 /**
  * Обгортка над route handler: типізовані помилки доменного шару (auth-гарди,
@@ -13,6 +14,9 @@ export function withApiErrors(handler: () => Promise<Response>): Promise<Respons
       return NextResponse.json({ error: error.message }, { status: 401 });
     }
     if (error instanceof ForbiddenError) {
+      return NextResponse.json({ error: error.message }, { status: 403 });
+    }
+    if (error instanceof NotEligibleError) {
       return NextResponse.json({ error: error.message }, { status: 403 });
     }
     if (error instanceof ZodError) {

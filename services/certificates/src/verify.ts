@@ -1,19 +1,22 @@
-import { prisma } from '@yasno/db';
-import type { VerifyCertificateResponse } from '@yasno/types';
+import { prisma } from '@proai/db';
+import type { PublicCertificate, VerifyCertificateResponse } from '@proai/types';
+import { normalizeCertificateCode } from './code';
 
 /**
  * Публічна перевірка (без авторизації, §DESIGN_REVIEW C3 — довіра сертифіката
  * тримається саме на цій перевірці). Розрізняє чотири стани: чинний,
  * прострочений, відкликаний, не знайдений.
+ *
+ * Назовні віддаємо PublicCertificate, а не повний рядок таблиці: id та userId
+ * стороннім не потрібні, а їх витік перетворює публічне посилання на джерело
+ * внутрішніх ідентифікаторів.
  */
 export async function verifyCertificate(code: string): Promise<VerifyCertificateResponse> {
-  const cert = await prisma.certificate.findUnique({ where: { code } });
+  const cert = await prisma.certificate.findUnique({ where: { code: normalizeCertificateCode(code) } });
   if (!cert) return { status: 'NOT_FOUND', certificate: null };
 
-  const dto = {
-    id: cert.id,
+  const dto: PublicCertificate = {
     code: cert.code,
-    userId: cert.userId,
     holderName: cert.holderName,
     holderPosition: cert.holderPosition,
     organizationName: cert.organizationName,

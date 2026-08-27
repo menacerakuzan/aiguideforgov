@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { requireCurrentUser, requireAdmin } from '@yasno/auth';
-import { getPlatformStats } from '@yasno/analytics';
+import { requireCurrentUser, requireAdmin } from '@proai/auth';
+import { getPlatformStats } from '@proai/analytics';
 import { withApiErrors } from '@/lib/api-guard';
 
 export async function GET() {

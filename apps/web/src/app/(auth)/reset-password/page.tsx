@@ -6,11 +6,11 @@ import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Button, ClayCard, FieldError, Input, Label } from '@yasno/ui';
+import { Button, ClayCard, FieldError, Input, Label } from '@proai/ui';
 import { resetPassword } from '@/lib/auth-client';
 
 const ResetPasswordSchema = z.object({
-  password: z.string().min(8, 'Мінімум 8 символів'),
+  password: z.string().min(8, 'Мінімум 8 символів').max(128, 'Задовгий пароль'),
 });
 type ResetPasswordInput = z.infer<typeof ResetPasswordSchema>;
 

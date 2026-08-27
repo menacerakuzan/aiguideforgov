@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { prisma } from '@yasno/db';
-import { requireCurrentUser, requireAdmin } from '@yasno/auth';
-import { UpdatePromptInputSchema } from '@yasno/types';
+import { prisma } from '@proai/db';
+import { requireCurrentUser, requireAdmin } from '@proai/auth';
+import { UpdatePromptInputSchema } from '@proai/types';
 import { withApiErrors } from '@/lib/api-guard';
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {

@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { prisma } from '@yasno/db';
-import { requireCurrentUser } from '@yasno/auth';
-import { getMyProgress } from '@yasno/learning';
+import { prisma } from '@proai/db';
+import { requireCurrentUser } from '@proai/auth';
+import { getMyProgress } from '@proai/learning';
 import { withApiErrors } from '@/lib/api-guard';
 
 /**

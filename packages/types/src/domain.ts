@@ -338,6 +338,15 @@ export const CertificateSchema = z.object({
 });
 export type Certificate = z.infer<typeof CertificateSchema>;
 
+/**
+ * Те, що бачить будь-хто за посиланням /verify/<код> — без авторизації.
+ * Свідомо НЕ містить id та userId: назовні внутрішні ідентифікатори не
+ * потрібні (перевіряльнику вистачає імені, органу й дат), а їх витік
+ * дає стороннім матеріал для перебору решти API за чужим користувачем.
+ */
+export const PublicCertificateSchema = CertificateSchema.omit({ id: true, userId: true });
+export type PublicCertificate = z.infer<typeof PublicCertificateSchema>;
+
 export const AttemptSchema = z.object({
   id: z.string(),
   quizId: z.string(),

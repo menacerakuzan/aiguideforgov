@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@yasno/db';
-import { requireCurrentUser } from '@yasno/auth';
-import type { Certificate } from '@yasno/types';
+import { prisma } from '@proai/db';
+import { requireCurrentUser } from '@proai/auth';
+import type { Certificate } from '@proai/types';
 import { withApiErrors } from '@/lib/api-guard';
 
 export async function GET() {

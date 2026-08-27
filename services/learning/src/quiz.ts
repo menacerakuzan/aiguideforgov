@@ -1,5 +1,5 @@
-import { prisma } from '@yasno/db';
-import type { Quiz, SubmitQuizInput, SubmitQuizResponse } from '@yasno/types';
+import { prisma } from '@proai/db';
+import type { Quiz, SubmitQuizInput, SubmitQuizResponse } from '@proai/types';
 
 /** Тест модуля без правильних відповідей — вони відомі лише серверу. */
 export async function getQuizByModuleSlug(moduleSlug: string): Promise<Quiz | null> {

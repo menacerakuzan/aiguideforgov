@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { prisma } from '@yasno/db';
-import { requireCurrentUser } from '@yasno/auth';
-import type { LessonBlock, SearchResponse, SearchResultItem } from '@yasno/types';
+import { prisma } from '@proai/db';
+import { requireCurrentUser } from '@proai/auth';
+import type { LessonBlock, SearchResponse, SearchResultItem } from '@proai/types';
 import { withApiErrors } from '@/lib/api-guard';
 
 function snippetFromHtml(html: string, maxLen = 140): string {

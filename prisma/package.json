@@ -1,5 +1,5 @@
 {
-  "name": "@yasno/db",
+  "name": "@proai/db",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -26,12 +26,13 @@
   },
   "dependencies": {
     "@prisma/client": "^6.2.0",
+    "@proai/infra": "workspace:*",
     "better-auth": "^1.6.0"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
-    "@yasno/config": "workspace:*",
-    "@yasno/types": "workspace:*",
+    "@proai/config": "workspace:*",
+    "@proai/types": "workspace:*",
     "dotenv-cli": "^8.0.0",
     "prisma": "^6.2.0",
     "tsx": "^4.19.0",

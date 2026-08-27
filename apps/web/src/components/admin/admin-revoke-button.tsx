@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { toast } from '@yasno/ui';
+import { toast } from '@proai/ui';
 import { api } from '@/lib/api-client';
 
 export function AdminRevokeButton({ certificateId }: { certificateId: string }) {

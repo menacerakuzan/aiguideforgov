@@ -2,9 +2,9 @@
 
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
-import { Award, Book, Check, Clock, Shield } from '@yasno/icons';
-import { ClayCard, EmptyState, Lift, Orb, ProgressBar } from '@yasno/ui';
-import type { Course } from '@yasno/types';
+import { Award, Book, Check, Clock, Shield } from '@proai/icons';
+import { ClayCard, EmptyState, Lift, Orb, ProgressBar } from '@proai/ui';
+import type { Course } from '@proai/types';
 import { api } from '@/lib/api-client';
 
 export default function CoursesPage() {

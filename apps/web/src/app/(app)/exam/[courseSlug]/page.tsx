@@ -3,9 +3,9 @@
 import { use, useState } from 'react';
 import Link from 'next/link';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { FinalExam, SubmitFinalExamResponse } from '@yasno/types';
-import { Award, Check, Shield, XIcon } from '@yasno/icons';
-import { Button, ClayCard, EmptyState, Orb, ProgressRing, QuizDots, QuizOption, type QuizOptionState } from '@yasno/ui';
+import type { FinalExam, SubmitFinalExamResponse } from '@proai/types';
+import { Award, Check, Shield, XIcon } from '@proai/icons';
+import { Button, ClayCard, EmptyState, Orb, ProgressRing, QuizDots, QuizOption, type QuizOptionState } from '@proai/ui';
 import { api } from '@/lib/api-client';
 import { useFireConfetti } from '@/components/confetti-provider';
 

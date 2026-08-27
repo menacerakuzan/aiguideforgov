@@ -1,9 +1,9 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { Book } from '@yasno/icons';
-import { ClayCard, Orb, Reveal, Skeleton } from '@yasno/ui';
-import type { SectionColor } from '@yasno/types';
+import { Book } from '@proai/icons';
+import { ClayCard, Orb, Reveal, Skeleton } from '@proai/ui';
+import type { SectionColor } from '@proai/types';
 import { api } from '@/lib/api-client';
 
 const ORB_COLOR: Record<SectionColor, 'blue' | 'green' | 'amber' | 'red' | 'sun' | 'gold' | 'muted'> = {

@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { prisma } from '@yasno/db';
-import { requireCurrentUser, requireAdmin } from '@yasno/auth';
-import { UpsertFinalExamInputSchema } from '@yasno/types';
+import { prisma } from '@proai/db';
+import { requireCurrentUser, requireAdmin } from '@proai/auth';
+import { UpsertFinalExamInputSchema } from '@proai/types';
 import { withApiErrors } from '@/lib/api-guard';
 
 /** Фінальна атестація курсу разом із правильними відповідями — для форми редагування в CMS. */

@@ -1,7 +1,7 @@
 'use client';
 
 import * as DialogPrimitive from '@radix-ui/react-dialog';
-import { XIcon } from '@yasno/icons';
+import { XIcon } from '@proai/icons';
 import { cn } from '../lib/utils';
 
 export const Dialog = DialogPrimitive.Root;

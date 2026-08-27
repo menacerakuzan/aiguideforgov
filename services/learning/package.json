@@ -1,5 +1,5 @@
 {
-  "name": "@yasno/learning",
+  "name": "@proai/learning",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -13,13 +13,13 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@yasno/certificates": "workspace:*",
-    "@yasno/db": "workspace:*",
-    "@yasno/types": "workspace:*"
+    "@proai/certificates": "workspace:*",
+    "@proai/db": "workspace:*",
+    "@proai/types": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
-    "@yasno/config": "workspace:*",
+    "@proai/config": "workspace:*",
     "typescript": "^5.7.0",
     "vitest": "^2.1.0"
   }

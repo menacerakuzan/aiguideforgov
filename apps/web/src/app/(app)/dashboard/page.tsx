@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
-import { Award, Book, Check, Clock, Flame, Info, Play, Shield, Spark, TlSafe } from '@yasno/icons';
+import { Award, Book, Check, Clock, Flame, Info, Play, Shield, Spark, TlSafe } from '@proai/icons';
 import {
   Button,
   ClayCard,
@@ -17,8 +17,8 @@ import {
   Orb,
   ProgressBar,
   Reveal,
-} from '@yasno/ui';
-import type { Module, MyProgressResponse } from '@yasno/types';
+} from '@proai/ui';
+import type { Module, MyProgressResponse } from '@proai/types';
 import { api, ApiFetchError } from '@/lib/api-client';
 import { OnboardingTour } from '@/components/onboarding-tour';
 

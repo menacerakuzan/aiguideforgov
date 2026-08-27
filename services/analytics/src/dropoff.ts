@@ -1,5 +1,5 @@
-import { prisma } from '@yasno/db';
-import type { DropoffResponse } from '@yasno/types';
+import { prisma } from '@proai/db';
+import type { DropoffResponse } from '@proai/types';
 
 /**
  * Для кожного уроку: скільки людей узагалі почали цей модуль (пройшли

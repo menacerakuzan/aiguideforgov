@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@yasno/db';
-import { requireCurrentUser } from '@yasno/auth';
-import { getCourseOverview } from '@yasno/learning';
+import { prisma } from '@proai/db';
+import { requireCurrentUser } from '@proai/auth';
+import { getCourseOverview } from '@proai/learning';
 import { withApiErrors } from '@/lib/api-guard';
 
 /** Список усіх курсів платформи з підсумковим прогресом слухача — для сторінки вибору курсу й адмін-CMS. */

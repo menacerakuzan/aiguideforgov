@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { z } from 'zod';
-import { prisma } from '@yasno/db';
-import { requireCurrentUser } from '@yasno/auth';
+import { prisma } from '@proai/db';
+import { requireCurrentUser } from '@proai/auth';
 import { withApiErrors } from '@/lib/api-guard';
 
 const SelectCourseInputSchema = z.object({ courseId: z.string() });

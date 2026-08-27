@@ -2,7 +2,7 @@
 
 import { useState, type ComponentType } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Menu } from '@yasno/icons';
+import { Menu } from '@proai/icons';
 import { cn } from '../lib/utils';
 
 export interface NavLinkItem {

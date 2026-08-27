@@ -3,11 +3,12 @@
  * На відміну від `seed.ts`, не видаляє користувачів, сесії та прогрес,
  * тож розробник не вилітає з акаунта й не втрачає прогрес під час правок контенту.
  *
- * Запуск: pnpm --filter @yasno/db sync-content
+ * Запуск: pnpm --filter @proai/db sync-content
  *
  * Оновлює title / minutes / kind / content для наявних уроків. Структуру
  * (нові/видалені уроки, модулі, порядок) не змінює — для цього потрібен повний seed.
  */
+import { sanitizeLessonBlocks } from '@proai/infra';
 import { prisma } from './client';
 import { module1Lessons } from './content/lessons-module-1';
 import { module2Lessons } from './content/lessons-module-2';
@@ -35,7 +36,9 @@ async function main() {
         title: l.title,
         minutes: l.minutes,
         kind: l.kind ?? 'LESSON',
-        content: JSON.stringify(l.blocks),
+        // Той самий фільтр, що й в адмінському API: контент з файлів
+        // потрапляє в ту саму базу й на ту саму сторінку уроку.
+        content: JSON.stringify(sanitizeLessonBlocks(l.blocks)),
       },
     });
     if (res.count > 0) updated += res.count;

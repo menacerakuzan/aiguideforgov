@@ -2,9 +2,9 @@
 
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ROLES, ROLE_LABELS, type Role } from '@yasno/types';
-import { Award, Search } from '@yasno/icons';
-import { Badge, Input, ProgressBar, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, toast } from '@yasno/ui';
+import { ROLES, ROLE_LABELS, type Role } from '@proai/types';
+import { Award, Search } from '@proai/icons';
+import { Badge, Input, ProgressBar, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, toast } from '@proai/ui';
 import { api } from '@/lib/api-client';
 
 interface Row {

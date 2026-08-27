@@ -1,5 +1,5 @@
 {
-  "name": "@yasno/types",
+  "name": "@proai/types",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -15,7 +15,7 @@
     "zod": "^3.24.0"
   },
   "devDependencies": {
-    "@yasno/config": "workspace:*",
+    "@proai/config": "workspace:*",
     "typescript": "^5.7.0"
   }
 }

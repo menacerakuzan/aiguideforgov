@@ -1,5 +1,5 @@
 {
-  "name": "@yasno/infra",
+  "name": "@proai/infra",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -12,8 +12,14 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "@yasno/config": "workspace:*",
-    "typescript": "^5.7.0",
-    "@types/node": "^22.0.0"
+    "@proai/config": "workspace:*",
+    "@types/node": "^22.0.0",
+    "@types/sanitize-html": "^2.13.0",
+    "typescript": "^5.7.0"
+  },
+  "dependencies": {
+    "@proai/types": "workspace:*",
+    "sanitize-html": "^2.14.0",
+    "zod": "^3.24.0"
   }
 }

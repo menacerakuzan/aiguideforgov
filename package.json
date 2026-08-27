@@ -1,5 +1,5 @@
 {
-  "name": "yasno",
+  "name": "proai",
   "private": true,
   "packageManager": "pnpm@10.34.5",
   "engines": {
@@ -11,11 +11,11 @@
     "lint": "turbo lint",
     "typecheck": "turbo typecheck",
     "test": "turbo test",
-    "db:generate": "pnpm --filter @yasno/db generate",
-    "db:migrate": "pnpm --filter @yasno/db migrate",
-    "db:seed": "pnpm --filter @yasno/db seed",
-    "db:sync-content": "pnpm --filter @yasno/db sync-content",
-    "db:reset": "pnpm --filter @yasno/db reset"
+    "db:generate": "pnpm --filter @proai/db generate",
+    "db:migrate": "pnpm --filter @proai/db migrate",
+    "db:seed": "pnpm --filter @proai/db seed",
+    "db:sync-content": "pnpm --filter @proai/db sync-content",
+    "db:reset": "pnpm --filter @proai/db reset"
   },
   "devDependencies": {
     "turbo": "^2.5.0"

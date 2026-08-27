@@ -1,7 +1,8 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { prisma } from '@yasno/db';
-import { requireCurrentUser, requireAdmin } from '@yasno/auth';
-import { UpdateResourceInputSchema } from '@yasno/types';
+import { prisma } from '@proai/db';
+import { requireCurrentUser, requireAdmin } from '@proai/auth';
+import { sanitizeRichHtml } from '@proai/infra';
+import { UpdateResourceInputSchema } from '@proai/types';
 import { withApiErrors } from '@/lib/api-guard';
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -11,7 +12,11 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     const { id } = await params;
 
     const parsed = UpdateResourceInputSchema.parse({ ...(await request.json()), id });
-    const input = { ...parsed, id: undefined };
+    const input = {
+      ...parsed,
+      id: undefined,
+      ...(parsed.body !== undefined ? { body: sanitizeRichHtml(parsed.body) } : {}),
+    };
     const resource = await prisma.resource.update({ where: { id }, data: input });
     return NextResponse.json({ resource });
   });

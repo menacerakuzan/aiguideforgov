@@ -1,5 +1,5 @@
 {
-  "name": "@yasno/auth",
+  "name": "@proai/auth",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -13,9 +13,9 @@
   },
   "dependencies": {
     "@better-auth/prisma-adapter": "^1.6.0",
-    "@yasno/db": "workspace:*",
-    "@yasno/infra": "workspace:*",
-    "@yasno/types": "workspace:*",
+    "@proai/db": "workspace:*",
+    "@proai/infra": "workspace:*",
+    "@proai/types": "workspace:*",
     "better-auth": "^1.6.0"
   },
   "peerDependencies": {
@@ -23,7 +23,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
-    "@yasno/config": "workspace:*",
+    "@proai/config": "workspace:*",
     "typescript": "^5.7.0"
   }
 }

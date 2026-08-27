@@ -1,4 +1,4 @@
 {
-  "extends": "@yasno/config/tsconfig.base.json",
+  "extends": "@proai/config/tsconfig.base.json",
   "include": ["src"]
 }

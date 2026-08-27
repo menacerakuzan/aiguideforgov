@@ -1,17 +1,35 @@
 import { betterAuth } from 'better-auth';
 import { prismaAdapter } from '@better-auth/prisma-adapter';
-import { admin } from 'better-auth/plugins';
-import { prisma } from '@yasno/db';
-import { infra } from '@yasno/infra';
+import { prisma } from '@proai/db';
+import { infra, serverEnv } from '@proai/infra';
 
 /**
- * Better Auth: email/password + admin-плагін (лише для банів/сесій).
+ * Better Auth: лише email/password.
  *
- * ВАЖЛИВО: фактичний RBAC платформи (LEARNER/ADMIN) реалізовано в rbac.ts
- * і НЕ залежить від внутрішньої системи прав admin-плагіна. Роль
- * (User.role: Role) — наше власне поле, admin-плагін до нього не звертається;
- * зміна ролі відбувається виключно через /api/users (лише ADMIN).
+ * RBAC платформи (LEARNER/ADMIN) — наше власне поле User.role і перевірка
+ * в rbac.ts. Зміна ролі відбувається виключно через /api/users (лише ADMIN).
+ *
+ * Плагіна admin() тут НЕМАЄ, і це свідомо. Він:
+ *   1. Ламав реєстрацію. Плагін проставляє новому користувачеві свою роль
+ *      за замовчуванням — рядок "user", якого немає в enum Role
+ *      (LEARNER | ADMIN). Prisma відхиляла INSERT, і будь-яка спроба
+ *      зареєструватися завершувалася 422 FAILED_TO_CREATE_USER.
+ *   2. Був нікому не потрібен: ані бани, ані імперсонація в коді платформи
+ *      не використовуються (поля banned/banExpires у схемі лишилися
+ *      незадіяними).
+ *   3. Відкривав другий шлях керування ролями — /api/auth/admin/set-role
+ *      тощо, — який обходить перевірки в /api/users (заборону зняти
+ *      адміністратора із себе й прибрати останнього адміністратора).
+ *
+ * Якщо колись знадобляться бани — вмикати його треба з явними
+ * `defaultRole: 'LEARNER'` і `adminRoles: ['ADMIN']`, інакше пункт 1 повернеться.
  */
+
+const env = serverEnv();
+
+/** Довжина посади в профілі — рівно стільки, скільки вміщає сертифікат. */
+const MAX_POSITION_LENGTH = 160;
+
 /**
  * Приватні мережі за RFC 1918 + loopback. Тільки такі адреси вважаємо «своїми»
  * у режимі розробки: 192.168.x.x, 10.x.x.x, 172.16–31.x.x, localhost, 127.x.x.x.
@@ -32,15 +50,15 @@ const PRIVATE_HOST =
  */
 function trustedOrigins(request?: Request): string[] {
   const configured = [
-    process.env.BETTER_AUTH_URL,
-    process.env.NEXT_PUBLIC_APP_URL,
+    env.BETTER_AUTH_URL,
+    env.NEXT_PUBLIC_APP_URL,
     // Кілька доменів через кому — для стенду чи прев'ю.
-    ...(process.env.TRUSTED_ORIGINS ?? '').split(','),
+    ...(env.TRUSTED_ORIGINS ?? '').split(','),
   ]
     .map((value) => value?.trim())
     .filter((value): value is string => !!value);
 
-  if (process.env.NODE_ENV === 'production') return configured;
+  if (env.NODE_ENV === 'production') return configured;
 
   const origin = request?.headers.get('origin');
   if (!origin) return configured;
@@ -54,35 +72,105 @@ function trustedOrigins(request?: Request): string[] {
   return configured;
 }
 
+/**
+ * Поля, які клієнт надсилає на реєстрації, — довільний рядок із браузера.
+ * Тут вони стають або справжнім посиланням на організацію, або null:
+ * неіснуючий organizationId інакше впав би порушенням зовнішнього ключа
+ * (реєстрація віддавала б 500 замість акаунта), а посада без обмеження
+ * довжини поїхала б у базу й на сертифікат як є.
+ */
+async function normalizeProfileFields(input: Record<string, unknown>) {
+  // Better Auth типізує додаткові поля лише як Record<string, unknown> —
+  // звідси перевірки typeof замість прямого доступу.
+  const rawOrgId = typeof input.organizationId === 'string' ? input.organizationId.trim() : '';
+  const rawPosition = typeof input.position === 'string' ? input.position.trim() : '';
+
+  const organizationId = rawOrgId
+    ? ((await prisma.organization.findUnique({ where: { id: rawOrgId }, select: { id: true } }))?.id ?? null)
+    : null;
+
+  return {
+    organizationId,
+    position: rawPosition ? rawPosition.slice(0, MAX_POSITION_LENGTH) : null,
+  };
+}
+
 export const auth = betterAuth({
   database: prismaAdapter(prisma, { provider: 'sqlite' }),
-  secret: process.env.BETTER_AUTH_SECRET,
-  baseURL: process.env.BETTER_AUTH_URL,
+  secret: env.BETTER_AUTH_SECRET,
+  baseURL: env.BETTER_AUTH_URL,
   trustedOrigins,
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: false, // MVP: без зовнішнього поштового провайдера
     minPasswordLength: 8,
+    // Верхня межа не косметична: без неї запит на кілька мегабайт пароля
+    // змушує сервер хешувати їх scrypt'ом — дешевий спосіб покласти вхід.
+    maxPasswordLength: 128,
     resetPasswordTokenExpiresIn: 60 * 60, // 1 година
     sendResetPassword: async ({ user, url }) => {
       await infra.mailer.send({
         to: user.email,
-        subject: 'Відновлення пароля — Ясно',
+        subject: 'Відновлення пароля — ПРО.ШІ',
         text: `Ви (або хтось інший) запросили відновлення пароля для акаунта ${user.email}.\n\nПосилання дійсне 1 годину:\n${url}\n\nЯкщо це були не ви — просто проігноруйте цей лист.`,
       });
     },
   },
-  plugins: [admin()],
+  /**
+   * Обмеження частоти. Без нього форма входу — це готовий стенд для перебору
+   * паролів: 8 символів мінімум нічого не варті, якщо пробувати можна
+   * необмежено. Загальне вікно тримаємо м'яким, а на самих чутливих
+   * маршрутах — жорсткі окремі правила.
+   */
+  rateLimit: {
+    enabled: true,
+    window: 60,
+    max: 100,
+    customRules: {
+      '/sign-in/email': { window: 60, max: 5 },
+      '/sign-up/email': { window: 60 * 60, max: 10 },
+      '/forget-password': { window: 60 * 60, max: 5 },
+      '/reset-password': { window: 60 * 60, max: 10 },
+    },
+  },
+  advanced: {
+    // За HTTPS куки мають бути Secure. Better Auth виводить це з baseURL,
+    // але за проксі (nginx/ingress) baseURL іноді лишається http — тому
+    // в продакшні вмикаємо явно.
+    useSecureCookies: env.NODE_ENV === 'production',
+    defaultCookieAttributes: {
+      httpOnly: true,
+      sameSite: 'lax',
+    },
+  },
   user: {
     additionalFields: {
+      // input: false — роль НЕ приймається від клієнта на реєстрації.
       role: { type: 'string', required: false, defaultValue: 'LEARNER', input: false },
       position: { type: 'string', required: false },
       organizationId: { type: 'string', required: false },
-      streak: { type: 'number', required: false, defaultValue: 0 },
+      streak: { type: 'number', required: false, defaultValue: 0, input: false },
+    },
+  },
+  databaseHooks: {
+    user: {
+      create: {
+        before: async (user) => ({
+          data: {
+            ...user,
+            ...(await normalizeProfileFields(user)),
+            // Роль на реєстрації завжди LEARNER — незалежно від того, що
+            // прийшло в тілі запиту. `input: false` вище вже це гарантує;
+            // тут те саме ще раз, бо ціна помилки — чужий адміністратор.
+            role: 'LEARNER',
+          },
+        }),
+      },
     },
   },
   session: {
     expiresIn: 60 * 60 * 24 * 30, // 30 днів, як у PRODUCT_SPEC (remember-me за замовчуванням)
+    updateAge: 60 * 60 * 24, // продовжуємо сесію не частіше разу на добу
   },
 });
 

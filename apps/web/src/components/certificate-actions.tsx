@@ -1,7 +1,7 @@
 'use client';
 
-import { Check, Copy, Doc } from '@yasno/icons';
-import { IconButton, useCopyToClipboard } from '@yasno/ui';
+import { Check, Copy, Doc } from '@proai/icons';
+import { IconButton, useCopyToClipboard } from '@proai/ui';
 
 export function CertificateActions({ code }: { code: string }) {
   const { copied, copy } = useCopyToClipboard();

@@ -1,4 +1,4 @@
-import { Skeleton } from '@yasno/ui';
+import { Skeleton } from '@proai/ui';
 
 /**
  * Миттєвий відгук на клік по посиланню. Без loading.tsx App Router тримає

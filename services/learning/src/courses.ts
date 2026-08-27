@@ -1,5 +1,5 @@
-import { prisma } from '@yasno/db';
-import type { Course, Lesson, LessonBlock, LessonSummary, Module, Section } from '@yasno/types';
+import { prisma } from '@proai/db';
+import type { Course, Lesson, LessonBlock, LessonSummary, Module, Section } from '@proai/types';
 import { getModuleCompletion, isModuleCompleted } from './lib/completion';
 
 /** Курс з повною ієрархією розділів і модулів (без списку уроків — лише лічильники). */

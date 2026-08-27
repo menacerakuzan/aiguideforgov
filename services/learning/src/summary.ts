@@ -1,5 +1,5 @@
-import { prisma } from '@yasno/db';
-import type { MyProgressResponse } from '@yasno/types';
+import { prisma } from '@proai/db';
+import type { MyProgressResponse } from '@proai/types';
 import { getCourseOverview } from './courses';
 
 /** Зведення для дашборда: єдиний курс з прогресом, серія, допуск до атестації. */

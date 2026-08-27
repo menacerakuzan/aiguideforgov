@@ -1,5 +1,5 @@
 @import 'tailwindcss';
-@import '@yasno/config/theme.css';
+@import '@proai/config/theme.css';
 
 /*
  * Tailwind v4 сканує класи лише в межах поточного проєкту (apps/web).

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { requireCurrentUser } from '@yasno/auth';
-import { getCourseOverview } from '@yasno/learning';
+import { requireCurrentUser } from '@proai/auth';
+import { getCourseOverview } from '@proai/learning';
 import { withApiErrors } from '@/lib/api-guard';
 
 export async function GET(_request: Request, { params }: { params: Promise<{ slug: string }> }) {

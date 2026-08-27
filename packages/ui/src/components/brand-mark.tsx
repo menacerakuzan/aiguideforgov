@@ -5,7 +5,7 @@ import { useReducedMotion } from '../hooks/use-reduced-motion';
 import { cn } from '../lib/utils';
 
 /**
- * Логотип «Ясно»: три крапки світлофора (червона/бурштинова/зелена)
+ * Логотип «ПРО.ШІ»: три крапки світлофора (червона/бурштинова/зелена)
  * у темному колі. Порт .brand-mark — обертається при наведенні на .brand.
  */
 export function BrandMark({ className, size = 40 }: { className?: string; size?: number }) {

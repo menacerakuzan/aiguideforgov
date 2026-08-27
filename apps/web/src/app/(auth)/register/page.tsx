@@ -6,9 +6,10 @@ import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { RegisterInputSchema, type RegisterInput } from '@yasno/types';
-import { Button, ClayCard, FieldError, Input, Label, Select } from '@yasno/ui';
+import { RegisterInputSchema, type RegisterInput } from '@proai/types';
+import { Button, ClayCard, FieldError, Input, Label, Select } from '@proai/ui';
 import { api } from '@/lib/api-client';
+import { authErrorMessage } from '@/lib/auth-errors';
 import { signUp } from '@/lib/auth-client';
 
 interface OrganizationOption {
@@ -24,7 +25,11 @@ export default function RegisterPage() {
   const { data } = useQuery({
     queryKey: ['organizations', 'list'],
     queryFn: () => api.get<{ organizations: OrganizationOption[] }>('/api/organizations/list'),
+    // Довідник органів влади змінюється раз на місяці — не смикаємо його
+    // на кожен фокус вкладки, поки людина заповнює форму.
+    staleTime: 10 * 60_000,
   });
+  const organizations = data?.organizations ?? [];
 
   const {
     register,
@@ -42,7 +47,7 @@ export default function RegisterPage() {
       position: values.position,
     });
     if (error) {
-      setServerError(error.message ?? 'Не вдалося створити акаунт. Можливо, ця пошта вже зареєстрована.');
+      setServerError(authErrorMessage(error));
       return;
     }
     router.push('/dashboard');
@@ -83,17 +88,19 @@ export default function RegisterPage() {
           <Label htmlFor="organizationId">Орган влади</Label>
           <Select id="organizationId" {...register('organizationId')}>
             <option value="">Оберіть зі списку</option>
-            {data?.organizations.map((org) => (
+            {organizations.map((org) => (
               <option key={org.id} value={org.id}>
                 {org.name}
               </option>
             ))}
           </Select>
+          <FieldError>{errors.organizationId?.message}</FieldError>
         </div>
 
         <div>
           <Label htmlFor="position">Посада</Label>
           <Input id="position" placeholder="Наприклад: головний спеціаліст" {...register('position')} />
+          <FieldError>{errors.position?.message}</FieldError>
         </div>
 
         <FieldError>{serverError}</FieldError>

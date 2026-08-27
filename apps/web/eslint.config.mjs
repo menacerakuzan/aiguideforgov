@@ -7,7 +7,17 @@ const __dirname = path.dirname(__filename);
 
 const compat = new FlatCompat({ baseDirectory: __dirname });
 
-export default [
-  { ignores: ['.next/**', 'node_modules/**'] },
+const config = [
+  {
+    ignores: [
+      '.next/**',
+      'node_modules/**',
+      // Генерується Next при кожній збірці — правити його немає сенсу,
+      // а triple-slash reference усередині ловиться правилом як помилка.
+      'next-env.d.ts',
+    ],
+  },
   ...compat.extends('next/core-web-vitals', 'next/typescript'),
 ];
+
+export default config;

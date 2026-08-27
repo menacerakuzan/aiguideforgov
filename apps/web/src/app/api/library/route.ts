@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { prisma } from '@yasno/db';
-import { requireCurrentUser } from '@yasno/auth';
-import type { LibraryResponse } from '@yasno/types';
+import { prisma } from '@proai/db';
+import { requireCurrentUser } from '@proai/auth';
+import type { LibraryResponse } from '@proai/types';
 import { withApiErrors } from '@/lib/api-guard';
 
 /** Уся бібліотека — промпти й ресурси (чек-листи/правила/таблиці/шаблони) в одному запиті. */

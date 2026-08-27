@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ThumbsDown, ThumbsUp, XIcon } from '@yasno/icons';
-import { Button, ClayCard, Textarea, toast } from '@yasno/ui';
-import type { CommentsResponse, LessonComment } from '@yasno/types';
+import { ThumbsDown, ThumbsUp, XIcon } from '@proai/icons';
+import { Button, ClayCard, Textarea, toast } from '@proai/ui';
+import type { CommentsResponse, LessonComment } from '@proai/types';
 import { api } from '@/lib/api-client';
 
 export function LessonComments({ lessonId }: { lessonId: string }) {

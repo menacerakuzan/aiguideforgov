@@ -1,7 +1,19 @@
-import { prisma } from '@yasno/db';
-import type { FinalExam, SubmitFinalExamInput, SubmitFinalExamResponse } from '@yasno/types';
-import { issueCertificate } from '@yasno/certificates';
+import { prisma } from '@proai/db';
+import type { FinalExam, SubmitFinalExamInput, SubmitFinalExamResponse } from '@proai/types';
+import { issueCertificate } from '@proai/certificates';
 import { hasCompletedAllModules } from './lib/completion';
+
+/**
+ * Спроба скласти фінальну атестацію без пройдених модулів курсу.
+ * Окремий тип, а не 403 рядком: рівень домену не знає про HTTP, а
+ * withApiErrors перетворює його на коректну відповідь.
+ */
+export class NotEligibleError extends Error {
+  constructor(message = 'Спершу пройдіть усі модулі курсу') {
+    super(message);
+    this.name = 'NotEligibleError';
+  }
+}
 
 /** Фінальна атестація курсу разом з ознакою допуску для конкретного слухача. */
 export async function getFinalExam(userId: string, courseSlug: string): Promise<FinalExam | null> {
@@ -41,6 +53,12 @@ export async function submitFinalExam(userId: string, input: SubmitFinalExamInpu
     include: { questions: { orderBy: { order: 'asc' } } },
   });
 
+  // Допуск перевіряємо ТУТ, а не лише в getFinalExam: сторінка ховає кнопку,
+  // але POST на /api/exam/submit можна надіслати й повз неї — і в базі
+  // з'являлася б спроба атестації від того, хто курс ще не пройшов.
+  const eligible = await hasCompletedAllModules(userId, exam.courseId);
+  if (!eligible) throw new NotEligibleError();
+
   const graded = exam.questions.map((q, i) => {
     const options = JSON.parse(q.options) as string[];
     const pickedIndex = input.answers[i] ?? -1;
@@ -75,7 +93,7 @@ export async function submitFinalExam(userId: string, input: SubmitFinalExamInpu
   });
 
   let certificate = null;
-  if (passed && (await hasCompletedAllModules(userId, exam.courseId))) {
+  if (passed) {
     certificate = await issueCertificate({ userId, score, withHonors: score >= 95 && securityScore === 100 });
   }
 

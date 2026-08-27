@@ -1,4 +1,4 @@
-import { Skeleton } from '@yasno/ui';
+import { Skeleton } from '@proai/ui';
 
 /**
  * Каркас уроку. Використовується двічі й навмисно однаковий в обох місцях:

@@ -1,5 +1,5 @@
-import { prisma } from '@yasno/db';
-import type { CompleteLessonResponse } from '@yasno/types';
+import { prisma } from '@proai/db';
+import type { CompleteLessonResponse } from '@proai/types';
 import { isModuleCompleted } from './lib/completion';
 
 function dayKey(d: Date): number {

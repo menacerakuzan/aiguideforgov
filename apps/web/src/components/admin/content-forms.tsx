@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button, Input, Select, Textarea, toast } from '@yasno/ui';
-import { XIcon } from '@yasno/icons';
+import { Button, Input, Select, Textarea, toast } from '@proai/ui';
+import { XIcon } from '@proai/icons';
 import { api } from '@/lib/api-client';
 
 const SECTION_COLORS = ['BLUE', 'GREEN', 'AMBER', 'RED', 'SUN', 'GOLD', 'MUTED', 'INK'] as const;

@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button, FieldError, Input, Label, Select, toast } from '@yasno/ui';
-import { api } from '@/lib/api-client';
+import { Button, FieldError, Input, Label, Select, toast } from '@proai/ui';
+import { ApiFetchError, api } from '@/lib/api-client';
 
 export function SettingsForm({
   initialPosition,
@@ -27,11 +27,13 @@ export function SettingsForm({
     setSaving(true);
     setError(null);
     try {
-      await api.patch('/api/profile', { position, organizationId: organizationId || undefined });
+      // Порожні значення надсилаємо як null, а не пропускаємо: інакше
+      // «прибрати орган влади» нічого не робило б — сервер не бачив би поля.
+      await api.patch('/api/profile', { position: position || null, organizationId: organizationId || null });
       toast.success('Зміни збережено');
       router.refresh();
-    } catch {
-      setError('Не вдалося зберегти. Спробуйте ще раз.');
+    } catch (e) {
+      setError(e instanceof ApiFetchError ? e.message : 'Не вдалося зберегти. Спробуйте ще раз.');
     } finally {
       setSaving(false);
     }

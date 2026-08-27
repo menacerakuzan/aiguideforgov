@@ -1,9 +1,9 @@
 import Link from 'next/link';
-import { prisma } from '@yasno/db';
-import { requireCurrentUser } from '@yasno/auth';
-import { getPlatformStats } from '@yasno/analytics';
-import { Award, Chart, Check, Doc, Spark, TlSafe, Users } from '@yasno/icons';
-import { Button, ClayCard, Orb } from '@yasno/ui';
+import { prisma } from '@proai/db';
+import { requireCurrentUser } from '@proai/auth';
+import { getPlatformStats } from '@proai/analytics';
+import { Award, Chart, Check, Doc, Spark, TlSafe, Users } from '@proai/icons';
+import { Button, ClayCard, Orb } from '@proai/ui';
 import { UsersTable } from '@/components/admin/users-table';
 import { requirePageAdmin } from '@/lib/page-guard';
 

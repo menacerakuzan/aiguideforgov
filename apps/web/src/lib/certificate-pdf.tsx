@@ -115,7 +115,7 @@ export function CertificateDocument({ data }: { data: CertificatePdfData }) {
   ensureFontsRegistered();
 
   return (
-    <Document title={`Сертифікат ${data.code}`} author="Ясно">
+    <Document title={`Сертифікат ${data.code}`} author="ПРО.ШІ">
       <Page size="A4" orientation="landscape" style={styles.page}>
         <View style={styles.outerBorder}>
           <View style={styles.innerBorder}>
@@ -124,7 +124,7 @@ export function CertificateDocument({ data }: { data: CertificatePdfData }) {
                 <View style={[styles.dot, { backgroundColor: '#16b77a' }]} />
                 <View style={[styles.dot, { backgroundColor: GOLD }]} />
                 <View style={[styles.dot, { backgroundColor: '#cc3e27' }]} />
-                <Text style={styles.brand}>ЯСНО</Text>
+                <Text style={styles.brand}>ПРО.ШІ</Text>
               </View>
 
               <Text style={styles.eyebrow}>СЕРТИФІКАТ ПРО ПРОХОДЖЕННЯ КУРСУ</Text>

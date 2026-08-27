@@ -1,8 +1,8 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { CountUp } from '@yasno/ui';
-import type { PublicStatsResponse } from '@yasno/types';
+import { CountUp } from '@proai/ui';
+import type { PublicStatsResponse } from '@proai/types';
 import { api } from '@/lib/api-client';
 
 function formatHours(totalMinutes: number): string {

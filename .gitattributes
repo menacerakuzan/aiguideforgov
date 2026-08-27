@@ -1,0 +1,33 @@
+# Проєкт живе на Linux, а редагується подекуди з Windows, де git налаштований
+# з core.autocrlf=true. Без цього файлу checkout на Windows підмінює LF на CRLF,
+# і назад у комміт їдуть файли з чужими переносами рядків.
+#
+# eol=lf діє сильніше за autocrlf: у робочій теці й у сховищі завжди LF,
+# незалежно від машини.
+
+* text=auto eol=lf
+
+# Бінарні — git не має чіпати їх узагалі.
+*.png    binary
+*.jpg    binary
+*.jpeg   binary
+*.gif    binary
+*.ico    binary
+*.webp   binary
+*.mp4    binary
+*.mp3    binary
+*.wav    binary
+*.woff   binary
+*.woff2  binary
+*.ttf    binary
+*.otf    binary
+*.pdf    binary
+*.docx   binary
+*.db     binary
+*.db-journal binary
+
+# Скрипти PowerShell зі студії — єдине, що на Windows очікує CRLF.
+*.ps1    text eol=crlf
+
+# Лок-файл великий і згенерований: у diff від нього користі немає.
+pnpm-lock.yaml -diff linguist-generated

@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { getCurrentUser } from '@yasno/auth';
-import { BrandMark, Navbar } from '@yasno/ui';
+import { getCurrentUser } from '@proai/auth';
+import { BrandMark, Navbar } from '@proai/ui';
 import { ConfettiProvider } from '@/components/confetti-provider';
 import { AppUserMenu } from '@/components/app-user-menu';
 import { GlobalSearch } from '@/components/global-search';
@@ -25,7 +25,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         links={LINKS}
         brand={
           <Link href="/dashboard" className="flex items-center gap-2.5 font-display text-lg font-bold">
-            <BrandMark size={36} /> Ясно
+            <BrandMark size={36} /> ПРО.ШІ
           </Link>
         }
         actions={

@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { prisma } from '@yasno/db';
-import { requireCurrentUser, isAdmin } from '@yasno/auth';
+import { prisma } from '@proai/db';
+import { requireCurrentUser, isAdmin } from '@proai/auth';
 import { withApiErrors } from '@/lib/api-guard';
 
 export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {

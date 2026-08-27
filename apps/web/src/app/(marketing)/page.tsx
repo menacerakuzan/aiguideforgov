@@ -1,6 +1,6 @@
 import Link from 'next/link';
-import { Award, Spark, TlCaution, TlForbid, TlSafe } from '@yasno/icons';
-import { Button, ClayCard, Orb, Reveal } from '@yasno/ui';
+import { Award, Spark, TlCaution, TlForbid, TlSafe } from '@proai/icons';
+import { Button, ClayCard, Orb, Reveal } from '@proai/ui';
 import { LandingStats } from '@/components/landing-stats';
 import { LandingSectionsPreview } from '@/components/landing-sections-preview';
 
@@ -28,7 +28,7 @@ export default function LandingPage() {
             </span>
 
             <h1 className="mt-5 font-display text-[38px] leading-[1.15] font-bold sm:text-[52px]">
-              ШІ в роботі? Тепер усе <span className="text-blue">ясно</span>
+              ШІ в роботі — <span className="text-blue">без ризику</span>
             </h1>
 
             <p className="mt-4 max-w-[46ch] text-lg text-ink-soft">

@@ -2,8 +2,8 @@
 
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import type { CurrentUser } from '@yasno/auth';
-import { ROLE_LABELS } from '@yasno/types';
+import type { CurrentUser } from '@proai/auth';
+import { ROLE_LABELS } from '@proai/types';
 import {
   Avatar,
   DropdownMenu,
@@ -12,7 +12,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@yasno/ui';
+} from '@proai/ui';
 import { signOut } from '@/lib/auth-client';
 
 export function AppUserMenu({ user }: { user: CurrentUser }) {

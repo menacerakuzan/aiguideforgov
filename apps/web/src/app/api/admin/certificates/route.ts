@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@yasno/db';
-import { requireCurrentUser, requireAdmin } from '@yasno/auth';
-import type { AdminCertificatesResponse } from '@yasno/types';
+import { prisma } from '@proai/db';
+import { requireCurrentUser, requireAdmin } from '@proai/auth';
+import type { AdminCertificatesResponse } from '@proai/types';
 import { withApiErrors } from '@/lib/api-guard';
 
 /** Усі сертифікати платформи, видані будь-якому користувачу — лише ADMIN. */

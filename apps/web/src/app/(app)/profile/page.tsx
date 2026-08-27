@@ -1,9 +1,9 @@
 import Link from 'next/link';
-import { prisma } from '@yasno/db';
-import { requireCurrentUser } from '@yasno/auth';
-import { ROLE_LABELS } from '@yasno/types';
-import { Award, Book, Flame, Mail } from '@yasno/icons';
-import { Avatar, Button, ClayCard, Orb } from '@yasno/ui';
+import { prisma } from '@proai/db';
+import { requireCurrentUser } from '@proai/auth';
+import { ROLE_LABELS } from '@proai/types';
+import { Award, Book, Flame, Mail } from '@proai/icons';
+import { Avatar, Button, ClayCard, Orb } from '@proai/ui';
 
 export default async function ProfilePage() {
   const me = await requireCurrentUser();

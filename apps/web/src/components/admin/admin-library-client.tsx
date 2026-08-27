@@ -2,10 +2,10 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button, ClayCard, FilterTabs, Input, Select, Textarea, toast } from '@yasno/ui';
-import { XIcon } from '@yasno/icons';
-import type { Prompt, PromptCategory, Resource, ResourceKind } from '@yasno/types';
-import { RESOURCE_KIND_LABELS } from '@yasno/types';
+import { Button, ClayCard, FilterTabs, Input, Select, Textarea, toast } from '@proai/ui';
+import { XIcon } from '@proai/icons';
+import type { Prompt, PromptCategory, Resource, ResourceKind } from '@proai/types';
+import { RESOURCE_KIND_LABELS } from '@proai/types';
 import { api } from '@/lib/api-client';
 
 const PROMPT_CATEGORIES: PromptCategory[] = ['CITIZENS', 'LETTERS', 'MEETINGS', 'ANALYTICS', 'INTERNAL'];
