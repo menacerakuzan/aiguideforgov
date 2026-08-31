@@ -1,0 +1,84 @@
+# Юніт systemd для платформи ПРО.ШІ.
+#
+#   sudo cp deploy/proai.service /etc/systemd/system/proai.service
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now proai
+#   sudo journalctl -u proai -f
+#
+# Передбачає: код у /srv/proai, окремий користувач `proai`, зібраний застосунок
+# (`pnpm build`) і зовнішній reverse proxy з TLS. Подробиці — deploy/README.md.
+
+[Unit]
+Description=ПРО.ШІ — навчальна платформа
+Documentation=file:/srv/proai/deploy/README.md
+# network-online, а не network: інакше служба стартує раніше, ніж підніметься
+# інтерфейс, і падає на bind.
+After=network-online.target
+Wants=network-online.target
+
+# Якщо застосунок падає одразу після старту (немає збірки, кривий .env),
+# не крутимо перезапуск нескінченно — краще зупинитись і показати це в статусі.
+# Обидва ключі належать саме до [Unit]: у [Service] systemd їх ігнорує.
+StartLimitIntervalSec=120
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=proai
+Group=proai
+WorkingDirectory=/srv/proai/apps/web
+
+# Запускаємо next напряму через node: так юніт не залежить від того, чи є в
+# PATH systemd pnpm/corepack (а їх там зазвичай немає — PATH служби мінімальний).
+ExecStart=/usr/bin/node node_modules/next/dist/bin/next start --port 3000 --hostname 127.0.0.1
+
+# Слухаємо лише loopback: назовні застосунок дивиться через reverse proxy,
+# який тримає TLS. Прямий доступ по HTTP зламав би вхід — див. README.
+Environment=NODE_ENV=production
+Environment=PORT=3000
+Environment=HOSTNAME=127.0.0.1
+
+# Секрети й адреси. Файл має належати root:proai з правами 0640 — у ньому
+# BETTER_AUTH_SECRET. DATABASE_URL там мусить бути АБСОЛЮТНИМ.
+EnvironmentFile=/srv/proai/apps/web/.env
+
+Restart=always
+RestartSec=5
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=proai
+
+# ── Обмеження прав ──────────────────────────────────────────────────────────
+NoNewPrivileges=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+RestrictSUIDSGID=yes
+RestrictRealtime=yes
+RestrictNamespaces=yes
+LockPersonality=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
+
+# ProtectSystem=strict робить усе тільки для читання, тож явно відкриваємо на
+# запис рівно те, що застосунку потрібно:
+#   prisma/   — файл SQLite і його -journal/-wal (без цього база «read-only»);
+#   .next/cache — кеш зображень і сторінок Next у рантаймі.
+ReadWritePaths=/srv/proai/prisma
+ReadWritePaths=/srv/proai/apps/web/.next/cache
+
+# MemoryDenyWriteExecute тут свідомо НЕ вмикаємо: V8 компілює JIT-код у пам'ять
+# із правом на виконання, і з цією опцією Node просто не стартує.
+
+LimitNOFILE=65535
+
+[Install]
+WantedBy=multi-user.target
