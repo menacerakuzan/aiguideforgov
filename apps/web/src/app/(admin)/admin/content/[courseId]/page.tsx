@@ -1,14 +1,13 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { prisma } from '@proai/db';
-import { requireCurrentUser } from '@proai/auth';
 import { ArrowLeft, Award, Book, Check, Clock } from '@proai/icons';
 import { Button, ClayCard } from '@proai/ui';
-import { requirePageAdmin } from '@/lib/page-guard';
+import { requirePageAdmin, requirePageUser } from '@/lib/page-guard';
 import { AddSectionForm, AddModuleForm, AddLessonForm, DeleteEntityButton } from '@/components/admin/content-forms';
 
 export default async function AdminCourseContentPage({ params }: { params: Promise<{ courseId: string }> }) {
-  const me = await requireCurrentUser();
+  const me = await requirePageUser();
   requirePageAdmin(me);
   const { courseId } = await params;
 

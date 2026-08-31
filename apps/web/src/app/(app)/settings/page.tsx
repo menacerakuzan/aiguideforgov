@@ -1,10 +1,10 @@
 import { prisma } from '@proai/db';
-import { requireCurrentUser } from '@proai/auth';
 import { ClayCard } from '@proai/ui';
 import { SettingsForm } from '@/components/settings-form';
+import { requirePageUser } from '@/lib/page-guard';
 
 export default async function SettingsPage() {
-  const me = await requireCurrentUser();
+  const me = await requirePageUser();
   const user = await prisma.user.findUniqueOrThrow({ where: { id: me.id } });
   const organizations = await prisma.organization.findMany({ orderBy: { name: 'asc' } });
 

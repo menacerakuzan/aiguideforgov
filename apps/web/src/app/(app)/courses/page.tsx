@@ -1,8 +1,8 @@
 import Link from 'next/link';
-import { requireCurrentUser } from '@proai/auth';
 import { getCoursesForUser } from '@proai/learning';
 import { Award, Book, Check, Clock, Shield } from '@proai/icons';
 import { ClayCard, EmptyState, Lift, Orb, ProgressBar } from '@proai/ui';
+import { requirePageUser } from '@/lib/page-guard';
 
 /**
  * Сторінка суто показова — жодного стану, лише посилання. Тому вона повністю
@@ -10,7 +10,7 @@ import { ClayCard, EmptyState, Lift, Orb, ProgressBar } from '@proai/ui';
  * без окремого запиту до /api/courses, як було раніше.
  */
 export default async function CoursesPage() {
-  const me = await requireCurrentUser();
+  const me = await requirePageUser();
   const courses = await getCoursesForUser(me.id);
 
   return (

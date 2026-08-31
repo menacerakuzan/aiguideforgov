@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
-import { requireCurrentUser } from '@proai/auth';
 import { getLesson } from '@proai/learning';
 import { LessonClient } from '@/components/lesson-client';
+import { requirePageUser } from '@/lib/page-guard';
 
 /**
  * Серверна оболонка уроку: текст і блоки приходять разом із HTML, а не окремим
@@ -9,7 +9,7 @@ import { LessonClient } from '@/components/lesson-client';
  * LessonClient.
  */
 export default async function LessonPage({ params }: { params: Promise<{ id: string }> }) {
-  const me = await requireCurrentUser();
+  const me = await requirePageUser();
   const { id } = await params;
 
   const lesson = await getLesson(me.id, id);

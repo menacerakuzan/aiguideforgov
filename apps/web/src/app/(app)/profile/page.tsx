@@ -1,12 +1,12 @@
 import Link from 'next/link';
 import { prisma } from '@proai/db';
-import { requireCurrentUser } from '@proai/auth';
 import { ROLE_LABELS } from '@proai/types';
 import { Award, Book, Flame, Mail } from '@proai/icons';
 import { Avatar, Button, ClayCard, Orb } from '@proai/ui';
+import { requirePageUser } from '@/lib/page-guard';
 
 export default async function ProfilePage() {
-  const me = await requireCurrentUser();
+  const me = await requirePageUser();
   const user = await prisma.user.findUniqueOrThrow({
     where: { id: me.id },
     include: { organization: true, certificates: { where: { revoked: false } } },

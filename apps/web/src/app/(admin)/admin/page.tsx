@@ -1,14 +1,13 @@
 import Link from 'next/link';
 import { prisma } from '@proai/db';
-import { requireCurrentUser } from '@proai/auth';
 import { getPlatformStats } from '@proai/analytics';
 import { Award, Chart, Check, Doc, Spark, TlSafe, Users } from '@proai/icons';
 import { Button, ClayCard, Orb } from '@proai/ui';
 import { UsersTable } from '@/components/admin/users-table';
-import { requirePageAdmin } from '@/lib/page-guard';
+import { requirePageAdmin, requirePageUser } from '@/lib/page-guard';
 
 export default async function AdminOverviewPage() {
-  const me = await requireCurrentUser();
+  const me = await requirePageUser();
   requirePageAdmin(me);
 
   const [stats, users, totalModules, organizations] = await Promise.all([

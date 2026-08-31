@@ -1,6 +1,6 @@
-import { requireCurrentUser } from '@proai/auth';
 import { getDashboard } from '@proai/learning';
 import { DashboardClient } from '@/components/dashboard-client';
+import { requirePageUser } from '@/lib/page-guard';
 
 /**
  * Серверна оболонка дашборда.
@@ -11,7 +11,7 @@ import { DashboardClient } from '@/components/dashboard-client';
  * із HTML.
  */
 export default async function DashboardPage() {
-  const me = await requireCurrentUser();
+  const me = await requirePageUser();
   const { progress, currentModule, noActiveCourse } = await getDashboard(me.id);
 
   return <DashboardClient progress={progress} currentModule={currentModule} noActiveCourse={noActiveCourse} />;

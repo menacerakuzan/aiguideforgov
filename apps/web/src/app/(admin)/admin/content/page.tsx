@@ -1,13 +1,12 @@
 import Link from 'next/link';
 import { prisma } from '@proai/db';
-import { requireCurrentUser } from '@proai/auth';
 import { Book } from '@proai/icons';
 import { ClayCard, EmptyState } from '@proai/ui';
-import { requirePageAdmin } from '@/lib/page-guard';
+import { requirePageAdmin, requirePageUser } from '@/lib/page-guard';
 import { AddCourseForm } from '@/components/admin/content-forms';
 
 export default async function AdminCoursesPage() {
-  const me = await requireCurrentUser();
+  const me = await requirePageUser();
   requirePageAdmin(me);
 
   const courses = await prisma.course.findMany({

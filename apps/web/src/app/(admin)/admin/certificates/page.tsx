@@ -1,12 +1,11 @@
 import { prisma } from '@proai/db';
-import { requireCurrentUser } from '@proai/auth';
 import { Award } from '@proai/icons';
 import { ClayCard, EmptyState, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@proai/ui';
-import { requirePageAdmin } from '@/lib/page-guard';
+import { requirePageAdmin, requirePageUser } from '@/lib/page-guard';
 import { AdminRevokeButton } from '@/components/admin/admin-revoke-button';
 
 export default async function AdminCertificatesPage() {
-  const me = await requireCurrentUser();
+  const me = await requirePageUser();
   requirePageAdmin(me);
 
   const certs = await prisma.certificate.findMany({

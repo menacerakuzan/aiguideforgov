@@ -1,12 +1,12 @@
 import Link from 'next/link';
 import { prisma } from '@proai/db';
-import { requireCurrentUser } from '@proai/auth';
 import { Award, Book } from '@proai/icons';
 import { Button, ClayCard, EmptyState, Orb } from '@proai/ui';
 import { CertificateActions } from '@/components/certificate-actions';
+import { requirePageUser } from '@/lib/page-guard';
 
 export default async function CertificatesPage() {
-  const user = await requireCurrentUser();
+  const user = await requirePageUser();
   const certs = await prisma.certificate.findMany({ where: { userId: user.id }, orderBy: { issuedAt: 'desc' } });
 
   return (

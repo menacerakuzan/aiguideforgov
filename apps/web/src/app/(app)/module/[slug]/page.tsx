@@ -1,13 +1,13 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { requireCurrentUser } from '@proai/auth';
 import { getModuleBySlug } from '@proai/learning';
 import { ArrowLeft, Award, Book, Check, Clock, Lock, Play } from '@proai/icons';
 import { ClayCard } from '@proai/ui';
+import { requirePageUser } from '@/lib/page-guard';
 
 export default async function ModuleDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const user = await requireCurrentUser();
+  const user = await requirePageUser();
   const module_ = await getModuleBySlug(user.id, slug);
   if (!module_) notFound();
 

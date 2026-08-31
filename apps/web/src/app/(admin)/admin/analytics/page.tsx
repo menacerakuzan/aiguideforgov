@@ -1,10 +1,9 @@
-import { requireCurrentUser } from '@proai/auth';
 import { getLessonDropoff } from '@proai/analytics';
 import { ClayCard, ProgressBar } from '@proai/ui';
-import { requirePageAdmin } from '@/lib/page-guard';
+import { requirePageAdmin, requirePageUser } from '@/lib/page-guard';
 
 export default async function AdminAnalyticsPage() {
-  const me = await requireCurrentUser();
+  const me = await requirePageUser();
   requirePageAdmin(me);
 
   const { rows } = await getLessonDropoff();

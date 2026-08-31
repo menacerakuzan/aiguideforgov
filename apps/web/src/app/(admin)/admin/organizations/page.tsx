@@ -1,10 +1,9 @@
-import { requireCurrentUser } from '@proai/auth';
 import { prisma } from '@proai/db';
-import { requirePageAdmin } from '@/lib/page-guard';
+import { requirePageAdmin, requirePageUser } from '@/lib/page-guard';
 import { AdminOrganizationsClient } from '@/components/admin/admin-organizations-client';
 
 export default async function AdminOrganizationsPage() {
-  const me = await requireCurrentUser();
+  const me = await requirePageUser();
   requirePageAdmin(me);
 
   const organizations = await prisma.organization.findMany({

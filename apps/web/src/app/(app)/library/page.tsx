@@ -1,6 +1,6 @@
-import { requireCurrentUser } from '@proai/auth';
 import { getLibrary } from '@proai/learning';
 import { LibraryClient } from '@/components/library-client';
+import { requirePageUser } from '@/lib/page-guard';
 
 /**
  * Серверна оболонка: збирає бібліотеку прямим викликом сервісу й віддає її
@@ -9,7 +9,7 @@ import { LibraryClient } from '@/components/library-client';
  * вміст зʼявлявся помітно пізніше за саму сторінку.
  */
 export default async function LibraryPage() {
-  const me = await requireCurrentUser();
+  const me = await requirePageUser();
   const initialData = await getLibrary(me.id);
 
   return <LibraryClient initialData={initialData} />;
