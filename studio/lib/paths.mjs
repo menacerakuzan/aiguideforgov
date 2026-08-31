@@ -20,10 +20,20 @@ export const OUT_DIR = process.env.YASNO_OUT
 /** Матеріали, які потрапляють у кадр: документи, які перетягуємо у чат. */
 export const ASSETS_DIR = join(STUDIO_DIR, 'assets');
 
-/** Профіль Chrome для зйомки — окремий від робочого браузера людини. */
+/**
+ * Профіль Chrome для зйомки — окремий від робочого браузера людини.
+ *
+ * Шлях через LOCALAPPDATA брали беззастережно, і поза Windows це створювало в
+ * корені репозиторію теку з буквальною назвою «C:\Users\...\chrome-profile»:
+ * на POSIX зворотний слеш — звичайний символ імені, а не роздільник. Тому
+ * windows-гілка лишається тільки для самої Windows, а решта отримує теку
+ * всередині studio/ (вона в .gitignore).
+ */
 export const CHROME_PROFILE = process.env.YASNO_PROFILE
   ? resolve(process.env.YASNO_PROFILE)
-  : join(process.env.LOCALAPPDATA ?? join(process.env.USERPROFILE, 'AppData', 'Local'), 'yasno-media', 'chrome-profile');
+  : process.platform === 'win32'
+    ? join(process.env.LOCALAPPDATA ?? join(process.env.USERPROFILE ?? '', 'AppData', 'Local'), 'yasno-media', 'chrome-profile')
+    : join(STUDIO_DIR, '.chrome-profile');
 
 export function ensureDir(path) {
   if (!existsSync(path)) mkdirSync(path, { recursive: true });

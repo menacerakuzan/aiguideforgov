@@ -92,6 +92,8 @@ export const config = {
      * документах, а не на .js-чанках і зображеннях, і зайвий прохід
      * middleware по кожному чанку — це чиста втрата на кожному завантаженні.
      */
-    '/((?!_next/static|_next/image|favicon.ico|media|lessons|fonts|.*\.(?:png|jpg|jpeg|gif|svg|webp|ico|woff|woff2|mp4)$).*)',
+    // Крапки екрануються подвійним слешем: у рядку JS "\." — це просто ".",
+    // тобто «будь-який символ», і виняток ловив би не лише "/a.png", а й "/apng".
+    '/((?!_next/static|_next/image|favicon\\.ico|icon\\.svg|media|lessons|fonts|.*\\.(?:png|jpg|jpeg|gif|svg|webp|ico|woff|woff2|mp4)$).*)',
   ],
 };

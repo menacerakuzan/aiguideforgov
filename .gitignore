@@ -47,6 +47,12 @@ studio/edit/public/
 
 .generate/
 
+# Профіль Chrome для зйомки — це кеш браузера, а не вихідний код.
+# Окремим рядком ловимо теку з буквальним windows-шляхом у назві: вона
+# зʼявлялася, коли studio/-скрипти запускали не на Windows (див. studio/lib/paths.mjs).
+studio/.chrome-profile/
+C:\\*
+
 # os / editor
 .DS_Store
 *.log

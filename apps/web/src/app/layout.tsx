@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from 'next';
 import { headers } from 'next/headers';
-import Script from 'next/script';
 import { SkipLink } from '@proai/ui';
 import { nunito, jetbrainsMono, rubik } from '@/lib/fonts';
 import { Providers } from '@/components/providers';
@@ -44,11 +43,17 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       suppressHydrationWarning
     >
       <body>
-        {/* beforeInteractive — Next сам переносить цей скрипт у справжній <head> до гідратації;
-            вручну рендерити <head> в root layout не можна, це конфліктує з metadata API. */}
-        <Script id="no-flash-theme" strategy="beforeInteractive" nonce={nonce}>
-          {NO_FLASH_THEME_SCRIPT}
-        </Script>
+        {/* Звичайний <script>, а не next/script: браузер виконує його під час розбору
+            HTML — тобто до того, як намалює будь-що з <body>, — і спалаху теми немає.
+            suppressHydrationWarning обовʼязковий: за специфікацією CSP браузер
+            приховує значення атрибута nonce одразу після завантаження документа
+            (getAttribute('nonce') повертає ""), тож React бачить розбіжність
+            із серверним HTML і на кожній сторінці писав помилку гідратації. */}
+        <script
+          nonce={nonce}
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{ __html: NO_FLASH_THEME_SCRIPT }}
+        />
         <div aria-hidden="true" className="bg-pattern" />
         <SkipLink />
         <Providers>{children}</Providers>
