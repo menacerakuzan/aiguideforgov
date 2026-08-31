@@ -19,7 +19,7 @@ import { prisma } from './client';
 const DEMO_PASSWORD = 'ProAI2026!';
 
 /** Домен демо-організації із seed.ts. Інших акаунтів не чіпаємо. */
-const DEMO_EMAIL_SUFFIX = '@loda.gov.ua';
+const DEMO_EMAIL_SUFFIX = '@oda.gov.ua';
 
 async function main() {
   const users = await prisma.user.findMany({

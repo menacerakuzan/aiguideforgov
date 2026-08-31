@@ -72,7 +72,7 @@ export function AdminOrganizationsClient({ organizations }: { organizations: Org
               <XIcon size={16} />
             </button>
           </div>
-          <Input placeholder="Назва (напр. Львівська обласна державна адміністрація)" value={name} onChange={(e) => setName(e.target.value)} />
+          <Input placeholder="Назва (напр. Одеська обласна державна адміністрація)" value={name} onChange={(e) => setName(e.target.value)} />
           <Input placeholder="Тип (напр. Обласна державна адміністрація)" value={kind} onChange={(e) => setKind(e.target.value)} />
           <Button variant="blue" disabled={pending} onClick={create}>
             {pending ? 'Створюємо…' : 'Створити'}

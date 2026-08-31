@@ -96,7 +96,7 @@ async function main() {
      Організація
      ========================================================================= */
   const org = await prisma.organization.create({
-    data: { name: 'Львівська обласна державна адміністрація', kind: 'Обласна державна адміністрація' },
+    data: { name: 'Одеська обласна державна адміністрація', kind: 'Обласна державна адміністрація' },
   });
 
   /* ==========================================================================
@@ -107,7 +107,7 @@ async function main() {
   const oksana = await prisma.user.create({
     data: {
       name: 'Оксана Коваленко',
-      email: 'o.kovalenko@loda.gov.ua',
+      email: 'o.kovalenko@oda.gov.ua',
       emailVerified: true,
       role: 'LEARNER',
       position: 'Головний спеціаліст управління звернень громадян',
@@ -121,7 +121,7 @@ async function main() {
   const dmytro = await prisma.user.create({
     data: {
       name: 'Дмитро Гриценко',
-      email: 'd.hrytsenko@loda.gov.ua',
+      email: 'd.hrytsenko@oda.gov.ua',
       emailVerified: true,
       role: 'ADMIN',
       position: 'Адміністратор платформи',
@@ -133,7 +133,7 @@ async function main() {
   const natalia = await prisma.user.create({
     data: {
       name: 'Наталія Осадча',
-      email: 'n.osadcha@loda.gov.ua',
+      email: 'n.osadcha@oda.gov.ua',
       emailVerified: true,
       role: 'LEARNER',
       position: 'Головний спеціаліст',
@@ -147,7 +147,7 @@ async function main() {
   const svitlanaB = await prisma.user.create({
     data: {
       name: 'Світлана Бондаренко',
-      email: 's.bondarenko@loda.gov.ua',
+      email: 's.bondarenko@oda.gov.ua',
       emailVerified: true,
       role: 'LEARNER',
       position: 'Спеціаліст',
@@ -1113,7 +1113,7 @@ async function seedPrompts() {
     },
   });
 
-  const oksana = await prisma.user.findUniqueOrThrow({ where: { email: 'o.kovalenko@loda.gov.ua' } });
+  const oksana = await prisma.user.findUniqueOrThrow({ where: { email: 'o.kovalenko@oda.gov.ua' } });
   for (const prompt of [p1, p3, p4]) {
     await prisma.favorite.create({ data: { userId: oksana.id, promptId: prompt.id } });
   }

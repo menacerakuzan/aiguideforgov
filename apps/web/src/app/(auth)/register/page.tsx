@@ -39,6 +39,9 @@ export default function RegisterPage() {
 
   const onSubmit = handleSubmit(async (values) => {
     setServerError(null);
+    // confirmPassword свідомо НЕ передаємо: воно існує лише щоб зловити
+    // друкарську помилку у формі. Better Auth відхиляє невідомі поля, а
+    // надсилати пароль двічі — зайве.
     const { error } = await signUp.email({
       name: values.name,
       email: values.email,
@@ -82,6 +85,18 @@ export default function RegisterPage() {
             {...register('password')}
           />
           <FieldError>{errors.password?.message}</FieldError>
+        </div>
+
+        <div>
+          <Label htmlFor="confirmPassword">Повторіть пароль</Label>
+          <Input
+            id="confirmPassword"
+            type="password"
+            autoComplete="new-password"
+            invalid={!!errors.confirmPassword}
+            {...register('confirmPassword')}
+          />
+          <FieldError>{errors.confirmPassword?.message}</FieldError>
         </div>
 
         <div>

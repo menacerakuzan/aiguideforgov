@@ -53,14 +53,24 @@ const OptionalTrimmed = (max: number) =>
     .transform((v) => v || undefined)
     .optional();
 
-export const RegisterInputSchema = z.object({
-  name: z.string().trim().min(2, 'Вкажіть імʼя').max(120, 'Задовге імʼя'),
-  email: EmailSchema,
-  // Верхня межа — щоб довгий пароль не перетворювався на навантаження на хешування.
-  password: z.string().min(8, 'Мінімум 8 символів').max(128, 'Задовгий пароль'),
-  organizationId: OptionalTrimmed(64),
-  position: OptionalTrimmed(160),
-});
+export const RegisterInputSchema = z
+  .object({
+    name: z.string().trim().min(2, 'Вкажіть імʼя').max(120, 'Задовге імʼя'),
+    email: EmailSchema,
+    // Верхня межа — щоб довгий пароль не перетворювався на навантаження на хешування.
+    password: z.string().min(8, 'Мінімум 8 символів').max(128, 'Задовгий пароль'),
+    // Пароль вводиться прихованим, тож друкарську помилку не видно. Без другого
+    // поля людина дізнається про неї аж на вході — коли вже не памʼятає, що саме
+    // набрала, і відновити доступ може лише через підтримку.
+    confirmPassword: z.string().min(1, 'Повторіть пароль'),
+    organizationId: OptionalTrimmed(64),
+    position: OptionalTrimmed(160),
+  })
+  .refine((v) => v.password === v.confirmPassword, {
+    message: 'Паролі не збігаються',
+    // Помилку показуємо під другим полем — саме його виправляють.
+    path: ['confirmPassword'],
+  });
 export type RegisterInput = z.infer<typeof RegisterInputSchema>;
 
 export const LoginInputSchema = z.object({
