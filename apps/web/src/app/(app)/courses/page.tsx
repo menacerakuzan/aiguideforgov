@@ -1,19 +1,17 @@
-'use client';
-
 import Link from 'next/link';
-import { useQuery } from '@tanstack/react-query';
+import { requireCurrentUser } from '@proai/auth';
+import { getCoursesForUser } from '@proai/learning';
 import { Award, Book, Check, Clock, Shield } from '@proai/icons';
 import { ClayCard, EmptyState, Lift, Orb, ProgressBar } from '@proai/ui';
-import type { Course } from '@proai/types';
-import { api } from '@/lib/api-client';
 
-export default function CoursesPage() {
-  const { data, isLoading } = useQuery({
-    queryKey: ['courses', 'list'],
-    queryFn: () => api.get<{ courses: Course[] }>('/api/courses'),
-  });
-
-  const courses = data?.courses ?? [];
+/**
+ * Сторінка суто показова — жодного стану, лише посилання. Тому вона повністю
+ * серверна: список курсів приходить у першому ж HTML, без завантаження JS і
+ * без окремого запиту до /api/courses, як було раніше.
+ */
+export default async function CoursesPage() {
+  const me = await requireCurrentUser();
+  const courses = await getCoursesForUser(me.id);
 
   return (
     <div className="pt-8">
@@ -22,9 +20,7 @@ export default function CoursesPage() {
         <p className="mt-2 text-ink-soft">Оберіть курс, щоб побачити програму й розпочати навчання.</p>
       </header>
 
-      {isLoading ? (
-        <p className="text-ink-soft">Завантаження…</p>
-      ) : courses.length === 0 ? (
+      {courses.length === 0 ? (
         <ClayCard>
           <EmptyState icon={<Book size={22} />} title="Курсів поки немає" />
         </ClayCard>

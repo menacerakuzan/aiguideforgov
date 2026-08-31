@@ -15,6 +15,8 @@
     "db:migrate": "pnpm --filter @proai/db migrate",
     "db:seed": "pnpm --filter @proai/db seed",
     "db:sync-content": "pnpm --filter @proai/db sync-content",
+    "db:sync-library": "pnpm --filter @proai/db sync-library",
+    "db:reset-demo-passwords": "pnpm --filter @proai/db reset-demo-passwords",
     "db:reset": "pnpm --filter @proai/db reset"
   },
   "devDependencies": {

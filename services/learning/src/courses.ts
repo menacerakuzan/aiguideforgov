@@ -88,6 +88,28 @@ export async function getCourseOverview(userId: string, courseSlug: string): Pro
   };
 }
 
+/**
+ * Усі курси платформи з прогресом слухача й позначкою активного.
+ *
+ * Живе тут, а не в route-хендлері, щоб сторінка /courses могла зібрати список
+ * прямо на сервері, без рейсу браузера до власного ж API.
+ */
+export async function getCoursesForUser(userId: string): Promise<Course[]> {
+  const [list, user] = await Promise.all([
+    prisma.course.findMany({ select: { id: true, slug: true }, orderBy: { title: 'asc' } }),
+    prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { activeCourseId: true } }),
+  ]);
+
+  const courses = await Promise.all(
+    list.map(async (c) => {
+      const overview = await getCourseOverview(userId, c.slug);
+      return { ...overview!, isActive: c.id === user.activeCourseId };
+    }),
+  );
+
+  return courses;
+}
+
 /** Модуль за slug разом зі списком уроків і станом кожного для слухача. */
 export async function getModuleBySlug(userId: string, slug: string): Promise<Module | null> {
   const m = await prisma.module.findUnique({

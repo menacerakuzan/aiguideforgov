@@ -5,11 +5,13 @@ import { useRouter } from 'next/navigation';
 import { Button, ClayCard, FilterTabs, Input, Select, Textarea, toast } from '@proai/ui';
 import { XIcon } from '@proai/icons';
 import type { Prompt, PromptCategory, Resource, ResourceKind } from '@proai/types';
-import { RESOURCE_KIND_LABELS } from '@proai/types';
+import { PromptCategorySchema, RESOURCE_KIND_LABELS, ResourceKindSchema } from '@proai/types';
 import { api } from '@/lib/api-client';
 
-const PROMPT_CATEGORIES: PromptCategory[] = ['CITIZENS', 'LETTERS', 'MEETINGS', 'ANALYTICS', 'INTERNAL'];
-const RESOURCE_KINDS: ResourceKind[] = ['GUIDE', 'CHECKLIST', 'TEMPLATE', 'REGULATION', 'TABLE', 'RULE'];
+// Списки беремо зі схем, а не переписуємо руками: доданий у типах вид матеріалу
+// інакше не зʼявився б у формі, і створити його через адмінку було б неможливо.
+const PROMPT_CATEGORIES: PromptCategory[] = [...PromptCategorySchema.options];
+const RESOURCE_KINDS: ResourceKind[] = [...ResourceKindSchema.options];
 
 export function AdminLibraryClient({ prompts, resources }: { prompts: Prompt[]; resources: Resource[] }) {
   const [tab, setTab] = useState<'prompts' | 'resources'>('prompts');

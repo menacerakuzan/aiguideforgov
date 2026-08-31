@@ -4,6 +4,8 @@ import {
   CourseSchema,
   LessonBlockSchema,
   LessonCommentSchema,
+  LibraryItemSchema,
+  LibraryKindSchema,
   OrganizationSchema,
   PromptCategorySchema,
   PromptSchema,
@@ -338,15 +340,28 @@ export type LessonDropoffRow = z.infer<typeof LessonDropoffRowSchema>;
 export const DropoffResponseSchema = z.object({ rows: z.array(LessonDropoffRowSchema) });
 export type DropoffResponse = z.infer<typeof DropoffResponseSchema>;
 
-/* --- /api/library (промпти + ресурси в одному пошуку) --------------------------- */
+/* --- /api/library («трофеї» з пройдених уроків) ---------------------------- */
 export const LibraryQuerySchema = z.object({
   q: z.string().optional(),
 });
 export type LibraryQuery = z.infer<typeof LibraryQuerySchema>;
 
+/**
+ * Бібліотека — це не каталог усього наявного, а те, що слухач уже заробив:
+ * матеріал зʼявляється тут лише після проходження уроку, який його дає.
+ * Тому поруч із самими матеріалами віддаємо й лічильники закритого — без них
+ * порожня бібліотека виглядала б як помилка, а не як «ще нічого не пройдено».
+ */
 export const LibraryResponseSchema = z.object({
-  prompts: z.array(PromptSchema),
-  resources: z.array(ResourceSchema),
+  items: z.array(LibraryItemSchema),
+  /** Скільки матеріалів ще закрито — по всіх уроках курсу, не лише знайдених пошуком. */
+  lockedCount: z.number().int().nonnegative(),
+  /** Уроків із трофеями вже пройдено. */
+  unlockedLessons: z.number().int().nonnegative(),
+  /** Усього уроків, які щось дають у бібліотеку. */
+  totalTrophyLessons: z.number().int().nonnegative(),
+  /** Скільки відкрито по кожному типу — для лічильників на фільтрах. */
+  countsByKind: z.record(LibraryKindSchema, z.number().int().nonnegative()),
 });
 export type LibraryResponse = z.infer<typeof LibraryResponseSchema>;
 

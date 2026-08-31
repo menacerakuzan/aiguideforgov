@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { getCurrentUser, isAdmin } from '@proai/auth';
 import { ArrowLeft } from '@proai/icons';
-import { Navbar } from '@proai/ui';
+import { AppNavbar } from '@/components/app-navbar';
 
 const LINKS = [
   { href: '/admin', label: 'Огляд' },
@@ -22,8 +22,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <>
-      <Navbar
-        LinkComponent={Link}
+      <AppNavbar
         links={LINKS}
         brand={
           <Link href="/admin" className="flex items-center gap-2.5 font-display text-lg font-bold">

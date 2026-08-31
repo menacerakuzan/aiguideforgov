@@ -300,7 +300,14 @@ export const FinalExamSchema = z.object({
 });
 export type FinalExam = z.infer<typeof FinalExamSchema>;
 
-export const PromptCategorySchema = z.enum(['CITIZENS', 'LETTERS', 'MEETINGS', 'ANALYTICS', 'INTERNAL']);
+export const PromptCategorySchema = z.enum([
+  'CITIZENS',
+  'LETTERS',
+  'MEETINGS',
+  'ANALYTICS',
+  'INTERNAL',
+  'GENERAL',
+]);
 export type PromptCategory = z.infer<typeof PromptCategorySchema>;
 
 export const PROMPT_CATEGORY_LABELS: Record<PromptCategory, string> = {
@@ -309,6 +316,7 @@ export const PROMPT_CATEGORY_LABELS: Record<PromptCategory, string> = {
   MEETINGS: 'Протоколи та наради',
   ANALYTICS: 'Аналітичні документи',
   INTERNAL: 'Внутрішні документи',
+  GENERAL: 'Загальні',
 };
 
 export const PromptSchema = z.object({
@@ -377,7 +385,16 @@ export const NotificationSchema = z.object({
 });
 export type Notification = z.infer<typeof NotificationSchema>;
 
-export const ResourceKindSchema = z.enum(['GUIDE', 'CHECKLIST', 'TEMPLATE', 'REGULATION', 'TABLE', 'RULE']);
+export const ResourceKindSchema = z.enum([
+  'GUIDE',
+  'CHECKLIST',
+  'TEMPLATE',
+  'REGULATION',
+  'TABLE',
+  'RULE',
+  'ILLUSTRATION',
+  'CONCEPT',
+]);
 export type ResourceKind = z.infer<typeof ResourceKindSchema>;
 
 export const RESOURCE_KIND_LABELS: Record<ResourceKind, string> = {
@@ -387,6 +404,8 @@ export const RESOURCE_KIND_LABELS: Record<ResourceKind, string> = {
   REGULATION: 'Регламент',
   TABLE: 'Таблиця',
   RULE: 'Правило',
+  ILLUSTRATION: 'Схема',
+  CONCEPT: 'Поняття',
 };
 
 export const ResourceSchema = z.object({
@@ -399,6 +418,44 @@ export const ResourceSchema = z.object({
   updatedAt: z.string(),
 });
 export type Resource = z.infer<typeof ResourceSchema>;
+
+/* --- Бібліотека слухача («трофеї») ---------------------------------------- */
+
+/**
+ * Тип матеріалу в бібліотеці. Це ResourceKind плюс PROMPT: промпти живуть в
+ * окремій таблиці (свій copyCount), але для слухача це така сама картка в тій
+ * самій стрічці, тож фільтр у них спільний.
+ */
+export const LibraryKindSchema = z.enum([...ResourceKindSchema.options, 'PROMPT']);
+export type LibraryKind = z.infer<typeof LibraryKindSchema>;
+
+export const LIBRARY_KIND_LABELS: Record<LibraryKind, string> = {
+  ...RESOURCE_KIND_LABELS,
+  PROMPT: 'Промпт',
+};
+
+/**
+ * Один матеріал бібліотеки разом з уроком, який його відкрив.
+ * `lesson` не буває null: у бібліотеку слухача потрапляють лише трофеї,
+ * а трофей без уроку — це матеріал, який нічим не заслужити.
+ */
+export const LibraryItemSchema = z.object({
+  id: z.string(),
+  kind: LibraryKindSchema,
+  title: z.string(),
+  summary: z.string(),
+  body: z.string(),
+  /** Лише для промптів — скільки разів матеріал копіювали. */
+  copyCount: z.number().int().nonnegative().optional(),
+  lesson: z.object({
+    id: z.string(),
+    slug: z.string(),
+    title: z.string(),
+    moduleSlug: z.string(),
+    moduleTitle: z.string(),
+  }),
+});
+export type LibraryItem = z.infer<typeof LibraryItemSchema>;
 
 /* --- Коментарі під уроком ------------------------------------------------- */
 

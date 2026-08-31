@@ -1,7 +1,8 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { getCurrentUser } from '@proai/auth';
-import { BrandMark, Navbar } from '@proai/ui';
+import { BrandMark } from '@proai/ui';
+import { AppNavbar } from '@/components/app-navbar';
 import { ConfettiProvider } from '@/components/confetti-provider';
 import { AppUserMenu } from '@/components/app-user-menu';
 import { GlobalSearch } from '@/components/global-search';
@@ -20,8 +21,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <ConfettiProvider>
-      <Navbar
-        LinkComponent={Link}
+      <AppNavbar
         links={LINKS}
         brand={
           <Link href="/dashboard" className="flex items-center gap-2.5 font-display text-lg font-bold">

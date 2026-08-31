@@ -10,21 +10,32 @@ export const metadata: Metadata = {
   description: 'Навчальна платформа безпечного використання ШІ для державної служби.',
 };
 
+/**
+ * Колір системної панелі браузера на мобільних. Без media-запиту: тема сайту
+ * більше не залежить від налаштувань ОС (див. NO_FLASH_THEME_SCRIPT), тож
+ * темна панель над світлою сторінкою виглядала б як помилка верстки.
+ */
 export const viewport: Viewport = {
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#fff9f0' },
-    { media: '(prefers-color-scheme: dark)', color: '#16142c' },
-  ],
+  themeColor: '#fff9f0',
 };
 
-/** Виставляє data-theme ДО першого малювання — без цього був би спалах світлої теми при заході в темну. */
+/**
+ * Виставляє data-theme ДО першого малювання — без цього був би спалах чужої
+ * теми на кожному завантаженні.
+ *
+ * Тема за замовчуванням — світла, а не системна. Системну (prefers-color-scheme)
+ * тут свідомо не питаємо: платформу відкривають переважно з робочих комп'ютерів,
+ * де темна тема ОС часто стоїть випадково, і людина отримувала темний інтерфейс,
+ * якого не просила. Хто хоче темну — перемикає, і вибір лишається в localStorage.
+ */
 const NO_FLASH_THEME_SCRIPT = `
 (function () {
   try {
     var saved = localStorage.getItem('proai-theme');
-    var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-    document.documentElement.setAttribute('data-theme', theme);
-  } catch (e) {}
+    document.documentElement.setAttribute('data-theme', saved === 'dark' ? 'dark' : 'light');
+  } catch (e) {
+    document.documentElement.setAttribute('data-theme', 'light');
+  }
 })();
 `;
 

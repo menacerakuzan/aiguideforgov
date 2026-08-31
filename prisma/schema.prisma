@@ -218,6 +218,10 @@ model Lesson {
   revisions LessonRevision[]
   comments  LessonComment[]
 
+  /// Матеріали, які урок віддає в бібліотеку після проходження.
+  resources Resource[]
+  prompts   Prompt[]
+
   @@index([moduleId, order])
 }
 
@@ -382,6 +386,9 @@ enum PromptCategory {
   MEETINGS
   ANALYTICS
   INTERNAL
+  /// Промпт із уроку, який не належить до жодної з предметних категорій вище.
+  /// Потрібен, бо категорія обовʼязкова, а `sync-library` не вигадує її за автора.
+  GENERAL
 }
 
 model Prompt {
@@ -395,7 +402,15 @@ model Prompt {
 
   favorites Favorite[]
 
+  /// Урок, проходження якого відкриває промпт. Див. коментар до Resource.lessonId.
+  lessonId String?
+  lesson   Lesson? @relation(fields: [lessonId], references: [id], onDelete: SetNull)
+
+  /// Див. коментар до Resource.sourceKey.
+  sourceKey String? @unique
+
   @@index([category])
+  @@index([lessonId])
 }
 
 model Favorite {
@@ -456,10 +471,14 @@ enum ResourceKind {
   REGULATION
   TABLE
   RULE
+  /// Схема або ілюстрація з уроку
+  ILLUSTRATION
+  /// Термін із глосарія простими словами
+  CONCEPT
 }
 
 /// Універсальна бібліотека: чек-листи, правила, таблиці, шаблони, методички.
-/// Промпти (Prompt) лишаються окремою моделлю (свій copyCount/favorites),
+/// Промпти (Prompt) лишаються окремою моделлю (свій copyCount),
 /// але показуються в одному UI /library разом із Resource.
 model Resource {
   id        String       @id @default(cuid())
@@ -470,4 +489,18 @@ model Resource {
   kind      ResourceKind
   version   String
   updatedAt DateTime     @updatedAt
+
+  /// Урок, проходження якого відкриває цей матеріал («трофей»).
+  /// Бібліотека слухача показує ЛИШЕ матеріали пройдених уроків, тому запис
+  /// без уроку до неї не потрапляє — він доступний тільки в адмін-CMS.
+  lessonId String?
+  lesson   Lesson? @relation(fields: [lessonId], references: [id], onDelete: SetNull)
+
+  /// Заповнений — запис згенеровано з блоку уроку, і `sync-library` перезапише
+  /// його при наступному запуску. Порожній — матеріал написаний руками в
+  /// адмінці, синхронізація його не чіпає.
+  sourceKey String? @unique
+
+  @@index([lessonId])
+  @@index([kind])
 }
