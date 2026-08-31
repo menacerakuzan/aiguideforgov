@@ -1,0 +1,30 @@
+[
+  {
+    "name": "1-mikrofon-pochatok",
+    "t": 0.001
+  },
+  {
+    "name": "1-mikrofon-pokazano",
+    "t": 1.553
+  },
+  {
+    "name": "2-dyktant-pochatok",
+    "t": 4.651
+  },
+  {
+    "name": "2-dyktant-nadrukovano",
+    "t": 19.312
+  },
+  {
+    "name": "3-nadislano",
+    "t": 25.944
+  },
+  {
+    "name": "3-vidpovid",
+    "t": 32.161
+  },
+  {
+    "name": "kinets",
+    "t": 38.893
+  }
+]

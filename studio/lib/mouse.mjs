@@ -151,8 +151,8 @@ export async function toScreen(page, { x, y }) {
 }
 
 /** Центр елемента сторінки у фізичних координатах екрана. */
-export async function elementOnScreen(page, locator) {
-  const box = await locator.boundingBox();
+export async function elementOnScreen(page, locator, opts) {
+  const box = await locator.boundingBox(opts);
   if (!box) throw new Error('Елемент не видно на екрані.');
   return toScreen(page, { x: box.x + box.width / 2, y: box.y + box.height / 2 });
 }

@@ -171,11 +171,27 @@ export async function uploadFile(page, mouse, filePath) {
     await pause(250);
     await mouse.click();
   };
-  const clickEl = async (locator) => clickAt(await elementOnScreen(page, locator));
+  const clickEl = async (locator, opts) => clickAt(await elementOnScreen(page, locator, opts));
 
-  await clickEl(page.locator(S.attach));
-  await pause(500);
-  await clickEl(page.locator('[role="menuitem"][aria-label*="Додати файли"]').first());
+  // Клац по кнопці «Додавання файлів» не завжди відкриває меню з першого
+  // разу (перевірено дослідом — реальний дубль уроку 4.4 впав тут із
+  // 30-секундним таймаутом). Замість одного довгого очікування — кілька
+  // спроб клацнути кнопку заново, кожна з коротким очікуванням меню.
+  const menuItem = page.locator('[role="menuitem"][aria-label*="Додати файли"]').first();
+  let opened = false;
+  for (let attempt = 1; attempt <= 3 && !opened; attempt++) {
+    await clickEl(page.locator(S.attach));
+    await pause(500);
+    try {
+      await elementOnScreen(page, menuItem, { timeout: 5000 });
+      opened = true;
+    } catch {
+      console.log(`Меню «Додати файли» не з'явилось (спроба ${attempt}/3) — пробуємо ще раз.`);
+      await pause(400);
+    }
+  }
+  if (!opened) throw new Error('Меню «Додавання файлів» не відкрилось після 3 спроб.');
+  await clickEl(menuItem);
 
   // Діалог тут СПРАВЖНІЙ і видимий у кадрі — навмисно без
   // page.waitForEvent('filechooser'): перехоплення додало б файл миттєво й

@@ -15,7 +15,7 @@
 
 param(
   [Parameter(Mandatory = $true)]
-  [ValidateSet('open', 'new', 'point', 'span', 'select', 'paste', 'copy', 'copyall', 'close', 'show', 'scroll', 'top', 'bottom', 'highlight', 'highlightAll', 'zoom', 'format', 'cleanup', 'trimlead')]
+  [ValidateSet('open', 'new', 'point', 'span', 'select', 'paste', 'copy', 'copyall', 'close', 'show', 'scroll', 'top', 'bottom', 'highlight', 'highlightAll', 'zoom', 'format', 'cleanup', 'trimlead', 'saveas', 'trackon', 'markup', 'comment')]
   [string]$Action,
   [string]$Path,
   [string]$Find,
@@ -167,10 +167,16 @@ switch ($Action) {
 
   'scroll' {
     # Дрібними кроками: одним стрибком сторінка «телепортується» і глядач
-    # губить місце, на яке дивився.
+    # губить місце, на яке дивився. Від'ємне значення $Lines — прокрутка
+    # вгору (SmallScroll приймає напрямок окремими аргументами, тому
+    # від'ємне число тут перекладається на другий параметр — Up).
     $word = Get-Word
     if (-not $word) { throw 'Word не запущено.' }
-    $word.ActiveWindow.SmallScroll($Lines, 0, 0, 0)
+    if ($Lines -lt 0) {
+      $word.ActiveWindow.SmallScroll(0, [Math]::Abs($Lines), 0, 0)
+    } else {
+      $word.ActiveWindow.SmallScroll($Lines, 0, 0, 0)
+    }
     "scrolled $Lines"
   }
 
@@ -321,6 +327,45 @@ switch ($Action) {
     $word.ActiveDocument.Content.Select() | Out-Null
     $word.Selection.Copy()
     'copied'
+  }
+
+  'saveas' {
+    # Зберегти активний документ як .docx за вказаним шляхом — щоб потім
+    # прикріпити його як звичайний файл (наприклад, зразок листа в чат).
+    $word = Get-Word
+    if (-not $word) { throw 'Word не запущено.' }
+    $doc = $word.ActiveDocument
+    $doc.SaveAs([ref]$Path, [ref]16)  # 16 = wdFormatDocumentDefault (.docx)
+    "saved $Path"
+  }
+
+  'trackon' {
+    # Увімкнути запис виправлень — з цього моменту будь-яка зміна тексту
+    # лягає в документ як позначена правка, а не підмінює текст мовчки.
+    $word = Get-Word
+    if (-not $word) { throw 'Word не запущено.' }
+    $word.ActiveDocument.TrackRevisions = $true
+    'track changes on'
+  }
+
+  'comment' {
+    # Примітка на полях біля знайденого фрагмента — так виглядає зауваження
+    # колеги під час рецензування.
+    $word = Get-Word
+    if (-not $word) { throw 'Word не запущено.' }
+    $range = $word.ActiveDocument.Content
+    if (-not $range.Find.Execute($Find)) { throw "Не знайдено: $Find" }
+    $word.ActiveDocument.Comments.Add($range, $To) | Out-Null
+    "commented $Find"
+  }
+
+  'markup' {
+    # Перемикач вигляду «Без виправлень» / «Усі виправлення» — той самий
+    # перемикач, що на стрічці Review → Display for Review.
+    $word = Get-Word
+    if (-not $word) { throw 'Word не запущено.' }
+    $word.ActiveWindow.View.ShowRevisionsAndComments = ($Name -eq 'all')
+    "markup $Name"
   }
 
   'close' {

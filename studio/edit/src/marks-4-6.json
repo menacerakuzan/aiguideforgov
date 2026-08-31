@@ -1,0 +1,62 @@
+[
+  {
+    "name": "1-fail-pochatok",
+    "t": 0.003
+  },
+  {
+    "name": "1-fail-dodano",
+    "t": 10.55
+  },
+  {
+    "name": "1-zapyt-hotovyi",
+    "t": 20.139
+  },
+  {
+    "name": "1-nadislano",
+    "t": 23.665
+  },
+  {
+    "name": "1-vidpovid-hotova",
+    "t": 33.016
+  },
+  {
+    "name": "1-prochytano",
+    "t": 38.103
+  },
+  {
+    "name": "2-fail-1-pochatok",
+    "t": 39.76
+  },
+  {
+    "name": "2-fail-1-dodano",
+    "t": 49.643
+  },
+  {
+    "name": "2-fail-2-dodano",
+    "t": 59.766
+  },
+  {
+    "name": "2-zapyt-hotovyi",
+    "t": 67.834
+  },
+  {
+    "name": "2-nadislano",
+    "t": 71.29
+  },
+  {
+    "name": "2-vidpovid-hotova",
+    "t": 78.759
+  },
+  {
+    "name": "2-prochytano",
+    "t": 83.664
+  },
+  {
+    "name": "3-final",
+    "t": 85.141
+  },
+  {
+    "name": "kinets",
+    "t": 87.435
+  }
+]

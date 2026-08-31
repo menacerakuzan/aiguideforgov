@@ -1,0 +1,138 @@
+[
+  {
+    "name": "0-pochatkovyi-pochatok",
+    "t": 0.001
+  },
+  {
+    "name": "0-pochatkovyi-nadrukovano",
+    "t": 25.565
+  },
+  {
+    "name": "0-pochatkovyi-nadislano",
+    "t": 28.703
+  },
+  {
+    "name": "0-pochatkovyi-vidpovid",
+    "t": 36.722
+  },
+  {
+    "name": "1-skorotyty-pochatok",
+    "t": 43.227
+  },
+  {
+    "name": "1-skorotyty-nadrukovano",
+    "t": 45.824
+  },
+  {
+    "name": "1-skorotyty-nadislano",
+    "t": 48.941
+  },
+  {
+    "name": "1-skorotyty-vidpovid",
+    "t": 55.406
+  },
+  {
+    "name": "1-stroky-pochatok",
+    "t": 58.716
+  },
+  {
+    "name": "1-stroky-nadrukovano",
+    "t": 63.835
+  },
+  {
+    "name": "1-stroky-nadislano",
+    "t": 66.986
+  },
+  {
+    "name": "1-stroky-vidpovid",
+    "t": 73.748
+  },
+  {
+    "name": "1-liudianishe-pochatok",
+    "t": 77.209
+  },
+  {
+    "name": "1-liudianishe-nadrukovano",
+    "t": 83.308
+  },
+  {
+    "name": "1-liudianishe-nadislano",
+    "t": 86.359
+  },
+  {
+    "name": "1-liudianishe-vidpovid",
+    "t": 92.907
+  },
+  {
+    "name": "1-podyaka-pochatok",
+    "t": 96.558
+  },
+  {
+    "name": "1-podyaka-nadrukovano",
+    "t": 100.92
+  },
+  {
+    "name": "1-podyaka-nadislano",
+    "t": 104.05
+  },
+  {
+    "name": "1-podyaka-vidpovid",
+    "t": 110.453
+  },
+  {
+    "name": "1-try-varianty-pochatok",
+    "t": 114.075
+  },
+  {
+    "name": "1-try-varianty-nadrukovano",
+    "t": 116.823
+  },
+  {
+    "name": "1-try-varianty-nadislano",
+    "t": 119.773
+  },
+  {
+    "name": "1-try-varianty-vidpovid",
+    "t": 126.041
+  },
+  {
+    "name": "2-nevdala-pravka-pochatok",
+    "t": 132.258
+  },
+  {
+    "name": "2-nevdala-pravka-nadrukovano",
+    "t": 136.403
+  },
+  {
+    "name": "2-nevdala-pravka-nadislano",
+    "t": 139.5
+  },
+  {
+    "name": "2-nevdala-pravka-vidpovid",
+    "t": 146.57
+  },
+  {
+    "name": "3-vidkat-pochatok",
+    "t": 151.537
+  },
+  {
+    "name": "3-vidkat-nadrukovano",
+    "t": 155.763
+  },
+  {
+    "name": "3-vidkat-nadislano",
+    "t": 158.993
+  },
+  {
+    "name": "3-vidkat-vidpovid",
+    "t": 165.43
+  },
+  {
+    "name": "4-final",
+    "t": 168.814
+  },
+  {
+    "name": "kinets",
+    "t": 170.963
+  }
+]

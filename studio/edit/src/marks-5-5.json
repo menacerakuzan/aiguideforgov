@@ -1,0 +1,54 @@
+[
+  {
+    "name": "1-dokument-pochatok",
+    "t": 0.001
+  },
+  {
+    "name": "1-dokument-hotovyi",
+    "t": 27.251
+  },
+  {
+    "name": "2-kopiiuvannia",
+    "t": 30.756
+  },
+  {
+    "name": "2-povernennia",
+    "t": 31.863
+  },
+  {
+    "name": "2-prefix-pochatok",
+    "t": 34.184
+  },
+  {
+    "name": "2-vstavleno-pochatok",
+    "t": 40.616
+  },
+  {
+    "name": "2-vstavleno",
+    "t": 42.134
+  },
+  {
+    "name": "2-zapyt-hotovyi",
+    "t": 46.807
+  },
+  {
+    "name": "2-nadislano",
+    "t": 51.306
+  },
+  {
+    "name": "3-vidpovid-hotova",
+    "t": 58.68
+  },
+  {
+    "name": "3-prochytano",
+    "t": 64.653
+  },
+  {
+    "name": "4-final",
+    "t": 64.653
+  },
+  {
+    "name": "kinets",
+    "t": 67.331
+  }
+]

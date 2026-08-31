@@ -1,0 +1,42 @@
+[
+  {
+    "name": "1-gear-pochatok",
+    "t": 0.001
+  },
+  {
+    "name": "1-meniu-vidkryto",
+    "t": 1.065
+  },
+  {
+    "name": "1-activity-vidkryto",
+    "t": 5.189
+  },
+  {
+    "name": "1-toggle-vidkryto",
+    "t": 11.401
+  },
+  {
+    "name": "1-vymknuto",
+    "t": 13.402
+  },
+  {
+    "name": "1-pidtverdzheno",
+    "t": 17.954
+  },
+  {
+    "name": "2-povernennia",
+    "t": 18.682
+  },
+  {
+    "name": "2-tymchasovyi-chat",
+    "t": 20.302
+  },
+  {
+    "name": "3-final",
+    "t": 23.971
+  },
+  {
+    "name": "kinets",
+    "t": 26.562
+  }
+]

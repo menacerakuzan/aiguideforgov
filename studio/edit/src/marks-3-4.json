@@ -1,0 +1,102 @@
+[
+  {
+    "name": "1-dokument-pochatok",
+    "t": 0.001
+  },
+  {
+    "name": "1-dokument-hotovyi",
+    "t": 29.98
+  },
+  {
+    "name": "2-pib-pochatok",
+    "t": 33.33
+  },
+  {
+    "name": "2-pib-vydileno",
+    "t": 40.677
+  },
+  {
+    "name": "2-pib-zamineno",
+    "t": 43.28
+  },
+  {
+    "name": "2-adresa-pochatok",
+    "t": 46.736
+  },
+  {
+    "name": "2-adresa-vydileno",
+    "t": 54.034
+  },
+  {
+    "name": "2-adresa-zamineno",
+    "t": 56.444
+  },
+  {
+    "name": "2-telefon-pochatok",
+    "t": 59.529
+  },
+  {
+    "name": "2-telefon-vydileno",
+    "t": 66.932
+  },
+  {
+    "name": "2-telefon-zamineno",
+    "t": 69.253
+  },
+  {
+    "name": "2-sprava-pochatok",
+    "t": 72.783
+  },
+  {
+    "name": "2-sprava-vydileno",
+    "t": 80.179
+  },
+  {
+    "name": "2-sprava-zamineno",
+    "t": 83.195
+  },
+  {
+    "name": "3-kopiiuvannia",
+    "t": 86.797
+  },
+  {
+    "name": "3-povernennia",
+    "t": 87.887
+  },
+  {
+    "name": "3-prefix-pochatok",
+    "t": 90.122
+  },
+  {
+    "name": "3-vstavleno-pochatok",
+    "t": 96.319
+  },
+  {
+    "name": "3-vstavleno",
+    "t": 97.836
+  },
+  {
+    "name": "3-zapyt-hotovyi",
+    "t": 113.907
+  },
+  {
+    "name": "3-nadislano",
+    "t": 115.395
+  },
+  {
+    "name": "3-vidpovid-hotova",
+    "t": 127.924
+  },
+  {
+    "name": "3-prochytano",
+    "t": 133.24
+  },
+  {
+    "name": "4-final",
+    "t": 136.219
+  },
+  {
+    "name": "kinets",
+    "t": 139.508
+  }
+]

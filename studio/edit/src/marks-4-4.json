@@ -1,0 +1,82 @@
+[
+  {
+    "name": "1-dokument-pochatok",
+    "t": 0.001
+  },
+  {
+    "name": "1-dokument-hotovyi",
+    "t": 33.647
+  },
+  {
+    "name": "2-dialoh-pochatok",
+    "t": 37.029
+  },
+  {
+    "name": "2-dialoh-vidkryto",
+    "t": 38.355
+  },
+  {
+    "name": "2-polya-zapovneni",
+    "t": 43.97
+  },
+  {
+    "name": "2-zamina-pib",
+    "t": 49.557
+  },
+  {
+    "name": "2-zamina-adresa",
+    "t": 56.035
+  },
+  {
+    "name": "2-zamina-nomer",
+    "t": 61.904
+  },
+  {
+    "name": "2-dialoh-zakryto",
+    "t": 63.019
+  },
+  {
+    "name": "3-zberezhennia",
+    "t": 78.705
+  },
+  {
+    "name": "3-povernennia",
+    "t": 81.603
+  },
+  {
+    "name": "3-dodavannia-pochatok",
+    "t": 82.195
+  },
+  {
+    "name": "3-dodavannia-hotovo",
+    "t": 93.234
+  },
+  {
+    "name": "4-zapyt-pochatok",
+    "t": 94.72
+  },
+  {
+    "name": "4-zapyt-hotovyi",
+    "t": 121.084
+  },
+  {
+    "name": "4-nadislano",
+    "t": 124.731
+  },
+  {
+    "name": "4-vidpovid-hotova",
+    "t": 133.581
+  },
+  {
+    "name": "4-prochytano",
+    "t": 138.282
+  },
+  {
+    "name": "5-final",
+    "t": 141.28
+  },
+  {
+    "name": "kinets",
+    "t": 143.639
+  }
+]

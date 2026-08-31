@@ -1,0 +1,46 @@
+[
+  {
+    "name": "1-pochatok",
+    "t": 2.681
+  },
+  {
+    "name": "1-rezultat",
+    "t": 8.645
+  },
+  {
+    "name": "2-pochatok",
+    "t": 11.632
+  },
+  {
+    "name": "2-spysok",
+    "t": 16.837
+  },
+  {
+    "name": "2-rezultat",
+    "t": 22.462
+  },
+  {
+    "name": "3-pochatok",
+    "t": 27.387
+  },
+  {
+    "name": "3-znaideno",
+    "t": 33.246
+  },
+  {
+    "name": "3-dokument",
+    "t": 37.549
+  },
+  {
+    "name": "3-stattya",
+    "t": 43.944
+  },
+  {
+    "name": "4-final",
+    "t": 47.106
+  },
+  {
+    "name": "kinets",
+    "t": 49.192
+  }
+]

@@ -29,6 +29,15 @@ export const pasteInWord = () => ps(['-Action', 'paste']);
 export const copyInWord = () => ps(['-Action', 'copy']);
 export const copyAllInWord = () => ps(['-Action', 'copyall']);
 export const closeWord = () => ps(['-Action', 'close']);
+/** Зберегти активний документ як .docx за вказаним абсолютним шляхом. */
+export const saveWordAs = (path) => ps(['-Action', 'saveas', '-Path', path]);
+
+/** Увімкнути запис виправлень (Review → Track Changes). */
+export const trackChangesOn = () => ps(['-Action', 'trackon']);
+/** Примітка на полях біля знайденого фрагмента. */
+export const commentInWord = (find, text) => ps(['-Action', 'comment', '-Find', find, '-To', text]);
+/** Перемикач вигляду: 'all' — усі виправлення видно, 'none' — без виправлень. */
+export const setMarkupView = (mode) => ps(['-Action', 'markup', '-Name', mode]);
 /**
  * Привести вставлений текст до шрифту документа: прибрати «шрифт сайту»,
  * зайве жирне й подвійні порожні абзаци — усе це видає вставку з чату.
@@ -85,9 +94,14 @@ export const highlightInWord = (find) => ps(['-Action', 'highlight', '-Find', fi
 export const highlightAllInWord = (find) => ps(['-Action', 'highlightAll', '-Find', find]);
 export const reselectInWord = (from, to) => ps(['-Action', 'select', '-Find', from, '-To', to]);
 
-/** Плавна прокрутка документа: кілька рядків за крок, із паузами. */
+/**
+ * Плавна прокрутка документа: кілька рядків за крок, із паузами.
+ * Від'ємне `lines` — прокрутка вгору (наприклад, повернутись на початок
+ * після дій унизу документа), додатне — вниз.
+ */
 export async function scrollWord(lines, { steps = 6, ms = 260 } = {}) {
-  const step = Math.max(1, Math.round(lines / steps));
+  const sign = lines < 0 ? -1 : 1;
+  const step = sign * Math.max(1, Math.round(Math.abs(lines) / steps));
   for (let i = 0; i < steps; i++) {
     await ps(['-Action', 'scroll', '-Lines', String(step)]);
     await pause(ms);
@@ -137,4 +151,71 @@ export async function selectInWord(mouse, fromText, toText, { ms = 1800 } = {}) 
   await reselectInWord(fromText, toText);
   await pause(300);
   await pressEscape();
+}
+
+/**
+ * Діалог «Знайти й замінити» (Ctrl+H) — координати на стрічці Home
+ * розгорнутого вікна 1920×1080. Синтетичний Ctrl+H сам ярлик не відкриває
+ * (перевірено дослідом), тому відкриваємо кліком по кнопці «Replace».
+ * Координати полів усередині діалогу теж фіксовані — саме вікно завжди
+ * з'являється в тому самому місці відносно правого нижнього кута екрана.
+ */
+export const REPLACE_BTN = { x: 1789, y: 128 };
+export const FIND_FIELD = { x: 1440, y: 668 };
+export const REPLACE_FIELD = { x: 1440, y: 747 };
+export const REPLACE_ALL_BTN = { x: 1469, y: 828 };
+export const REPLACE_OK_BTN = { x: 966, y: 600 };
+export const REPLACE_CANCEL_BTN = { x: 1724, y: 828 };
+
+export async function openReplaceDialog(mouse) {
+  await mouse.glide(REPLACE_BTN.x, REPLACE_BTN.y, { ms: 500 });
+  await mouse.click();
+  await sleep(700);
+}
+
+/**
+ * Клік у поле діалогу «Знайти й замінити» та надійне очищення попереднього
+ * вмісту перед друком нового тексту.
+ *
+ * `Ctrl+A` у цих полях (це комбобокси з історією пошуку, не звичайні
+ * текстові поля) на ділі НЕ виділяє весь текст — перевірено на реальному
+ * дублі уроку 4.4: другу й третю заміни `Ctrl+A`+друк не очищали поле,
+ * а дописували новий текст ПІСЛЯ старого, і в результаті «Знайти»/«Замінити
+ * на» містили злиплі докупи рядки всіх попередніх замін. Тому тут — курсор
+ * у кінець і `Backspace` із запасом (поле точно коротше 100 символів), це
+ * працює однаково в будь-якому текстовому контролі Windows.
+ */
+export async function clearAndType(mouse, field, text, cps) {
+  await mouse.glide(field.x, field.y, { ms: 400 });
+  await mouse.click();
+  await sleep(150);
+  await mouse.key('{END}');
+  await sleep(80);
+  await mouse.key('{BACKSPACE 100}');
+  await sleep(150);
+  await mouse.type(text, { cps });
+}
+
+/** Одна заміна «Знайти й замінити все», з підтвердженням результату. */
+export async function replaceInWordDialog(mouse, findText, replaceText) {
+  await clearAndType(mouse, FIND_FIELD, findText, 28);
+  await sleep(250);
+
+  await clearAndType(mouse, REPLACE_FIELD, replaceText, 24);
+  await sleep(350);
+
+  await mouse.glide(REPLACE_ALL_BTN.x, REPLACE_ALL_BTN.y, { ms: 400 });
+  await mouse.click();
+  await sleep(700);
+
+  // «All done. We made N replacements.» — власне підтвердження Word.
+  await mouse.glide(REPLACE_OK_BTN.x, REPLACE_OK_BTN.y, { ms: 350 });
+  await mouse.click();
+  await sleep(400);
+}
+
+export async function closeReplaceDialog(mouse) {
+  await mouse.glide(REPLACE_CANCEL_BTN.x, REPLACE_CANCEL_BTN.y, { ms: 400 });
+  await mouse.click();
+  await sleep(300);
 }
