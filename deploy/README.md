@@ -36,51 +36,64 @@ HTTP. Зовні це виглядає так: форма входу прийм�
 робочого каталогу, тож у серверному `.env` пишемо повний шлях:
 
 ```
-DATABASE_URL="file:/srv/proai/prisma/dev.db"
+DATABASE_URL="file:/opt/proai/aiguideforgov/prisma/dev.db"
 ```
 
 ## Порядок розгортання
 
+Код лежить у `/opt/proai/aiguideforgov` і належить `dcrilya` — від нього ж
+працює служба (так само, як решта застосунків на цій машині). Окремого
+системного користувача не заводимо.
+
 ```bash
-# 1. Користувач і каталог
-sudo useradd --system --home /srv/proai --shell /usr/sbin/nologin proai
-sudo mkdir -p /srv/proai && sudo chown proai:proai /srv/proai
+cd /opt/proai/aiguideforgov
 
-# 2. Код
-sudo -u proai git clone <репозиторій> /srv/proai
-cd /srv/proai
-
-# 3. Оточення — ДВА файли, BETTER_AUTH_SECRET в обох мусить збігатися
-sudo -u proai cp .env.example .env
+# 1. Оточення — ДВА файли, BETTER_AUTH_SECRET в обох мусить збігатися
+cp .env.example .env
 node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
-# вписати згенерований секрет, бойовий домен і абсолютний DATABASE_URL,
-# потім продублювати файл:
-sudo -u proai cp .env apps/web/.env
-sudo chown root:proai .env apps/web/.env && sudo chmod 640 .env apps/web/.env
+# вписати згенерований секрет, бойовий домен (https!) і абсолютний DATABASE_URL,
+# потім продублювати файл — його читає Next під час збірки:
+cp .env apps/web/.env
+sudo chown root:dcrilya .env apps/web/.env && sudo chmod 640 .env apps/web/.env
 
-# 4. Залежності, база, збірка
-sudo -u proai corepack pnpm install --frozen-lockfile
-sudo -u proai corepack pnpm db:generate
-sudo -u proai corepack pnpm --filter @proai/db migrate:deploy
-sudo -u proai corepack pnpm db:seed            # ЛИШЕ на порожній базі — стирає все
-sudo -u proai corepack pnpm build
+# 2. Залежності, база, збірка
+corepack pnpm install --frozen-lockfile
+corepack pnpm db:generate
+corepack pnpm --filter @proai/db migrate:deploy
+corepack pnpm db:seed            # ЛИШЕ на порожній базі — стирає все
+corepack pnpm build              # мусить пройти ДО першого запуску служби
 
-# 5. Медіа уроків (окремо від git)
-rsync -av --progress ./apps/web/public/media/ proai@СЕРВЕР:/srv/proai/apps/web/public/media/
-sudo -u proai corepack pnpm db:sync-content    # підключає відео й скріншоти
-sudo -u proai corepack pnpm db:sync-library    # перебудовує трофеї бібліотеки
+# 3. Медіа уроків (окремо від git)
+rsync -av --progress ./apps/web/public/media/ СЕРВЕР:/opt/proai/aiguideforgov/apps/web/public/media/
+corepack pnpm db:sync-content    # підключає відео й скріншоти
+corepack pnpm db:sync-library    # перебудовує трофеї бібліотеки
 
-# 6. Служба
-sudo cp deploy/proai.service /etc/systemd/system/
+# 4. Служба
+sudo cp deploy/proai.service /etc/systemd/system/proai.service
 sudo systemctl daemon-reload
-sudo systemctl enable --now proai
+sudo systemctl enable --now proai     # enable = підніметься сам після ребуту
 sudo systemctl status proai
+journalctl -u proai -f
 ```
 
 > `db:seed` **стирає користувачів і прогрес**. На вже робочій базі оновлюють
 > контент через `db:sync-content`, а не через seed.
 
+### Якщо служба не стартує
+
+| Симптом у `systemctl status` | Причина |
+|---|---|
+| `Failed to set up mount namespacing … .next/cache` | немає збірки — спочатку `pnpm build` |
+| `Could not find a production build` | те саме, але збірка була видалена |
+| `Некоректне оточення сервера` | `.env` не читається або лишився шаблонний секрет |
+| `SQLITE_READONLY` / `unable to open database file` | `DATABASE_URL` відносний або файл поза `ReadWritePaths` |
+| `start-limit-hit` | 5 падінь за 5 хв — systemd здався; лікуємо причину, далі `systemctl reset-failed proai` |
+
 ## Reverse proxy (nginx)
+
+Служба слухає `127.0.0.1:4573` (не 3000 — на цій машині 3000 може зайняти щось
+інше; у `next dev` локально порт лишається 3000). Порт заданий у двох місцях
+юніта: прапорцем `--port` і змінною `PORT` — міняти треба обидва.
 
 ```nginx
 server {
@@ -96,7 +109,7 @@ server {
     client_max_body_size 20m;
 
     location / {
-        proxy_pass http://127.0.0.1:3000;
+        proxy_pass http://127.0.0.1:4573;
         proxy_http_version 1.1;
         proxy_set_header Host              $host;
         proxy_set_header X-Real-IP         $remote_addr;
@@ -117,11 +130,11 @@ server {
 ## Оновлення версії
 
 ```bash
-cd /srv/proai
-sudo -u proai git pull
-sudo -u proai corepack pnpm install --frozen-lockfile
-sudo -u proai corepack pnpm --filter @proai/db migrate:deploy
-sudo -u proai corepack pnpm build
+cd /opt/proai/aiguideforgov
+git pull
+corepack pnpm install --frozen-lockfile
+corepack pnpm --filter @proai/db migrate:deploy
+corepack pnpm build
 sudo systemctl restart proai
 ```
 

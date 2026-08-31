@@ -1,49 +1,77 @@
 # Юніт systemd для платформи ПРО.ШІ.
 #
-#   sudo cp deploy/proai.service /etc/systemd/system/proai.service
+#   sudo cp /opt/proai/aiguideforgov/deploy/proai.service /etc/systemd/system/proai.service
 #   sudo systemctl daemon-reload
 #   sudo systemctl enable --now proai
-#   sudo journalctl -u proai -f
+#   sudo systemctl status proai
+#   journalctl -u proai -f
 #
-# Передбачає: код у /srv/proai, окремий користувач `proai`, зібраний застосунок
-# (`pnpm build`) і зовнішній reverse proxy з TLS. Подробиці — deploy/README.md.
+# Передбачає: код у /opt/proai/aiguideforgov, служба працює від dcrilya,
+# застосунок уже зібраний (`pnpm build`), TLS тримає зовнішній nginx.
+# Подробиці й порядок розгортання — deploy/README.md.
 
 [Unit]
 Description=ПРО.ШІ — навчальна платформа
-Documentation=file:/srv/proai/deploy/README.md
-# network-online, а не network: інакше служба стартує раніше, ніж підніметься
-# інтерфейс, і падає на bind.
+Documentation=file:/opt/proai/aiguideforgov/deploy/README.md
+
+# network-online, а не network: інакше при перезавантаженні сервера служба
+# стартує раніше, ніж підніметься інтерфейс, і падає на bind.
 After=network-online.target
 Wants=network-online.target
+
+# nginx проксує на цю службу. Жорсткої залежності немає навмисно: nginx має
+# підніматися й тоді, коли бекенд лежить (щоб віддати 502, а не не стартувати).
+After=nginx.service
 
 # Якщо застосунок падає одразу після старту (немає збірки, кривий .env),
 # не крутимо перезапуск нескінченно — краще зупинитись і показати це в статусі.
 # Обидва ключі належать саме до [Unit]: у [Service] systemd їх ігнорує.
-StartLimitIntervalSec=120
+StartLimitIntervalSec=300
 StartLimitBurst=5
 
 [Service]
-Type=simple
-User=proai
-Group=proai
-WorkingDirectory=/srv/proai/apps/web
+# exec, а не simple: systemd вважає службу запущеною лише після успішного
+# execve. Помилку «немає такого файлу» видно одразу в `systemctl start`,
+# а не через п'ять перезапусків у журналі.
+Type=exec
+
+User=dcrilya
+Group=dcrilya
+WorkingDirectory=/opt/proai/aiguideforgov/apps/web
 
 # Запускаємо next напряму через node: так юніт не залежить від того, чи є в
 # PATH systemd pnpm/corepack (а їх там зазвичай немає — PATH служби мінімальний).
-ExecStart=/usr/bin/node node_modules/next/dist/bin/next start --port 3000 --hostname 127.0.0.1
-
+# Шлях відносний до WorkingDirectory; у pnpm-монорепо це симлінк у .pnpm-стор.
+#
 # Слухаємо лише loopback: назовні застосунок дивиться через reverse proxy,
 # який тримає TLS. Прямий доступ по HTTP зламав би вхід — див. README.
-Environment=NODE_ENV=production
-Environment=PORT=3000
-Environment=HOSTNAME=127.0.0.1
+ExecStart=/usr/bin/node node_modules/next/dist/bin/next start --hostname 127.0.0.1 --port 4573
 
-# Секрети й адреси. Файл має належати root:proai з правами 0640 — у ньому
+Environment=NODE_ENV=production
+Environment=PORT=4573
+# Телеметрія Next пише у домашній каталог, який нижче закритий ProtectHome.
+Environment=NEXT_TELEMETRY_DISABLED=1
+# HOME мусить існувати й бути доступним на запис: ProtectHome=yes ховає
+# /home/dcrilya, і будь-яка бібліотека, що полізе в ~, отримає помилку.
+# /var/lib/proai створює сам systemd (StateDirectory нижче).
+Environment=HOME=/var/lib/proai
+
+# Секрети й адреси. Файл має належати root:dcrilya з правами 0640 — у ньому
 # BETTER_AUTH_SECRET. DATABASE_URL там мусить бути АБСОЛЮТНИМ.
-EnvironmentFile=/srv/proai/apps/web/.env
+# Значення звідси перекривають apps/web/.env: Next не переписує вже задані
+# змінні оточення, тож джерело правди для служби — саме цей файл.
+EnvironmentFile=/opt/proai/aiguideforgov/.env
+
+StateDirectory=proai
+StateDirectoryMode=0750
 
 Restart=always
 RestartSec=5
+# Next піднімається за секунди; 60 с — запас на холодний диск після ребуту.
+TimeoutStartSec=60
+# SIGTERM Next обробляє сам і закриває з'єднання; 30 с вистачає, далі SIGKILL.
+TimeoutStopSec=30
+KillSignal=SIGTERM
 
 StandardOutput=journal
 StandardError=journal
@@ -51,11 +79,17 @@ SyslogIdentifier=proai
 
 # ── Обмеження прав ──────────────────────────────────────────────────────────
 NoNewPrivileges=yes
+# Порт 4573 > 1024, тож жодних capabilities службі не потрібно.
+CapabilityBoundingSet=
+AmbientCapabilities=
 PrivateTmp=yes
 PrivateDevices=yes
 ProtectSystem=strict
 ProtectHome=yes
+ProtectProc=invisible
+ProcSubset=pid
 ProtectKernelTunables=yes
+ProtectKernelLogs=yes
 ProtectKernelModules=yes
 ProtectControlGroups=yes
 ProtectClock=yes
@@ -64,16 +98,22 @@ RestrictSUIDSGID=yes
 RestrictRealtime=yes
 RestrictNamespaces=yes
 LockPersonality=yes
-RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+# AF_NETLINK тут не зайвий: glibc через нього перевіряє, які адресні сім'ї
+# доступні, перш ніж резолвити імена. Без нього DNS поводиться непередбачувано.
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX AF_NETLINK
+SystemCallArchitectures=native
 SystemCallFilter=@system-service
 SystemCallErrorNumber=EPERM
 
 # ProtectSystem=strict робить усе тільки для читання, тож явно відкриваємо на
 # запис рівно те, що застосунку потрібно:
-#   prisma/   — файл SQLite і його -journal/-wal (без цього база «read-only»);
-#   .next/cache — кеш зображень і сторінок Next у рантаймі.
-ReadWritePaths=/srv/proai/prisma
-ReadWritePaths=/srv/proai/apps/web/.next/cache
+#   prisma/     — файл SQLite і його -journal/-wal (без цього база «read-only»);
+#                 відкриваємо саме каталог, бо SQLite створює сусідні файли;
+#   .next/cache — кеш оптимізованих зображень і fetch-кеш Next у рантаймі.
+#                 Каталог з'являється під час `pnpm build`: якщо збірки ще
+#                 немає, юніт не стартує з «Failed to set up mount namespacing».
+ReadWritePaths=/opt/proai/aiguideforgov/prisma
+ReadWritePaths=/opt/proai/aiguideforgov/apps/web/.next/cache
 
 # MemoryDenyWriteExecute тут свідомо НЕ вмикаємо: V8 компілює JIT-код у пам'ять
 # із правом на виконання, і з цією опцією Node просто не стартує.
