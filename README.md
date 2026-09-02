@@ -176,6 +176,12 @@ Perplexity, NotebookLM і DeepL (8). Модулі-знайомства позн�
 
 - `better-call` (внутрішня залежність `better-auth`) хоче `zod@^4`, у проєкті `zod@^3.24` —
   peer-warning при встановленні, на роботу не впливає (typecheck/build/рантайм чисті).
+- `pnpm-workspace.yaml` вимикає build-скрипти пакетів prisma (`allowBuilds`), тому `pnpm install`
+  сам по собі Prisma Client НЕ генерує. Щоб це не ловилося аж на першому запуску помилкою
+  «does not provide an export named 'PrismaClient'», у `prisma/package.json` є власний
+  `postinstall: prisma generate` — він виконується, бо стосується workspace-пакета, а не
+  зовнішньої залежності. `prisma generate` не потребує `DATABASE_URL`, тож на свіжому клоні
+  без `.env` установлення не падає.
 - `@prisma/client` додано прямою залежністю `apps/web` (не лише через `@proai/db`) — інакше
   pnpm-ізоляція не дає Next.js `serverExternalPackages` знайти вже згенерований рушій під час
   бандлингу.

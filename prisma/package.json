@@ -9,6 +9,7 @@
     ".": "./src/client.ts"
   },
   "scripts": {
+    "postinstall": "prisma generate",
     "generate": "dotenv -e ../.env -- prisma generate",
     "migrate": "dotenv -e ../.env -- prisma migrate dev --name init",
     "migrate:deploy": "dotenv -e ../.env -- prisma migrate deploy",

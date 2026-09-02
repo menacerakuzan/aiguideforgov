@@ -56,8 +56,7 @@ node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
 sudo chown root:dcrilya .env && sudo chmod 640 .env
 
 # 2. Залежності, база, збірка
-corepack pnpm install --frozen-lockfile
-corepack pnpm db:generate
+corepack pnpm install --frozen-lockfile   # заодно генерує Prisma Client
 corepack pnpm --filter @proai/db migrate:deploy
 corepack pnpm db:seed            # контент + ЄДИНИЙ адмін із ADMIN_* (стирає все)
 corepack pnpm build              # мусить пройти ДО першого запуску служби
@@ -137,6 +136,7 @@ p.user.findMany({select:{email:true,role:true}}).then(async u=>{
 | `Failed to set up mount namespacing … .next/cache` | немає збірки — спочатку `pnpm build` |
 | `Could not find a production build` | те саме, але збірка була видалена |
 | `Некоректне оточення сервера` | `.env` не читається або лишився шаблонний секрет |
+| `does not provide an export named 'PrismaClient'` | Prisma Client не згенеровано — `corepack pnpm --filter @proai/db generate` |
 | `SQLITE_READONLY` / `unable to open database file` | `DATABASE_URL` відносний або файл поза `ReadWritePaths` |
 | `start-limit-hit` | 5 падінь за 5 хв — systemd здався; лікуємо причину, далі `systemctl reset-failed proai` |
 
