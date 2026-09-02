@@ -12,7 +12,7 @@
 |---|---|---|
 | `apps/web/public/media/` — відео й скріншоти уроків | ~153 МБ | `rsync` окремо |
 | `prisma/dev.db` — база | — | `migrate:deploy` + `seed`, або скопіювати файл |
-| `.env` і `apps/web/.env` | — | створити на сервері з `.env.example` |
+| `.env` (один, у корені) | — | створити на сервері з `.env.example` (там же `ADMIN_EMAIL`/`ADMIN_PASSWORD`) |
 | `node_modules/`, `.next/` | — | `pnpm install` + `pnpm build` на сервері |
 
 Якщо забути перший рядок — сайт працюватиме, але **всі відео й скріншоти
@@ -48,27 +48,27 @@ DATABASE_URL="file:/opt/proai/aiguideforgov/prisma/dev.db"
 ```bash
 cd /opt/proai/aiguideforgov
 
-# 1. Оточення — ДВА файли, BETTER_AUTH_SECRET в обох мусить збігатися
+# 1. Оточення — ОДИН файл у корені
 cp .env.example .env
 node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
-# вписати згенерований секрет, бойовий домен (https!) і абсолютний DATABASE_URL,
-# потім продублювати файл — його читає Next під час збірки:
-cp .env apps/web/.env
-sudo chown root:dcrilya .env apps/web/.env && sudo chmod 640 .env apps/web/.env
+# вписати: секрет, бойовий домен (https!), абсолютний DATABASE_URL,
+# ADMIN_EMAIL і ADMIN_PASSWORD
+sudo chown root:dcrilya .env && sudo chmod 640 .env
 
 # 2. Залежності, база, збірка
 corepack pnpm install --frozen-lockfile
 corepack pnpm db:generate
 corepack pnpm --filter @proai/db migrate:deploy
-corepack pnpm db:seed            # ЛИШЕ на порожній базі — стирає все
+corepack pnpm db:seed            # контент + ЄДИНИЙ адмін із ADMIN_* (стирає все)
 corepack pnpm build              # мусить пройти ДО першого запуску служби
 
-# 3. Медіа уроків (окремо від git)
-rsync -av --progress ./apps/web/public/media/ СЕРВЕР:/opt/proai/aiguideforgov/apps/web/public/media/
-corepack pnpm db:sync-content    # підключає відео й скріншоти
-corepack pnpm db:sync-library    # перебудовує трофеї бібліотеки
+# 3. Трофеї бібліотеки — seed їх НЕ створює, лише 8 матеріалів «руками»
+corepack pnpm db:sync-library
 
-# 4. Служба
+# 4. Медіа уроків (окремо від git) — запускати з ЛОКАЛЬНОЇ машини
+rsync -av --progress ./apps/web/public/media/ СЕРВЕР:/opt/proai/aiguideforgov/apps/web/public/media/
+
+# 5. Служба
 sudo cp deploy/proai.service /etc/systemd/system/proai.service
 sudo systemctl daemon-reload
 sudo systemctl enable --now proai     # enable = підніметься сам після ребуту
@@ -78,6 +78,57 @@ journalctl -u proai -f
 
 > `db:seed` **стирає користувачів і прогрес**. На вже робочій базі оновлюють
 > контент через `db:sync-content`, а не через seed.
+
+### Скидання платформи, яка вже працює
+
+Якщо на сервері крутиться стара версія з демо-акаунтами (`@oda.gov.ua`,
+пароль із README) — її треба саме **скинути**, а не «дочистити». Демо-слухачі
+тягнуть за собою прогрес, спроби тестів і сертифікат, і вибіркове видалення
+лишає биті звʼязки.
+
+```bash
+sudo systemctl stop proai
+cd /opt/proai/aiguideforgov
+
+# бекап на випадок, якщо там уже є щось потрібне
+cp prisma/dev.db ~/proai-backup-$(date +%F-%H%M).db
+
+# ADMIN_EMAIL / ADMIN_PASSWORD мусять бути в .env ДО цього кроку
+rm -f prisma/dev.db prisma/dev.db-journal prisma/dev.db-wal
+corepack pnpm --filter @proai/db migrate:deploy   # створить базу з нуля
+corepack pnpm db:seed
+corepack pnpm db:sync-library
+
+sudo systemctl start proai
+```
+
+Видаляти файл бази безпечніше, ніж покладатись на `deleteMany` у seed: так
+гарантовано не лишиться ані старих сесій, ані рядків від міграцій, яких уже
+немає в схемі.
+
+**Перевірити, що старого не лишилось:**
+
+```bash
+corepack pnpm --filter @proai/db exec node -e "
+const {PrismaClient}=require('@prisma/client');const p=new PrismaClient();
+p.user.findMany({select:{email:true,role:true}}).then(async u=>{
+  console.log('користувачів:',u.length); u.forEach(x=>console.log(' ',x.email,x.role));
+  console.log('прогрес:',await p.progress.count(),'сертифікатів:',await p.certificate.count());
+  await p.\\$disconnect();})"
+```
+
+Має бути рівно один рядок — ваш `ADMIN_EMAIL` з роллю `ADMIN`, прогрес 0,
+сертифікатів 0.
+
+**Про порядок кроків 3 і 4.** `db:seed` бере контент із тих самих файлів
+`prisma/src/content/`, де медіа-шляхи вже прописані, — тож після свіжого seed
+посилання на відео й скріншоти в базі **вже є**, і `db:sync-content` тут не
+потрібен (на відміну від оновлення вже робочої бази). А от `db:sync-library`
+потрібен обовʼязково: seed створює лише 8 матеріалів, написаних руками, і не
+генерує трофеї з блоків уроків — без нього бібліотека буде майже порожня.
+
+Медіафайли можна залити і до, і після seed: база зберігає лише шляхи. Поки
+файлів немає, сторінка уроку показуватиме битий `<video>`/`<img>`.
 
 ### Якщо служба не стартує
 
@@ -137,6 +188,23 @@ corepack pnpm --filter @proai/db migrate:deploy
 corepack pnpm build
 sudo systemctl restart proai
 ```
+
+## Про пароль адміністратора
+
+`ADMIN_EMAIL` / `ADMIN_PASSWORD` лежать у тому самому `.env`, але **до
+веб-процесу не потрапляють**: юніт прибирає їх рядком
+
+```ini
+UnsetEnvironment=ADMIN_PASSWORD ADMIN_EMAIL ADMIN_NAME
+```
+
+Без нього `EnvironmentFile=` віддав би весь файл процесу застосунку, і пароль
+адміністратора був би доступний через `process.env` — а отже, будь-якому
+сторонньому коду, який виконається всередині процесу. Застосунку ці змінні не
+потрібні: їх читають лише `db:seed` і `db:create-admin`.
+
+Якщо не хочете тримати пароль на диску взагалі — лишіть `ADMIN_PASSWORD`
+порожнім: обидва скрипти спитають його з клавіатури (двічі, без показу).
 
 ## Обмеження цієї конфігурації
 

@@ -16,7 +16,7 @@
     "seed": "dotenv -e ../.env -- tsx src/seed.ts",
     "sync-content": "dotenv -e ../.env -- tsx src/sync-content.ts",
     "sync-library": "dotenv -e ../.env -- tsx src/sync-library.ts",
-    "reset-demo-passwords": "dotenv -e ../.env -- tsx src/reset-demo-passwords.ts",
+    "create-admin": "dotenv -e ../.env -- tsx src/create-admin.ts",
     "split-course": "dotenv -e ../.env -- tsx src/split-course.ts",
     "export-lessons": "dotenv -e ../.env -- tsx src/export-lessons.ts",
     "audit-lessons": "tsx src/audit-lessons.ts",
