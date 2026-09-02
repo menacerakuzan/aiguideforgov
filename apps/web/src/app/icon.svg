@@ -1,12 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="ПРО.ШІ">
-  <rect width="64" height="64" rx="14" fill="#1d4ed8" />
-  <text
-    x="32"
-    y="43"
-    font-family="Verdana, DejaVu Sans, sans-serif"
-    font-size="30"
-    font-weight="700"
-    fill="#ffffff"
-    text-anchor="middle"
-  >ШІ</text>
+  <!-- Та сама монограма, що й BrandMark, але без зсунутої тіні: на 16 px вкладці
+       вона з'їдала половину поля. Кольори статичні (фавікон не знає теми сайту). -->
+  <rect x="3" y="3" width="58" height="58" rx="18" fill="#3763e8" stroke="#26224a" stroke-width="4" />
+  <path
+    d="M19.3 20.6v22.1h25.4V20.6M32 20.6v22.1"
+    fill="none"
+    stroke="#ffffff"
+    stroke-width="6.4"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <circle cx="50.3" cy="15.9" r="4.5" fill="#ffc93d" />
 </svg>
