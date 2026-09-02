@@ -1,7 +1,7 @@
-import { hashPassword } from 'better-auth/crypto';
 import { sanitizeLessonBlocks } from '@proai/infra';
 import type { LessonBlock } from '@proai/types';
 import { prisma } from './client';
+import { resolveAdminCredentials, upsertAdmin } from './lib/admin';
 import { module1Lessons } from './content/lessons-module-1';
 import { module2Lessons } from './content/lessons-module-2';
 import { module3Lessons } from './content/lessons-module-3';
@@ -18,16 +18,6 @@ import type { SeedLesson } from './content/lessons-module-1';
  * додається пізніше через ту саму CMS.
  */
 
-const DEMO_PASSWORD = 'ProAI2026!';
-
-async function credentialAccount(userId: string) {
-  return {
-    userId,
-    accountId: userId,
-    providerId: 'credential',
-    password: await hashPassword(DEMO_PASSWORD),
-  };
-}
 
 function blocks(list: LessonBlock[]): string {
   // Санітизуємо навіть власний seed: інакше «чистий HTML у базі» тримався б
@@ -68,6 +58,14 @@ function q(
 }
 
 async function main() {
+  /*
+   * Облікові дані адміністратора читаємо ПЕРШИМ ділом — до будь-якого запису.
+   * Раніше перевірка стояла після очищення бази, і друкарська помилка в .env
+   * давала найгірший можливий результат: дані вже стерті, а seed упав на
+   * половині й не створив ані контенту, ані адміністратора.
+   */
+  const creds = await resolveAdminCredentials();
+
   console.log('Очищення бази…');
   await prisma.$transaction([
     prisma.notification.deleteMany(),
@@ -102,69 +100,25 @@ async function main() {
   /* ==========================================================================
      Користувачі — двоє ролей: LEARNER та ADMIN
      ========================================================================= */
-  console.log('Створення користувачів…');
+  /* ==========================================================================
+     Адміністратор
+     --------------------------------------------------------------------------
+     Рівно один акаунт, і той — з ADMIN_EMAIL / ADMIN_PASSWORD. Демо-слухачів
+     seed більше не створює: платформа розгортається порожньою, люди
+     реєструються самі. Вигадані акаунти з відомим паролем у продакшні — це
+     просто чорний хід, а їхній «прогрес» ще й псує статистику в адмінці.
+     ========================================================================= */
+  console.log('Створення адміністратора…');
 
-  const oksana = await prisma.user.create({
-    data: {
-      name: 'Оксана Коваленко',
-      email: 'o.kovalenko@oda.gov.ua',
-      emailVerified: true,
-      role: 'LEARNER',
-      position: 'Головний спеціаліст управління звернень громадян',
-      organizationId: org.id,
-      streak: 5,
-      lastActiveAt: new Date(),
-    },
-  });
-  await prisma.account.create({ data: await credentialAccount(oksana.id) });
+  const { created } = await upsertAdmin(prisma, creds);
+  console.log(`  ${created ? 'створено' : 'оновлено'} адміністратора: ${creds.email}`);
 
-  const dmytro = await prisma.user.create({
-    data: {
-      name: 'Дмитро Гриценко',
-      email: 'd.hrytsenko@oda.gov.ua',
-      emailVerified: true,
-      role: 'ADMIN',
-      position: 'Адміністратор платформи',
-      organizationId: org.id,
-    },
-  });
-  await prisma.account.create({ data: await credentialAccount(dmytro.id) });
-
-  const natalia = await prisma.user.create({
-    data: {
-      name: 'Наталія Осадча',
-      email: 'n.osadcha@oda.gov.ua',
-      emailVerified: true,
-      role: 'LEARNER',
-      position: 'Головний спеціаліст',
-      organizationId: org.id,
-      streak: 21,
-      lastActiveAt: new Date(),
-    },
-  });
-  await prisma.account.create({ data: await credentialAccount(natalia.id) });
-
-  const svitlanaB = await prisma.user.create({
-    data: {
-      name: 'Світлана Бондаренко',
-      email: 's.bondarenko@oda.gov.ua',
-      emailVerified: true,
-      role: 'LEARNER',
-      position: 'Спеціаліст',
-      organizationId: org.id,
-      streak: 0,
-    },
-  });
-  await prisma.account.create({ data: await credentialAccount(svitlanaB.id) });
-
-  console.log('Користувачі створені. Пароль для всіх демо-акаунтів: %s', DEMO_PASSWORD);
-
-  return { org, oksana, dmytro, natalia, svitlanaB };
+  return { org };
 }
 
 main()
-  .then(async (ctx) => {
-    await seedCourse(ctx);
+  .then(async () => {
+    await seedCourse();
     await seedPrompts();
     await seedResources();
     console.log('Готово.');
@@ -192,8 +146,7 @@ function lessonCreateData(lessons: SeedLesson[]) {
   }));
 }
 
-async function seedCourse(ctx: Awaited<ReturnType<typeof main>>) {
-  const { oksana, natalia } = ctx;
+async function seedCourse() {
   console.log('Створення курсу…');
 
   const course = await prisma.course.create({
@@ -965,74 +918,7 @@ async function seedCourse(ctx: Awaited<ReturnType<typeof main>>) {
     examQuestions.filter((qq) => qq.isSecurity).length,
   );
 
-  /* --------------------------------------------------------------------------
-     Прогрес демо-користувачів
-     ------------------------------------------------------------------------ */
-  console.log('Прогрес слухачів…');
-
-  const module1Lessons_ = await prisma.lesson.findMany({ where: { moduleId: module1.id }, orderBy: { order: 'asc' } });
-  for (const lesson of module1Lessons_) {
-    await prisma.progress.create({ data: { userId: oksana.id, lessonId: lesson.id } });
-  }
-  const module2Lessons_ = await prisma.lesson.findMany({ where: { moduleId: module2.id }, orderBy: { order: 'asc' } });
-  for (const lesson of module2Lessons_.slice(0, 4)) {
-    await prisma.progress.create({ data: { userId: oksana.id, lessonId: lesson.id } });
-  }
-
-  /* --- Наталія: повністю пройшла Розділ 1, склала фінальну атестацію, має сертифікат --- */
-  const allSection1Lessons = await prisma.lesson.findMany({
-    where: { module: { sectionId: section1.id } },
-  });
-  for (const lesson of allSection1Lessons) {
-    await prisma.progress.create({ data: { userId: natalia.id, lessonId: lesson.id } });
-  }
-
-  for (const mod of [module1, module2, module3, module4, module5]) {
-    const quiz = await prisma.quiz.findUnique({ where: { moduleId: mod.id } });
-    if (!quiz) continue;
-    const questionCount = await prisma.question.count({ where: { quizId: quiz.id } });
-    await prisma.attempt.create({
-      data: {
-        userId: natalia.id,
-        quizId: quiz.id,
-        score: mod.id === module3.id ? 92 : 90,
-        passed: true,
-        answers: JSON.stringify(Array.from({ length: questionCount }, () => 1)),
-      },
-    });
-  }
-
-  const examAnswers = examQuestions.map((qq) => qq.correctIndex);
-  await prisma.examAttempt.create({
-    data: {
-      userId: natalia.id,
-      examId: finalExam.id,
-      score: 93,
-      securityScore: 92,
-      passed: true,
-      answers: JSON.stringify(examAnswers),
-    },
-  });
-
-  const issuedAt = new Date('2026-07-22T00:00:00.000Z');
-  const validUntil = new Date(issuedAt);
-  validUntil.setMonth(validUntil.getMonth() + 24);
-
-  await prisma.certificate.create({
-    data: {
-      code: 'PROAI-2026-4F19C7',
-      userId: natalia.id,
-      holderName: natalia.name,
-      holderPosition: natalia.position,
-      organizationName: (await prisma.organization.findUnique({ where: { id: natalia.organizationId! } }))!.name,
-      score: 93,
-      withHonors: true,
-      issuedAt,
-      validUntil,
-    },
-  });
-
-  console.log('Курс, розділи, модулі, уроки, тести, атестація і прогрес створені.');
+  console.log('Курс, розділи, модулі, уроки, тести й атестація створені.');
 }
 
 /* ============================================================================
@@ -1047,7 +933,6 @@ async function seedPrompts() {
       useCase: 'Готує проєкт відповіді з посиланням на строки розгляду та відповідальний підрозділ.',
       category: 'CITIZENS',
       verified: true,
-      copyCount: 1240,
       body: `Ти — досвідчений спеціаліст управління звернень громадян обласної державної адміністрації.
 
 Підготуй проєкт відповіді на звернення [ЗАЯВНИК] щодо [ПРЕДМЕТ ЗВЕРНЕННЯ] за адресою [АДРЕСА ОБʼЄКТА].
@@ -1067,7 +952,6 @@ async function seedPrompts() {
       useCase: 'Офіційний стиль, коректні реквізити, чітке формулювання предмета запиту.',
       category: 'LETTERS',
       verified: true,
-      copyCount: 863,
       body: `Підготуй лист-запит від [ВАШ ОРГАН] до [ОРГАН-АДРЕСАТ] щодо [ПРЕДМЕТ ЗАПИТУ].
 
 Вимоги: офіційно-діловий стиль, посилання на компетенцію органу, чіткий строк очікуваної відповіді, без вигаданих реквізитів.`,
@@ -1080,7 +964,6 @@ async function seedPrompts() {
       useCase: 'Структурує рішення, доручення та відповідальних із чернетки нотаток.',
       category: 'MEETINGS',
       verified: true,
-      copyCount: 592,
       body: `Склади протокол наради з цього конспекту: [КОНСПЕКТ].
 
 Виділи: перелік присутніх, розглянуті питання, ухвалені рішення, доручення з відповідальними та строками виконання.`,
@@ -1093,7 +976,6 @@ async function seedPrompts() {
       useCase: 'Структура: висновки, ризики, рекомендації — до однієї сторінки.',
       category: 'ANALYTICS',
       verified: true,
-      copyCount: 401,
       body: `Підготуй аналітичну довідку на основі: [ДАНІ].
 
 Структура: короткі висновки, виявлені ризики, конкретні рекомендації. Обсяг — до однієї сторінки, без вигаданих цифр.`,
@@ -1106,17 +988,12 @@ async function seedPrompts() {
       useCase: 'Преамбула, пункти наказу, структура типового розпорядчого документа.',
       category: 'INTERNAL',
       verified: true,
-      copyCount: 318,
       body: `Підготуй проєкт наказу про [ПРЕДМЕТ НАКАЗУ] для [ОРГАН ВЛАДИ].
 
 Структура: преамбула з підставою видання, пункти наказу, відповідальні за виконання, пункт про контроль.`,
     },
   });
 
-  const oksana = await prisma.user.findUniqueOrThrow({ where: { email: 'o.kovalenko@oda.gov.ua' } });
-  for (const prompt of [p1, p3, p4]) {
-    await prisma.favorite.create({ data: { userId: oksana.id, promptId: prompt.id } });
-  }
 }
 
 /* ============================================================================

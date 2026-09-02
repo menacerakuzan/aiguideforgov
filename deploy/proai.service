@@ -62,6 +62,14 @@ Environment=HOME=/var/lib/proai
 # змінні оточення, тож джерело правди для служби — саме цей файл.
 EnvironmentFile=/opt/proai/aiguideforgov/.env
 
+# Облікові дані адміністратора застосунку НЕ потрібні — їх читають лише скрипти
+# `db:seed` і `db:create-admin`. EnvironmentFile віддає процесу весь файл, тож
+# без цього рядка пароль адміністратора лежав би в оточенні веб-сервера, і
+# будь-яке виконання стороннього коду всередині процесу (RCE, скомпрометована
+# залежність) читало б його з process.env і одразу отримувало повний доступ.
+# UnsetEnvironment прибирає їх уже після читання файлу.
+UnsetEnvironment=ADMIN_PASSWORD ADMIN_EMAIL ADMIN_NAME
+
 StateDirectory=proai
 StateDirectoryMode=0750
 
