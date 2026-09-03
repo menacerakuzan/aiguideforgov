@@ -1,5 +1,5 @@
 import { prisma } from '@proai/db';
-import type { Module, MyProgressResponse } from '@proai/types';
+import { isModuleUnfinished, type Module, type MyProgressResponse } from '@proai/types';
 import { getModuleBySlug } from './courses';
 import { getMyProgress } from './summary';
 
@@ -46,9 +46,11 @@ export async function getDashboard(userId: string): Promise<DashboardData> {
   const progress = await getMyProgress(userId, courseSlug);
   if (!progress) return { progress: null, currentModule: null, noActiveCourse: true };
 
-  // Поточний модуль — перший, у якому пройдено не всі уроки.
+  // Поточний модуль — перший незавершений. Незавершений означає «лишились
+  // уроки АБО не складено тест»: раніше тест не враховувався, і модуль, у
+  // якому лишалось тільки скласти тест, дашборд мовчки перескакував.
   const allModules = (progress.course.sections ?? []).flatMap((s) => s.modules ?? []);
-  const current = allModules.find((m) => (m.completedLessons ?? 0) < (m.lessonCount ?? 0));
+  const current = allModules.find(isModuleUnfinished);
 
   const currentModule = current ? await getModuleBySlug(userId, current.slug) : null;
 

@@ -76,6 +76,49 @@ pnpm db:sync-library # трофеї бібліотеки (seed їх не ген�
 pnpm dev             # http://localhost:3000
 ```
 
+Правки контенту без стирання бази — `db:seed` чистить її повністю, тому для
+щоденної роботи потрібні не він, а ці два:
+
+```bash
+pnpm db:sync-content # тексти уроків з prisma/src/content/lessons-module-*.ts
+pnpm db:sync-quiz    # тести модулів і атестація з prisma/src/content/quizzes.ts
+```
+
+Обидва оновлюють лише контент: користувачі, сесії, прогрес і спроби лишаються.
+Перед `db:sync-quiz` варто прогнати `pnpm --filter @proai/db audit-quiz` — він
+ловить перекос позицій правильної відповіді й підказку довжиною варіанта.
+
+### Зміна схеми бази
+
+Структуру (нові поля, таблиці, індекси) міняють у `prisma/schema.prisma`, а далі
+створюють міграцію — ім'я передається аргументом:
+
+```bash
+pnpm db:migrate --name add_longest_streak
+```
+
+Без `--name` Prisma спитає ім'я інтерактивно. Prisma сама порівняє схему з базою,
+запише SQL у `prisma/migrations/<час>_<ім'я>/migration.sql` і застосує його; папку
+міграції **обов'язково комітимо** — саме вона, а не `schema.prisma`, є джерелом
+істини для продакшну. Клієнт перегенерується автоматично; якщо ні —
+`pnpm db:generate`.
+
+Перевірити, що схема й міграції не розійшлися (корисно перед релізом):
+
+```bash
+cd prisma && npx dotenv -e ../.env -- prisma migrate status
+npx prisma migrate diff --from-migrations ./migrations \
+  --to-schema-datamodel ./schema.prisma \
+  --shadow-database-url "file:/tmp/shadow.db" --exit-code
+```
+
+Друга команда має сказати «No difference detected» і завершитись кодом 0.
+
+> Запускайте Prisma **лише через `pnpm`-скрипти або з каталогу `prisma/`**.
+> `npx prisma` із кореня репозиторію не знаходить локальний пакет і завантажує
+> свіжу мажорну версію з реєстру — тобто виконає команду не тією Prisma, що
+> в проєкті.
+
 > У продакшні застосунок **не стартує** з шаблонним або відсутнім
 > `BETTER_AUTH_SECRET` — перевірка в `services/infra/src/env.ts`. Це навмисно:
 > без неї Better Auth мовчки взяв би запасний ключ, і сесії підписувалися б
@@ -86,7 +129,7 @@ pnpm dev             # http://localhost:3000
 ```bash
 pnpm typecheck   # tsc --noEmit по всіх пакетах
 pnpm lint
-pnpm test        # vitest: сертифікати, санітизація HTML, схеми реєстрації
+pnpm test        # vitest: сертифікати, санітизація HTML, схеми реєстрації, серія днів
 pnpm build
 ```
 

@@ -184,9 +184,28 @@ server {
 cd /opt/proai/aiguideforgov
 git pull
 corepack pnpm install --frozen-lockfile
+
+# Бекап ПЕРЕД міграцією. `.backup` знімає узгоджену копію на живій службі —
+# просте `cp` під час запису дало б пошкоджений файл.
+sqlite3 prisma/dev.db ".backup '$HOME/proai-$(date +%F-%H%M).db'"
+
 corepack pnpm --filter @proai/db migrate:deploy
 corepack pnpm build
 sudo systemctl restart proai
+```
+
+> Бекап тут не формальність. У Prisma **немає зворотних міграцій**, а на SQLite
+> зміна таблиці — це фізично `DROP TABLE` зі створенням нової й перенесенням
+> даних. Якщо міграція виявиться помилковою, єдиний шлях назад — зупинити
+> службу й покласти файл бекапа на місце `prisma/dev.db`.
+
+Якщо змінювався лише контент уроків чи тестів — міграція не потрібна, база
+структурно та сама:
+
+```bash
+corepack pnpm db:sync-content   # тексти уроків
+corepack pnpm db:sync-quiz      # тести модулів і атестація
+corepack pnpm db:sync-library   # трофеї бібліотеки
 ```
 
 ## Про пароль адміністратора

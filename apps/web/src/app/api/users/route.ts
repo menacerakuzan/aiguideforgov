@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { prisma } from '@proai/db';
+import { cachedStreak } from '@proai/learning';
 import { requireCurrentUser, requireAdmin, ForbiddenError } from '@proai/auth';
 import { UpdateUserRoleInputSchema, type UsersListResponse } from '@proai/types';
 import { withApiErrors } from '@/lib/api-guard';
@@ -70,7 +71,7 @@ export async function GET() {
         email: u.email,
         role: u.role,
         organizationName: u.organization?.name ?? null,
-        streak: u.streak,
+        streak: cachedStreak(u.streak, u.lastActiveAt),
         progressPct: totalModules > 0 ? Math.round(((completedByUser.get(u.id) ?? 0) / totalModules) * 100) : 0,
         certified: u.certificates.length > 0,
         lastActiveAt: u.lastActiveAt ? u.lastActiveAt.toISOString() : null,

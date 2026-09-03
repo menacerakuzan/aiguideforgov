@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Award, Check, Clock, Shield } from '@proai/icons';
 import { Button, ClayCard, Lift, Orb, ProgressBar, toast } from '@proai/ui';
-import type { Course } from '@proai/types';
+import { isModuleUnfinished, type Course } from '@proai/types';
 import { api } from '@/lib/api-client';
 
 export default function CourseDetailPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -26,6 +26,9 @@ export default function CourseDetailPage({ params }: { params: Promise<{ slug: s
       queryClient.invalidateQueries({ queryKey: ['courses'] });
       toast.success('Курс розпочато');
       router.push('/dashboard');
+      // /courses — серверний компонент: без refresh список курсів лишився б
+      // у кеші маршрутизатора зі старою позначкою активного курсу.
+      router.refresh();
     },
   });
 
@@ -50,9 +53,24 @@ export default function CourseDetailPage({ params }: { params: Promise<{ slug: s
             <span>{course.lessonCount ?? 0} уроків</span>
           </div>
         </div>
-        <Button variant={course.isActive ? 'ghost' : 'blue'} size="lg" disabled={selectCourse.isPending || course.isActive} onClick={() => selectCourse.mutate()}>
-          <Award size={17} /> {course.isActive ? 'Це ваш активний курс' : started ? 'Продовжити курс' : 'Розпочати курс'}
-        </Button>
+        {course.isActive ? (
+          // Курс уже обрано — пропонувати «Розпочати» вдруге нема сенсу,
+          // тому кнопка веде туди, де навчання власне триває.
+          <div className="flex flex-col items-start gap-2">
+            <span className="rounded-full bg-blue-tint px-4 py-1.5 text-sm font-bold text-blue-deep">
+              Ваш активний курс
+            </span>
+            <Button variant="blue" size="lg" asChild>
+              <Link href="/dashboard">
+                <Award size={17} /> {started ? 'Продовжити навчання' : 'Перейти до навчання'}
+              </Link>
+            </Button>
+          </div>
+        ) : (
+          <Button variant="blue" size="lg" disabled={selectCourse.isPending} onClick={() => selectCourse.mutate()}>
+            <Award size={17} /> {started ? 'Продовжити курс' : 'Розпочати курс'}
+          </Button>
+        )}
       </ClayCard>
 
       <div className="flex flex-col gap-8">
@@ -67,9 +85,7 @@ export default function CourseDetailPage({ params }: { params: Promise<{ slug: s
 
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {(section.modules ?? []).map((module_) => {
-                const done =
-                  (module_.completedLessons ?? 0) === (module_.lessonCount ?? 0) &&
-                  (module_.hasQuiz ? (module_.quizPassed ?? false) : true);
+                const done = !isModuleUnfinished(module_);
 
                 return (
                   <Lift key={module_.id}>

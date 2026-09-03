@@ -1,5 +1,6 @@
 import { prisma } from '@proai/db';
 import type { Quiz, SubmitQuizInput, SubmitQuizResponse } from '@proai/types';
+import { refreshStreak } from './streak';
 
 /** Тест модуля без правильних відповідей — вони відомі лише серверу. */
 export async function getQuizByModuleSlug(moduleSlug: string): Promise<Quiz | null> {
@@ -51,6 +52,10 @@ export async function submitQuiz(userId: string, input: SubmitQuizInput): Promis
   await prisma.attempt.create({
     data: { userId, quizId: quiz.id, score, passed, answers: JSON.stringify(input.answers) },
   });
+
+  // Спроба тесту — теж день навчання: інакше людина, яка сьогодні тільки
+  // складала тест, побачила б учорашню серію.
+  await refreshStreak(userId);
 
   return { score, passed, passScore: quiz.passScore, review };
 }

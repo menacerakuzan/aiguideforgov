@@ -11,6 +11,7 @@ import { ThemeToggle } from '@/components/theme-toggle';
 const LINKS = [
   { href: '/dashboard', label: 'Кабінет' },
   { href: '/courses', label: 'Курси' },
+  { href: '/progress', label: 'Прогрес' },
   { href: '/library', label: 'Бібліотека' },
   { href: '/certificates', label: 'Сертифікати' },
 ];

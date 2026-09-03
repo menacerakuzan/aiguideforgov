@@ -5,4 +5,6 @@ export * from './progress';
 export * from './quiz';
 export * from './exam';
 export * from './summary';
+export * from './streak';
+export * from './stats';
 export * from './lib/completion';

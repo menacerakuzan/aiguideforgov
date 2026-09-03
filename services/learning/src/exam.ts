@@ -2,6 +2,7 @@ import { prisma } from '@proai/db';
 import type { FinalExam, SubmitFinalExamInput, SubmitFinalExamResponse } from '@proai/types';
 import { issueCertificate } from '@proai/certificates';
 import { hasCompletedAllModules } from './lib/completion';
+import { refreshStreak } from './streak';
 
 /**
  * Спроба скласти фінальну атестацію без пройдених модулів курсу.
@@ -91,6 +92,8 @@ export async function submitFinalExam(userId: string, input: SubmitFinalExamInpu
   await prisma.examAttempt.create({
     data: { userId, examId: exam.id, score, securityScore, passed, answers: JSON.stringify(input.answers) },
   });
+
+  await refreshStreak(userId);
 
   let certificate = null;
   if (passed) {

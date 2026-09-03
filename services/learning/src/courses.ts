@@ -2,27 +2,45 @@ import { prisma } from '@proai/db';
 import type { Course, Lesson, LessonBlock, LessonSummary, Module, Section } from '@proai/types';
 import { getModuleCompletion, isModuleCompleted } from './lib/completion';
 
-/** Курс з повною ієрархією розділів і модулів (без списку уроків — лише лічильники). */
-export async function getCourseOverview(userId: string, courseSlug: string): Promise<Course | null> {
-  const course = await prisma.course.findUnique({
-    where: { slug: courseSlug },
-    include: {
-      sections: {
-        orderBy: { order: 'asc' },
-        include: {
-          modules: {
-            orderBy: { order: 'asc' },
-            include: { lessons: { select: { id: true } }, quiz: { select: { id: true } } },
+/**
+ * Курс з повною ієрархією розділів і модулів (без списку уроків — лише лічильники).
+ *
+ * `activeCourseId` можна передати ззовні, якщо він уже на руках (список курсів
+ * читає його один раз на всі курси) — інакше беремо з бази самі. Без цього
+ * поле `isActive` лишалося порожнім на сторінці курсу, і кнопка «Розпочати
+ * курс» показувалась навіть для курсу, який слухач уже проходить.
+ */
+export async function getCourseOverview(
+  userId: string,
+  courseSlug: string,
+  activeCourseId?: string | null,
+): Promise<Course | null> {
+  const [course, active] = await Promise.all([
+    prisma.course.findUnique({
+      where: { slug: courseSlug },
+      include: {
+        sections: {
+          orderBy: { order: 'asc' },
+          include: {
+            modules: {
+              orderBy: { order: 'asc' },
+              include: { lessons: { select: { id: true } }, quiz: { select: { id: true } } },
+            },
           },
         },
       },
-    },
-  });
+    }),
+    activeCourseId !== undefined
+      ? Promise.resolve(activeCourseId)
+      : prisma.user
+          .findUniqueOrThrow({ where: { id: userId }, select: { activeCourseId: true } })
+          .then((u) => u.activeCourseId),
+  ]);
   if (!course) return null;
 
   // Прогрес по всьому курсу — двома запитами разом, а не по 3 на кожен модуль.
   const allModules = course.sections.flatMap((s) => s.modules);
-  const { completedModuleIds, completedLessonIds } = await getModuleCompletion(userId, allModules);
+  const { completedModuleIds, completedLessonIds, passedQuizIds } = await getModuleCompletion(userId, allModules);
 
   const sections: Section[] = [];
   let totalModules = 0;
@@ -58,6 +76,7 @@ export async function getCourseOverview(userId: string, courseSlug: string): Pro
         lessonCount: m.lessons.length,
         completedLessons,
         hasQuiz: !!m.quiz,
+        quizPassed: m.quiz ? passedQuizIds.has(m.quiz.id) : undefined,
       });
     }
 
@@ -85,6 +104,7 @@ export async function getCourseOverview(userId: string, courseSlug: string): Pro
     moduleCount: totalModules,
     lessonCount: totalLessons,
     completedModules: totalCompletedModules,
+    isActive: course.id === active,
   };
 }
 
@@ -101,10 +121,7 @@ export async function getCoursesForUser(userId: string): Promise<Course[]> {
   ]);
 
   const courses = await Promise.all(
-    list.map(async (c) => {
-      const overview = await getCourseOverview(userId, c.slug);
-      return { ...overview!, isActive: c.id === user.activeCourseId };
-    }),
+    list.map(async (c) => (await getCourseOverview(userId, c.slug, user.activeCourseId))!),
   );
 
   return courses;

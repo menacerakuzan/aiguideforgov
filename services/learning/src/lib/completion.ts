@@ -21,6 +21,10 @@ export interface ModuleCompletion {
   completedModuleIds: Set<string>;
   /** id уроків із відміченим прогресом — для підрахунку «X з N» без зайвих запитів. */
   completedLessonIds: Set<string>;
+  /** id тестів, останню спробу яких зараховано. Потрібен сторінкам, щоб не
+      питати про кожен тест окремо: без нього модуль з тестом ніколи не
+      показувався пройденим у списках курсу. */
+  passedQuizIds: Set<string>;
 }
 
 /**
@@ -61,7 +65,10 @@ export async function getModuleCompletion(
     completedModuleIds.add(m.id);
   }
 
-  return { completedModuleIds, completedLessonIds };
+  const passedQuizIds = new Set<string>();
+  for (const [quizId, passed] of latestPassed) if (passed) passedQuizIds.add(quizId);
+
+  return { completedModuleIds, completedLessonIds, passedQuizIds };
 }
 
 /** Те саме, але коли на руках лише id модулів — додає один запит на їх вибірку. */

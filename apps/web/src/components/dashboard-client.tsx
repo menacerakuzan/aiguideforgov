@@ -17,7 +17,7 @@ import {
   ProgressBar,
   Reveal,
 } from '@proai/ui';
-import type { Module, MyProgressResponse } from '@proai/types';
+import { isModuleUnfinished, type Module, type MyProgressResponse } from '@proai/types';
 import { OnboardingTour } from '@/components/onboarding-tour';
 
 interface Achievement {
@@ -40,9 +40,9 @@ const ACHIEVEMENTS: Achievement[] = [
   {
     id: 'streak',
     label: 'Тиждень поспіль',
-    description: 'Заходьте й проходьте уроки 7 днів поспіль.',
+    description: 'Проходьте уроки 7 днів поспіль. Отриманий бейдж лишається, навіть якщо серія згорить.',
     icon: <Flame size={20} />,
-    earned: ({ progress }) => (progress?.streak ?? 0) >= 7,
+    earned: ({ progress }) => (progress?.streak.longest ?? 0) >= 7,
   },
   {
     id: 'first-module',
@@ -75,7 +75,10 @@ export function DashboardClient({
   noActiveCourse: boolean;
 }) {
   const allModules: Module[] = (progress?.course.sections ?? []).flatMap((s) => s.modules ?? []);
-  const current = allModules.find((m) => (m.completedLessons ?? 0) < (m.lessonCount ?? 0));
+  const current = allModules.find(isModuleUnfinished);
+  // Уроки прочитані, лишився тест — тоді «наступний крок» веде на тест, а не
+  // на неіснуючий наступний урок.
+  const onlyQuizLeft = !!current && (current.completedLessons ?? 0) === (current.lessonCount ?? 0);
 
   const todayTasks = (currentModule?.lessons ?? []).filter((l) => !l.completed).slice(0, 3);
 
@@ -106,7 +109,12 @@ export function DashboardClient({
           {new Date().toLocaleDateString('uk-UA', { weekday: 'long', day: 'numeric', month: 'long' })}
         </p>
         <h1 className="mt-2 font-display text-3xl font-bold sm:text-4xl">
-          Привіт! {progress ? `${progress.streak} ${daysWord(progress.streak)} поспіль` : ''}
+          Привіт!{' '}
+          {progress
+            ? progress.streak.current > 0
+              ? `${progress.streak.current} ${daysWord(progress.streak.current)} поспіль`
+              : 'Час почати нову серію'
+            : ''}
         </h1>
       </header>
 
@@ -121,7 +129,9 @@ export function DashboardClient({
               </h2>
               {current && (
                 <p className="mt-1 text-sm text-ink-soft">
-                  урок {(current.completedLessons ?? 0) + 1} з {current.lessonCount}
+                  {onlyQuizLeft
+                    ? `усі ${current.lessonCount} уроків пройдено — лишився тест модуля`
+                    : `урок ${(current.completedLessons ?? 0) + 1} з ${current.lessonCount}`}
                 </p>
               )}
             </div>
@@ -138,23 +148,14 @@ export function DashboardClient({
           )}
           {current && (
             <Button asChild variant="blue" className="self-start">
-              <Link href={`/module/${current.slug}`}>
-                Продовжити <Spark size={17} />
+              <Link href={onlyQuizLeft ? `/quiz/${current.slug}` : `/module/${current.slug}`}>
+                {onlyQuizLeft ? 'Скласти тест' : 'Продовжити'} <Spark size={17} />
               </Link>
             </Button>
           )}
         </ClayCard>
 
-        <ClayCard variant="sun" className="flex flex-col items-center justify-center gap-2 text-center">
-          <Orb color="sun" size="lg">
-            <Flame size={29} />
-          </Orb>
-          <p className="font-display text-4xl font-bold">
-            <CountUp value={progress?.streak ?? 0} />
-          </p>
-          <p className="text-sm font-semibold">днів поспіль</p>
-          <p className="text-[13px] opacity-80">Пропустите день — серія призупиниться, а не згорить</p>
-        </ClayCard>
+        <StreakCard streak={progress?.streak ?? null} />
       </div>
 
       {/* Шлях до сертифіката — модулі активного курсу, кожен клікабельний */}
@@ -169,9 +170,9 @@ export function DashboardClient({
               з {progress?.moduleCount ?? allModules.length} модулів
             </span>
           </div>
-          <div className="mb-4 flex items-center gap-2 overflow-x-auto pb-1">
+          <div className="-mx-2 mb-4 flex items-center gap-2 overflow-x-auto px-2 py-3">
             {allModules.map((m, i) => {
-              const done = (m.completedLessons ?? 0) === (m.lessonCount ?? 0) && (m.hasQuiz ? (m.quizPassed ?? false) : true);
+              const done = !isModuleUnfinished(m);
               const isCurrent = m.slug === current?.slug;
               return (
                 <div key={m.id} className="flex items-center gap-2">
@@ -251,6 +252,47 @@ export function DashboardClient({
         </ClayCard>
       </div>
     </div>
+  );
+}
+
+/**
+ * Картка серії.
+ *
+ * Формулювання свідомо жорстке: серія справді згоряє за пропущений день
+ * (див. services/learning/src/streak.ts). Раніше тут було написано, що вона
+ * «призупиниться, а не згорить» — і серія не значила нічого, бо ніколи не
+ * втрачалась. Рекорд при цьому лишається назавжди: втрачати ще й його було б
+ * покаранням за один пропущений день.
+ */
+function StreakCard({ streak }: { streak: MyProgressResponse['streak'] | null }) {
+  const current = streak?.current ?? 0;
+  const longest = streak?.longest ?? 0;
+
+  const hint = !streak || (current === 0 && longest === 0)
+    ? 'Пройдіть будь-який урок — і серія почнеться сьогодні.'
+    : current === 0
+      ? 'Серія згоріла через пропущений день. Один урок — і починається нова.'
+      : streak.atRisk
+        ? 'Сьогодні ще нічого не пройдено. Без уроку до кінця дня серія згорить.'
+        : 'Сьогодні зараховано. Пропустите день — серія згорить і почнеться з нуля.';
+
+  return (
+    <ClayCard variant="sun" className="flex flex-col items-center justify-center gap-2 text-center">
+      <Orb color="sun" size="lg">
+        <Flame size={29} />
+      </Orb>
+      <p className="font-display text-4xl font-bold">
+        <CountUp value={current} />
+      </p>
+      <p className="text-sm font-semibold">{daysWord(current)} поспіль</p>
+      <p className="text-[13px] opacity-80">{hint}</p>
+      <p className="mt-1 text-[13px] font-semibold opacity-90">
+        Рекорд: {longest} {daysWord(longest)} · днів навчання: {streak?.activeDays ?? 0}
+      </p>
+      <Link href="/progress" className="mt-1 text-[13px] font-bold underline underline-offset-4">
+        Уся статистика
+      </Link>
+    </ClayCard>
   );
 }
 

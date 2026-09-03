@@ -1,16 +1,23 @@
 import Link from 'next/link';
 import { prisma } from '@proai/db';
+import { getStreak } from '@proai/learning';
 import { ROLE_LABELS } from '@proai/types';
-import { Award, Book, Flame, Mail } from '@proai/icons';
+import { Award, Book, Chart, Flame, Mail } from '@proai/icons';
 import { Avatar, Button, ClayCard, Orb } from '@proai/ui';
 import { requirePageUser } from '@/lib/page-guard';
 
 export default async function ProfilePage() {
   const me = await requirePageUser();
-  const user = await prisma.user.findUniqueOrThrow({
-    where: { id: me.id },
-    include: { organization: true, certificates: { where: { revoked: false } } },
-  });
+
+  // Серію беремо з розрахунку, а не з кешу User.streak: кеш оновлюється лише
+  // в момент активності, тож у профілі показував би давно згорілу серію.
+  const [user, streak] = await Promise.all([
+    prisma.user.findUniqueOrThrow({
+      where: { id: me.id },
+      include: { organization: true, certificates: { where: { revoked: false } } },
+    }),
+    getStreak(me.id),
+  ]);
 
   return (
     <div className="pt-8">
@@ -23,9 +30,16 @@ export default async function ProfilePage() {
           <Avatar name={user.name} size="lg" className="h-20 w-20 text-2xl" />
           <h2 className="font-display text-xl font-bold">{user.name}</h2>
           <p className="text-sm text-ink-soft">{ROLE_LABELS[user.role]}</p>
-          <Button variant="ghost" size="sm" asChild className="mt-2">
-            <Link href="/settings">Редагувати профіль</Link>
-          </Button>
+          <div className="mt-2 flex flex-wrap justify-center gap-2">
+            <Button variant="blue" size="sm" asChild>
+              <Link href="/progress">
+                <Chart size={15} /> Мій прогрес
+              </Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/settings">Редагувати профіль</Link>
+            </Button>
+          </div>
         </ClayCard>
 
         <div className="flex flex-col gap-5">
@@ -72,8 +86,9 @@ export default async function ProfilePage() {
                 <Flame size={22} />
               </Orb>
               <div>
-                <p className="font-display text-2xl font-bold">{user.streak}</p>
+                <p className="font-display text-2xl font-bold">{streak.current}</p>
                 <p className="text-xs font-semibold">днів поспіль</p>
+                <p className="text-[11px] opacity-80">рекорд — {streak.longest}</p>
               </div>
             </ClayCard>
             <ClayCard variant="gold" className="flex items-center gap-3">

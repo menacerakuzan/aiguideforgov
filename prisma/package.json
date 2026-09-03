@@ -11,16 +11,18 @@
   "scripts": {
     "postinstall": "prisma generate",
     "generate": "dotenv -e ../.env -- prisma generate",
-    "migrate": "dotenv -e ../.env -- prisma migrate dev --name init",
+    "migrate": "dotenv -e ../.env -- prisma migrate dev",
     "migrate:deploy": "dotenv -e ../.env -- prisma migrate deploy",
     "reset": "dotenv -e ../.env -- prisma migrate reset --force",
     "seed": "dotenv -e ../.env -- tsx src/seed.ts",
     "sync-content": "dotenv -e ../.env -- tsx src/sync-content.ts",
+    "sync-quiz": "dotenv -e ../.env -- tsx src/sync-quiz.ts",
     "sync-library": "dotenv -e ../.env -- tsx src/sync-library.ts",
     "create-admin": "dotenv -e ../.env -- tsx src/create-admin.ts",
     "split-course": "dotenv -e ../.env -- tsx src/split-course.ts",
     "export-lessons": "dotenv -e ../.env -- tsx src/export-lessons.ts",
     "audit-lessons": "tsx src/audit-lessons.ts",
+    "audit-quiz": "tsx src/audit-quiz.ts",
     "typecheck": "tsc --noEmit"
   },
   "prisma": {

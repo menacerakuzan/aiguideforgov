@@ -232,6 +232,17 @@ export const ModuleSchema = z.object({
 });
 export type Module = z.infer<typeof ModuleSchema>;
 
+/**
+ * Модуль незавершений, доки лишились уроки АБО не складено його тест.
+ * Правило одне на весь застосунок: дашборд, сторінка курсу й статистика
+ * мають рахувати «пройдено» однаково, інакше лічильник і кружечки на шляху
+ * до сертифіката показують різне.
+ */
+export function isModuleUnfinished(module: Module): boolean {
+  if ((module.completedLessons ?? 0) < (module.lessonCount ?? 0)) return true;
+  return module.hasQuiz ? !(module.quizPassed ?? false) : false;
+}
+
 export const SectionSchema = z.object({
   id: z.string(),
   slug: z.string(),

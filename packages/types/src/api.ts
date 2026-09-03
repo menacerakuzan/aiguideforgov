@@ -216,6 +216,107 @@ export const UpsertFinalExamInputSchema = z.object({
 });
 export type UpsertFinalExamInput = z.infer<typeof UpsertFinalExamInputSchema>;
 
+/* --- /api/progress/stats — повна картина прогресу слухача ------------------------- */
+
+/** Один день з активністю в календарі навчання. */
+export const ActivityDaySchema = z.object({
+  /** 'РРРР-ММ-ДД' за київським часом. */
+  date: z.string(),
+  lessons: z.number().int().nonnegative(),
+  quizzes: z.number().int().nonnegative(),
+  total: z.number().int().nonnegative(),
+});
+export type ActivityDayDto = z.infer<typeof ActivityDaySchema>;
+
+/**
+ * Серія днів навчання. `current` рахується з історії при кожному читанні —
+ * пропущений день гасить серію (див. services/learning/src/streak.ts).
+ */
+export const StreakStateSchema = z.object({
+  current: z.number().int().nonnegative(),
+  longest: z.number().int().nonnegative(),
+  activeDays: z.number().int().nonnegative(),
+  lastActiveDate: z.string().nullable(),
+  activeToday: z.boolean(),
+  /** Останній день активності — вчора: сьогодні без уроку серія згорить. */
+  atRisk: z.boolean(),
+});
+export type StreakState = z.infer<typeof StreakStateSchema>;
+
+export const ModuleProgressStatusSchema = z.enum(['DONE', 'IN_PROGRESS', 'NOT_STARTED']);
+export type ModuleProgressStatus = z.infer<typeof ModuleProgressStatusSchema>;
+
+export const ModuleProgressRowSchema = z.object({
+  slug: z.string(),
+  title: z.string(),
+  order: z.number().int(),
+  isKey: z.boolean(),
+  sectionTitle: z.string(),
+  sectionSlug: z.string(),
+  lessonCount: z.number().int(),
+  completedLessons: z.number().int(),
+  minutes: z.number().int(),
+  hasQuiz: z.boolean(),
+  /** null — у модуля немає тесту. */
+  quizPassed: z.boolean().nullable(),
+  passScore: z.number().int(),
+  /** Найкращий бал за всі спроби; null — тест ще не проходили. */
+  bestScore: z.number().int().nullable(),
+  attempts: z.number().int(),
+  status: ModuleProgressStatusSchema,
+});
+export type ModuleProgressRow = z.infer<typeof ModuleProgressRowSchema>;
+
+export const PointsEntrySchema = z.object({
+  label: z.string(),
+  count: z.number().int(),
+  /** Людською мовою: скільки дає одна така дія. */
+  each: z.string(),
+  points: z.number().int(),
+});
+export type PointsEntry = z.infer<typeof PointsEntrySchema>;
+
+export const SectionProgressRowSchema = z.object({
+  slug: z.string(),
+  title: z.string(),
+  color: SectionColorSchema,
+  order: z.number().int(),
+  moduleCount: z.number().int(),
+  completedModules: z.number().int(),
+  lessonCount: z.number().int(),
+  completedLessons: z.number().int(),
+});
+export type SectionProgressRow = z.infer<typeof SectionProgressRowSchema>;
+
+export const LearnerStatsSchema = z.object({
+  course: z.object({ slug: z.string(), title: z.string() }).nullable(),
+  lessons: z.object({ completed: z.number().int(), total: z.number().int() }),
+  modules: z.object({ completed: z.number().int(), total: z.number().int() }),
+  sections: z.array(SectionProgressRowSchema),
+  moduleRows: z.array(ModuleProgressRowSchema),
+  /** Хвилини пройдених уроків — сума minutes саме завершених уроків. */
+  minutes: z.number().int(),
+  streak: StreakStateSchema,
+  activity: z.array(ActivityDaySchema),
+  points: z.array(PointsEntrySchema),
+  totalPoints: z.number().int(),
+  quizzes: z.object({
+    taken: z.number().int(),
+    passed: z.number().int(),
+    total: z.number().int(),
+    averageBest: z.number().int().nullable(),
+  }),
+  exam: z.object({
+    attempts: z.number().int(),
+    bestScore: z.number().int().nullable(),
+    passed: z.boolean(),
+  }),
+  certificates: z.number().int(),
+  startedAt: z.string().nullable(),
+  lastActivityAt: z.string().nullable(),
+});
+export type LearnerStats = z.infer<typeof LearnerStatsSchema>;
+
 /* --- /api/progress ----------------------------------------------------------- */
 export const CompleteLessonInputSchema = z.object({ lessonId: z.string() });
 export type CompleteLessonInput = z.infer<typeof CompleteLessonInputSchema>;
@@ -271,7 +372,8 @@ export type SubmitFinalExamResponse = z.infer<typeof SubmitFinalExamResponseSche
 
 export const MyProgressResponseSchema = z.object({
   course: CourseSchema,
-  streak: z.number().int(),
+  /** Повний стан серії: поточна, рекорд, чи була активність сьогодні. */
+  streak: StreakStateSchema,
   totalMinutes: z.number().int(),
   completedModules: z.number().int(),
   moduleCount: z.number().int(),
