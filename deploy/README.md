@@ -190,9 +190,19 @@ corepack pnpm install --frozen-lockfile
 sqlite3 prisma/dev.db ".backup '$HOME/proai-$(date +%F-%H%M).db'"
 
 corepack pnpm --filter @proai/db migrate:deploy
+corepack pnpm db:generate      # див. врізку нижче
 corepack pnpm build
 sudo systemctl restart proai
 ```
+
+> **Чому `db:generate` окремим кроком.** `prisma migrate deploy` навмисно не
+> запускає генератори — на відміну від `migrate dev`, який робить це сам. Якщо
+> схема змінилась, а Prisma Client лишився старим, збірка падає на перевірці
+> типів: «Property '…' does not exist on type 'PrismaClient'». Раніше клієнт
+> перегенеровувався побічно, у `postinstall` під час `pnpm install`, — тобто
+> працювало лише тому, що install був у процедурі. Тепер `pnpm build` тягне
+> генерацію сам (`@proai/db#generate` у `turbo.json`), і цей рядок лишається
+> тут як страховка для випадку, коли збірку запускають в обхід turbo.
 
 > Бекап тут не формальність. У Prisma **немає зворотних міграцій**, а на SQLite
 > зміна таблиці — це фізично `DROP TABLE` зі створенням нової й перенесенням
