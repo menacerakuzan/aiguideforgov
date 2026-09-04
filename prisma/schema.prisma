@@ -65,6 +65,11 @@ model User {
   lessonComments  LessonComment[]
   commentReactions CommentReaction[]
 
+  /// Заявки на відновлення пароля, які цей адміністратор опрацював.
+  handledPasswordResets PasswordResetRequest[] @relation("PasswordResetHandledBy")
+  /// Заявки на відновлення пароля до цього акаунта.
+  passwordResetRequests PasswordResetRequest[] @relation("PasswordResetAccount")
+
   @@index([organizationId])
 }
 
@@ -113,6 +118,43 @@ model Verification {
   updatedAt  DateTime? @updatedAt
 
   @@index([identifier])
+}
+
+enum PasswordResetStatus {
+  /// У черзі — адміністратор ще не брався.
+  PENDING
+  /// Пароль скинуто, новий передано людині.
+  DONE
+  /// Закрито без скидання: акаунта немає, дубль, або звернення не підтвердилось.
+  DISMISSED
+}
+
+/// Заявка на відновлення пароля.
+///
+/// Автоматичного скидання за посиланням із листа в платформі немає — немає
+/// поштового провайдера (`infra.mailer` лише пише в консоль). Тому людина
+/// лишає заявку, а адміністратор скидає пароль руками й надсилає новий на
+/// пошту. Механізм Better Auth за токеном лишається на місці й запрацює, щойно
+/// зʼявиться справжній mailer.
+model PasswordResetRequest {
+  id        String              @id @default(cuid())
+  /// Пошта, яку ввела людина, у нижньому регістрі.
+  email     String
+  status    PasswordResetStatus @default(PENDING)
+  createdAt DateTime            @default(now())
+
+  /// Знайдений на момент подання акаунт. Порожньо — такого користувача немає:
+  /// форма навмисно не каже про це людині (інакше нею перебирали б, хто
+  /// зареєстрований), але адміністратор має це бачити.
+  userId String?
+  user   User?   @relation("PasswordResetAccount", fields: [userId], references: [id], onDelete: SetNull)
+
+  handledAt   DateTime?
+  handledById String?
+  handledBy   User?     @relation("PasswordResetHandledBy", fields: [handledById], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
+  @@index([email])
 }
 
 // ----------------------------------------------------------------------------

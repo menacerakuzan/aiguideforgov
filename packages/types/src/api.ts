@@ -216,6 +216,47 @@ export const UpsertFinalExamInputSchema = z.object({
 });
 export type UpsertFinalExamInput = z.infer<typeof UpsertFinalExamInputSchema>;
 
+/* --- Відновлення пароля через адміністратора --------------------------------------- */
+
+export const PasswordResetStatusSchema = z.enum(['PENDING', 'DONE', 'DISMISSED']);
+export type PasswordResetStatus = z.infer<typeof PasswordResetStatusSchema>;
+
+export const PASSWORD_RESET_STATUS_LABELS: Record<PasswordResetStatus, string> = {
+  PENDING: 'У черзі',
+  DONE: 'Пароль скинуто',
+  DISMISSED: 'Закрито',
+};
+
+/** Заявка від людини, яка не памʼятає пароль. Публічна форма — лише пошта. */
+export const RequestPasswordResetInputSchema = z.object({ email: EmailSchema });
+export type RequestPasswordResetInput = z.infer<typeof RequestPasswordResetInputSchema>;
+
+/** Рядок черги в адмінці. Пароля тут немає й бути не може — лише хеш у базі. */
+export const PasswordResetRequestRowSchema = z.object({
+  id: z.string(),
+  email: z.string(),
+  status: PasswordResetStatusSchema,
+  createdAt: z.string(),
+  /** Імʼя знайденого акаунта; null — такого користувача немає. */
+  accountName: z.string().nullable(),
+  accountExists: z.boolean(),
+  handledAt: z.string().nullable(),
+  handledByName: z.string().nullable(),
+});
+export type PasswordResetRequestRow = z.infer<typeof PasswordResetRequestRowSchema>;
+
+export const HandlePasswordResetInputSchema = z.object({
+  requestId: z.string(),
+  action: z.enum(['RESET', 'DISMISS']),
+});
+export type HandlePasswordResetInput = z.infer<typeof HandlePasswordResetInputSchema>;
+
+export const HandlePasswordResetResponseSchema = z.object({
+  /** Новий пароль — віддається РІВНО ОДИН РАЗ, у базі лишається тільки хеш. */
+  password: z.string().nullable(),
+});
+export type HandlePasswordResetResponse = z.infer<typeof HandlePasswordResetResponseSchema>;
+
 /* --- /api/progress/stats — повна картина прогресу слухача ------------------------- */
 
 /** Один день з активністю в календарі навчання. */

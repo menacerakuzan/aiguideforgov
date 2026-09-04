@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { ZodError } from 'zod';
-import { ForbiddenError, UnauthorizedError } from '@proai/auth';
+import { ForbiddenError, RequestNotActionableError, UnauthorizedError } from '@proai/auth';
 import { NotEligibleError } from '@proai/learning';
 
 /**
@@ -18,6 +18,10 @@ export function withApiErrors(handler: () => Promise<Response>): Promise<Respons
     }
     if (error instanceof NotEligibleError) {
       return NextResponse.json({ error: error.message }, { status: 403 });
+    }
+    // Заявку вже опрацював інший адміністратор — це конфлікт стану, а не збій.
+    if (error instanceof RequestNotActionableError) {
+      return NextResponse.json({ error: error.message }, { status: 409 });
     }
     if (error instanceof ZodError) {
       return NextResponse.json({ error: 'Перевірте введені дані', details: error.flatten() }, { status: 400 });

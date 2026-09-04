@@ -1,8 +1,10 @@
 import Link from 'next/link';
 import { prisma } from '@proai/db';
+import { listPasswordResetRequests } from '@proai/auth';
 import { getPlatformStats } from '@proai/analytics';
 import { Award, Chart, Check, Doc, Spark, TlSafe, Users } from '@proai/icons';
 import { Button, ClayCard, Orb } from '@proai/ui';
+import { PasswordResetQueue } from '@/components/admin/password-reset-queue';
 import { UsersTable } from '@/components/admin/users-table';
 import { requirePageAdmin, requirePageUser } from '@/lib/page-guard';
 
@@ -10,7 +12,7 @@ export default async function AdminOverviewPage() {
   const me = await requirePageUser();
   requirePageAdmin(me);
 
-  const [stats, users, totalModules, organizations] = await Promise.all([
+  const [stats, users, totalModules, organizations, passwordRequests] = await Promise.all([
     getPlatformStats(),
     prisma.user.findMany({
       include: { organization: true, certificates: { where: { revoked: false }, take: 1 } },
@@ -18,6 +20,7 @@ export default async function AdminOverviewPage() {
     }),
     prisma.module.count(),
     prisma.organization.findMany({ select: { id: true, name: true }, orderBy: { name: 'asc' } }),
+    listPasswordResetRequests(),
   ]);
 
   const completedModuleCounts = await Promise.all(
@@ -91,6 +94,10 @@ export default async function AdminOverviewPage() {
           <p className="text-sm font-semibold text-ink-soft">Середній бал тестів</p>
         </ClayCard>
       </div>
+
+      <ClayCard padding="sm" className="mb-6">
+        <PasswordResetQueue requests={passwordRequests} />
+      </ClayCard>
 
       <ClayCard padding="sm">
         <h2 className="mb-4 px-2 text-lg font-bold">Користувачі</h2>
