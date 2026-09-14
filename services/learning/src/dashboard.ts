@@ -24,18 +24,22 @@ export interface DashboardData {
 /**
  * Курс, який показуємо слухачеві.
  *
- * Явно обраний → він. Інакше, якщо на платформі рівно один курс, беремо його:
- * це єдиний можливий вибір, а не припущення. Якщо курсів кілька й жоден не
- * обрано — повертаємо null, і сторінка пропонує обрати.
+ * Явно обраний → він. Інакше, якщо на платформі рівно один ВІДКРИТИЙ курс,
+ * беремо його: це єдиний можливий вибір, а не припущення. Якщо доступних
+ * кілька й жоден не обрано — повертаємо null, і сторінка пропонує обрати.
+ *
+ * Закриті курси (`comingSoon`) тут не рахуються взагалі: інакше поява
+ * курсу-анонсу мовчки зламала б дашборд усім, хто ще не натискав «Розпочати».
+ * Якщо курс закрили вже після вибору — обраним він теж більше не вважається.
  */
 export async function resolveActiveCourseSlug(userId: string): Promise<string | null> {
   const user = await prisma.user.findUniqueOrThrow({
     where: { id: userId },
-    select: { activeCourse: { select: { slug: true } } },
+    select: { activeCourse: { select: { slug: true, comingSoon: true } } },
   });
-  if (user.activeCourse?.slug) return user.activeCourse.slug;
+  if (user.activeCourse && !user.activeCourse.comingSoon) return user.activeCourse.slug;
 
-  const courses = await prisma.course.findMany({ select: { slug: true }, take: 2 });
+  const courses = await prisma.course.findMany({ where: { comingSoon: false }, select: { slug: true }, take: 2 });
   return courses.length === 1 ? courses[0]!.slug : null;
 }
 

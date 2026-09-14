@@ -7,6 +7,9 @@ import { getStreak } from './streak';
 export async function getMyProgress(userId: string, courseSlug: string): Promise<MyProgressResponse | null> {
   const [streak, course] = await Promise.all([getStreak(userId), getCourseOverview(userId, courseSlug)]);
   if (!course) return null;
+  // Закритий курс не має прогресу для слухача — інакше ?course=<закритий> на
+  // /api/progress віддав би структуру курсу, у який сторінки не пускають.
+  if (course.comingSoon) return null;
 
   // getCourseOverview уже порахував проходження кожного модуля — повторний
   // hasCompletedAllModules() означав би ще один повний обхід курсу по базі.

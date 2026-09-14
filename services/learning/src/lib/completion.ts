@@ -107,3 +107,86 @@ export async function hasCompletedAllModules(userId: string, courseId: string): 
   const completed = await getCompletedModuleIds(userId, ids);
   return completed.size === ids.length;
 }
+
+/* ============================================================================
+   Послідовність проходження модулів
+   ========================================================================= */
+
+/** Мінімум даних про модуль, потрібний для розрахунку замків. */
+export interface ModuleLockInput extends ModuleCompletionInput {
+  slug: string;
+  title: string;
+}
+
+export interface ModuleLock {
+  locked: boolean;
+  /** Модуль, який треба завершити раніше. Порожньо, коли модуль відкритий. */
+  lockedBy: { slug: string; title: string } | null;
+}
+
+/**
+ * Замки модулів за правилом «модуль N+1 відкривається, коли N завершено».
+ *
+ * Модулі мають прийти вже в порядку проходження (розділ → order модуля).
+ *
+ * Два винятки, без яких правило зробило б більше шкоди, ніж користі:
+ *
+ * 1. **Пройдене не закривається ніколи.** Завершений модуль лишається
+ *    відкритим для повторного читання — на цьому тримається цінність
+ *    бібліотеки-трофеїв: до матеріалу повертаються.
+ * 2. **Розпочате не закривається заднім числом.** Якщо в модулі вже є
+ *    відмічений урок, замок на нього не вішаємо. Інакше слухачі, які зараз
+ *    посеред курсу, назавтра побачили б закритим те, що проходили вчора.
+ *
+ * Уроки ВСЕРЕДИНІ модуля навмисно не замикаються: вони — сусіди по одній темі,
+ * порядок між ними коштує небагато, а жорсткий замок перетворює людину, яка
+ * застрягла на одному уроці, на людину, яка пішла. Там працює лише підказка в
+ * інтерфейсі («наступний» підсвічено, дальші приглушені).
+ */
+export function computeModuleLocks(
+  orderedModules: ModuleLockInput[],
+  completion: ModuleCompletion,
+): Map<string, ModuleLock> {
+  const { completedModuleIds, completedLessonIds } = completion;
+  const locks = new Map<string, ModuleLock>();
+
+  /** Перший незавершений модуль із тих, що йдуть раніше за поточний. */
+  let blocker: { slug: string; title: string } | null = null;
+
+  for (const m of orderedModules) {
+    const completed = completedModuleIds.has(m.id);
+    const started = m.lessons.some((l) => completedLessonIds.has(l.id));
+
+    locks.set(m.id, {
+      locked: blocker !== null && !completed && !started,
+      lockedBy: blocker !== null && !completed && !started ? blocker : null,
+    });
+
+    // Перший незавершений модуль закриває все, що йде після нього.
+    if (!completed && blocker === null) blocker = { slug: m.slug, title: m.title };
+  }
+
+  return locks;
+}
+
+/**
+ * Замок одного модуля — коли на руках лише він сам (сторінка модуля, урок,
+ * відмітка про проходження). Тягне всі модулі того самого курсу, бо відповідь
+ * залежить від усього, що йде раніше.
+ */
+export async function getModuleLock(userId: string, moduleId: string): Promise<ModuleLock> {
+  const target = await prisma.module.findUnique({
+    where: { id: moduleId },
+    select: { section: { select: { courseId: true } } },
+  });
+  if (!target) return { locked: false, lockedBy: null };
+
+  const modules = await prisma.module.findMany({
+    where: { section: { courseId: target.section.courseId } },
+    orderBy: [{ section: { order: 'asc' } }, { order: 'asc' }],
+    select: { id: true, slug: true, title: true, lessons: { select: { id: true } }, quiz: { select: { id: true } } },
+  });
+
+  const completion = await getModuleCompletion(userId, modules);
+  return computeModuleLocks(modules, completion).get(moduleId) ?? { locked: false, lockedBy: null };
+}

@@ -4,7 +4,7 @@ import { use } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Award, Check, Clock, Shield } from '@proai/icons';
+import { ArrowLeft, Award, Check, Clock, Lock, Shield } from '@proai/icons';
 import { Button, ClayCard, Lift, Orb, ProgressBar, toast } from '@proai/ui';
 import { isModuleUnfinished, type Course } from '@proai/types';
 import { api } from '@/lib/api-client';
@@ -37,11 +37,34 @@ export default function CourseDetailPage({ params }: { params: Promise<{ slug: s
   const sections = course.sections ?? [];
   const started = (course.completedModules ?? 0) > 0;
 
+  const backLink = (
+    <Link href="/courses" className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-ink-soft">
+      <ArrowLeft size={14} /> Усі курси
+    </Link>
+  );
+
+  // Курс ще не відкрито. На /courses його картка не веде сюди, але адресу
+  // можна набрати руками — тож замість програми показуємо саме анонс.
+  if (course.comingSoon) {
+    return (
+      <div className="pt-8 pb-16">
+        {backLink}
+        <ClayCard className="flex flex-col items-start gap-4">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-paper-2 px-3 py-1 text-xs font-bold text-ink-soft">
+            <Lock size={12} /> Скоро
+          </span>
+          <div>
+            <h1 className="font-display text-2xl font-bold sm:text-[28px]">{course.title}</h1>
+            <p className="mt-2.5 max-w-[62ch] text-[15px] text-ink-soft">{course.description}</p>
+          </div>
+        </ClayCard>
+      </div>
+    );
+  }
+
   return (
     <div className="pt-8 pb-16">
-      <Link href="/courses" className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-ink-soft">
-        <ArrowLeft size={14} /> Усі курси
-      </Link>
+      {backLink}
 
       <ClayCard className="mb-8 flex flex-wrap items-center justify-between gap-5">
         <div>
@@ -86,6 +109,36 @@ export default function CourseDetailPage({ params }: { params: Promise<{ slug: s
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {(section.modules ?? []).map((module_) => {
                 const done = !isModuleUnfinished(module_);
+
+                // Модуль закритий послідовністю: картку лишаємо на місці (видно
+                // дорогу вперед), але вона не веде всередину й прямо каже, чим
+                // саме відкривається.
+                if (module_.locked) {
+                  return (
+                    <ClayCard key={module_.id} className="flex h-full flex-col gap-3 opacity-70">
+                      <div className="flex items-center gap-2">
+                        <span className="rounded-full bg-paper-2 px-3 py-1 text-xs font-bold text-ink-soft">
+                          Модуль {module_.order}
+                        </span>
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-paper-2 px-3 py-1 text-xs font-bold text-ink-soft">
+                          <Lock size={12} /> Закрито
+                        </span>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <Orb size="sm" color="muted">
+                          <Lock size={16} />
+                        </Orb>
+                        <h3 className="font-display text-lg font-bold">{module_.title}</h3>
+                      </div>
+                      <p className="text-sm text-ink-soft">{module_.description}</p>
+                      <p className="mt-auto text-xs font-bold text-ink-mute">
+                        {module_.lockedBy
+                          ? `Відкриється після модуля «${module_.lockedBy.title}»`
+                          : 'Відкриється після попереднього модуля'}
+                      </p>
+                    </ClayCard>
+                  );
+                }
 
                 return (
                   <Lift key={module_.id}>

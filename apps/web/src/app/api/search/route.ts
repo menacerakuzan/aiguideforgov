@@ -32,7 +32,12 @@ export async function GET(request: NextRequest) {
 
     const [lessons, prompts, resources] = await Promise.all([
       prisma.lesson.findMany({
-        where: { OR: [{ title: { contains: q } }, { content: { contains: q } }] },
+        // Уроки закритих курсів у видачу не потрапляють: сторінка уроку на них
+        // однаково віддає 404, і результат пошуку вів би в нікуди.
+        where: {
+          module: { section: { course: { comingSoon: false } } },
+          OR: [{ title: { contains: q } }, { content: { contains: q } }],
+        },
         take: 8,
       }),
       prisma.prompt.findMany({

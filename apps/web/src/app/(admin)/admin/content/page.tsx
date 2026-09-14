@@ -34,7 +34,16 @@ export default async function AdminCoursesPage() {
           {courses.map((course) => (
             <Link key={course.id} href={`/admin/content/${course.id}`}>
               <ClayCard className="flex h-full flex-col gap-2">
-                <h2 className="font-display text-lg font-bold">{course.title}</h2>
+                <div className="flex items-center gap-2">
+                  <h2 className="font-display text-lg font-bold">{course.title}</h2>
+                  {/* Курс закрито для слухачів — адміністратор має бачити це у списку,
+                      бо редагувати його контент можна як завжди. */}
+                  {course.comingSoon && (
+                    <span className="rounded-full bg-paper-2 px-2.5 py-0.5 text-[11px] font-bold text-ink-soft">
+                      Закритий
+                    </span>
+                  )}
+                </div>
                 <p className="text-sm text-ink-soft">{course.description}</p>
                 <p className="mt-auto text-xs font-bold text-ink-mute">{course._count.sections} розділів</p>
               </ClayCard>

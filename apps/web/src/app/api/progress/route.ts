@@ -1,35 +1,23 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { prisma } from '@proai/db';
 import { requireCurrentUser } from '@proai/auth';
-import { getMyProgress } from '@proai/learning';
+import { getMyProgress, resolveActiveCourseSlug } from '@proai/learning';
 import { withApiErrors } from '@/lib/api-guard';
 
 /**
- * ?course=slug — необов'язковий явний вибір. Інакше береться курс, який
- * слухач обрав активним (User.activeCourseId). Якщо жодного не обрано і на
- * платформі рівно один курс — він береться автоматично (єдиний можливий
- * вибір, а не довільне припущення). Якщо курсів кілька і жоден не обрано —
- * повертаємо ознаку NO_ACTIVE_COURSE, щоб дашборд запропонував вибір.
+ * ?course=slug — необов'язковий явний вибір. Інакше курс визначає
+ * `resolveActiveCourseSlug`: обраний слухачем, а якщо не обрано і на платформі
+ * рівно один ВІДКРИТИЙ курс — він. Логіка спільна з дашбордом навмисно: доки
+ * вона була продубльована тут, закритий курс (`comingSoon`) не відсіювався, і
+ * цей маршрут міг віддати прогрес по курсу, у який сторінка не пускає.
+ * Якщо визначити курс не вдалося — ознака NO_ACTIVE_COURSE, і дашборд
+ * пропонує вибір.
  */
 export async function GET(request: NextRequest) {
   return withApiErrors(async () => {
     const me = await requireCurrentUser();
     const { searchParams } = new URL(request.url);
 
-    let courseSlug = searchParams.get('course');
-
-    if (!courseSlug) {
-      const user = await prisma.user.findUniqueOrThrow({
-        where: { id: me.id },
-        select: { activeCourse: { select: { slug: true } } },
-      });
-      courseSlug = user.activeCourse?.slug ?? null;
-    }
-
-    if (!courseSlug) {
-      const courses = await prisma.course.findMany({ select: { slug: true }, take: 2 });
-      if (courses.length === 1) courseSlug = courses[0]!.slug;
-    }
+    const courseSlug = searchParams.get('course') ?? (await resolveActiveCourseSlug(me.id));
 
     if (!courseSlug) {
       return NextResponse.json({ error: 'Курс не обрано', code: 'NO_ACTIVE_COURSE' }, { status: 404 });

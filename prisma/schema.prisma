@@ -181,6 +181,11 @@ model Course {
   title       String
   description String
 
+  /// Курс ще не відкритий для навчання: у списку його видно з позначкою
+  /// «скоро», але всередину нікого не пускаємо й активним обрати не можна.
+  /// Адміністратор наповнює його через CMS як звичайний курс.
+  comingSoon Boolean @default(false)
+
   sections  Section[]
   finalExam FinalExam?
   activeFor User[]

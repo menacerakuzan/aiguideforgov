@@ -12,7 +12,17 @@ export async function POST(request: NextRequest) {
     const me = await requireCurrentUser();
     const { courseId } = SelectCourseInputSchema.parse(await request.json());
 
-    const course = await prisma.course.findUniqueOrThrow({ where: { id: courseId }, select: { slug: true } });
+    const course = await prisma.course.findUniqueOrThrow({
+      where: { id: courseId },
+      select: { slug: true, comingSoon: true },
+    });
+
+    // Сторінка закритого курсу кнопки «Розпочати» не показує, але POST сюди
+    // можна надіслати й повз неї — і дашборд відкрив би курс без контенту.
+    if (course.comingSoon) {
+      return NextResponse.json({ error: 'Курс ще недоступний для навчання' }, { status: 403 });
+    }
+
     await prisma.user.update({ where: { id: me.id }, data: { activeCourseId: courseId } });
 
     return NextResponse.json({ courseSlug: course.slug });

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { getCoursesForUser } from '@proai/learning';
-import { Award, Book, Check, Clock, Shield } from '@proai/icons';
+import { Award, Book, Check, Clock, Lock, Shield } from '@proai/icons';
 import { ClayCard, EmptyState, Lift, Orb, ProgressBar } from '@proai/ui';
 import { requirePageUser } from '@/lib/page-guard';
 
@@ -30,6 +30,27 @@ export default async function CoursesPage() {
             const moduleCount = course.moduleCount ?? 0;
             const done = moduleCount > 0 && (course.completedModules ?? 0) === moduleCount;
             const started = (course.completedModules ?? 0) > 0;
+
+            // Курс ще не відкрито: картка лишається на місці (людина бачить, що
+            // буде далі), але це вже не посилання — усередині немає чого читати.
+            if (course.comingSoon) {
+              return (
+                <ClayCard key={course.id} className="flex h-full flex-col gap-3 opacity-70">
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-paper-2 px-3 py-1 text-xs font-bold text-ink-soft">
+                      <Lock size={12} /> Скоро
+                    </span>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <Orb size="sm" color="muted">
+                      <Lock size={16} />
+                    </Orb>
+                    <h3 className="font-display text-lg font-bold">{course.title}</h3>
+                  </div>
+                  <p className="text-sm text-ink-soft">{course.description}</p>
+                </ClayCard>
+              );
+            }
 
             return (
               <Lift key={course.id}>

@@ -15,6 +15,7 @@
     "db:migrate": "pnpm --filter @proai/db migrate",
     "db:seed": "pnpm --filter @proai/db seed",
     "db:sync-content": "pnpm --filter @proai/db sync-content",
+    "db:sync-courses": "pnpm --filter @proai/db sync-courses",
     "db:sync-quiz": "pnpm --filter @proai/db sync-quiz",
     "db:sync-library": "pnpm --filter @proai/db sync-library",
     "db:create-admin": "pnpm --filter @proai/db create-admin",

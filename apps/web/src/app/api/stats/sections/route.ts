@@ -10,6 +10,9 @@ import { withApiErrors } from '@/lib/api-guard';
 export async function GET() {
   return withApiErrors(async () => {
     const sections = await prisma.section.findMany({
+      // Лише розділи відкритих курсів: лендинг не має рекламувати те, чого на
+      // платформі ще не відкрито.
+      where: { course: { comingSoon: false } },
       orderBy: { order: 'asc' },
       take: 4,
       select: { id: true, title: true, description: true, color: true },

@@ -229,6 +229,10 @@ export const ModuleSchema = z.object({
   completedLessons: z.number().int().optional(),
   hasQuiz: z.boolean().optional(),
   quizPassed: z.boolean().optional(),
+  /** Модуль ще закритий: попередній модуль курсу не завершено повністю. */
+  locked: z.boolean().optional(),
+  /** Який саме модуль треба завершити раніше — для підказки й посилання на нього. */
+  lockedBy: z.object({ slug: z.string(), title: z.string() }).optional(),
 });
 export type Module = z.infer<typeof ModuleSchema>;
 
@@ -270,6 +274,8 @@ export const CourseSchema = z.object({
   learnerCount: z.number().int().optional(),
   /** Чи це курс, який слухач обрав активним (визначає вміст дашборда) */
   isActive: z.boolean().optional(),
+  /** Курс ще не відкрито: показуємо картку з позначкою «скоро», але не пускаємо всередину. */
+  comingSoon: z.boolean().optional(),
 });
 export type Course = z.infer<typeof CourseSchema>;
 

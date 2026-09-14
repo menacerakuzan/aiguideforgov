@@ -16,6 +16,7 @@
     "reset": "dotenv -e ../.env -- prisma migrate reset --force",
     "seed": "dotenv -e ../.env -- tsx src/seed.ts",
     "sync-content": "dotenv -e ../.env -- tsx src/sync-content.ts",
+    "sync-courses": "dotenv -e ../.env -- tsx src/sync-courses.ts",
     "sync-quiz": "dotenv -e ../.env -- tsx src/sync-quiz.ts",
     "sync-library": "dotenv -e ../.env -- tsx src/sync-library.ts",
     "create-admin": "dotenv -e ../.env -- tsx src/create-admin.ts",

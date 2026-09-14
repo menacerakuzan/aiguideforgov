@@ -1,6 +1,6 @@
 import { prisma } from '@proai/db';
 import type { Course, Lesson, LessonBlock, LessonSummary, Module, Section } from '@proai/types';
-import { getModuleCompletion, isModuleCompleted } from './lib/completion';
+import { computeModuleLocks, getModuleCompletion, getModuleLock, isModuleCompleted } from './lib/completion';
 
 /**
  * Курс з повною ієрархією розділів і модулів (без списку уроків — лише лічильники).
@@ -39,8 +39,12 @@ export async function getCourseOverview(
   if (!course) return null;
 
   // Прогрес по всьому курсу — двома запитами разом, а не по 3 на кожен модуль.
+  // `allModules` уже в порядку проходження (розділи й модулі вибрані з order asc),
+  // тому той самий список годиться і для розрахунку замків послідовності.
   const allModules = course.sections.flatMap((s) => s.modules);
-  const { completedModuleIds, completedLessonIds, passedQuizIds } = await getModuleCompletion(userId, allModules);
+  const completion = await getModuleCompletion(userId, allModules);
+  const { completedModuleIds, completedLessonIds, passedQuizIds } = completion;
+  const locks = computeModuleLocks(allModules, completion);
 
   const sections: Section[] = [];
   let totalModules = 0;
@@ -77,6 +81,8 @@ export async function getCourseOverview(
         completedLessons,
         hasQuiz: !!m.quiz,
         quizPassed: m.quiz ? passedQuizIds.has(m.quiz.id) : undefined,
+        locked: locks.get(m.id)?.locked ?? false,
+        lockedBy: locks.get(m.id)?.lockedBy ?? undefined,
       });
     }
 
@@ -105,6 +111,7 @@ export async function getCourseOverview(
     lessonCount: totalLessons,
     completedModules: totalCompletedModules,
     isActive: course.id === active,
+    comingSoon: course.comingSoon,
   };
 }
 
@@ -116,7 +123,11 @@ export async function getCourseOverview(
  */
 export async function getCoursesForUser(userId: string): Promise<Course[]> {
   const [list, user] = await Promise.all([
-    prisma.course.findMany({ select: { id: true, slug: true }, orderBy: { title: 'asc' } }),
+    prisma.course.findMany({
+      select: { id: true, slug: true },
+      // Закриті курси — в кінці списку: слухач має бачити спершу те, що можна проходити.
+      orderBy: [{ comingSoon: 'asc' }, { title: 'asc' }],
+    }),
     prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { activeCourseId: true } }),
   ]);
 
@@ -134,10 +145,15 @@ export async function getModuleBySlug(userId: string, slug: string): Promise<Mod
     include: {
       lessons: { orderBy: { order: 'asc' } },
       quiz: { select: { id: true } },
-      section: { select: { slug: true, title: true, course: { select: { slug: true, title: true } } } },
+      section: {
+        select: { slug: true, title: true, course: { select: { slug: true, title: true, comingSoon: true } } },
+      },
     },
   });
   if (!m) return null;
+  // Курс ще не відкрито — для слухача такого модуля просто не існує. Ховати
+  // картку на сторінці курсу мало: прямим посиланням у нього все одно зайшли б.
+  if (m.section.course.comingSoon) return null;
 
   const progress = await prisma.progress.findMany({
     where: { userId, lessonId: { in: m.lessons.map((l) => l.id) } },
@@ -160,6 +176,11 @@ export async function getModuleBySlug(userId: string, slug: string): Promise<Mod
         ?.passed ?? false)
     : undefined;
 
+  // Модуль може бути закритий послідовністю: попередній ще не завершено.
+  // Сторінка сама вирішує, що з цим робити — показати замок, а не 404: людині
+  // корисно бачити, що попереду, і знати, чим саме воно відкривається.
+  const lock = await getModuleLock(userId, m.id);
+
   return {
     id: m.id,
     slug: m.slug,
@@ -178,6 +199,8 @@ export async function getModuleBySlug(userId: string, slug: string): Promise<Mod
     completedLessons: lessons.filter((l) => l.completed).length,
     hasQuiz: !!m.quiz,
     quizPassed,
+    locked: lock.locked,
+    lockedBy: lock.lockedBy ?? undefined,
   };
 }
 
@@ -185,9 +208,17 @@ export async function getModuleBySlug(userId: string, slug: string): Promise<Mod
 export async function getLesson(userId: string, lessonId: string): Promise<Lesson | null> {
   const lesson = await prisma.lesson.findUnique({
     where: { id: lessonId },
-    include: { module: { include: { section: { select: { slug: true } } } } },
+    include: {
+      module: { include: { section: { select: { slug: true, course: { select: { comingSoon: true } } } } } },
+    },
   });
   if (!lesson) return null;
+  // Див. коментар у getModuleBySlug: урок закритого курсу недосяжний і за id.
+  if (lesson.module.section.course.comingSoon) return null;
+
+  // Те саме для модуля, закритого послідовністю. На відміну від сторінки
+  // модуля, тут показувати нічого: сам текст уроку і є те, що закрито.
+  if ((await getModuleLock(userId, lesson.moduleId)).locked) return null;
 
   const completed =
     (await prisma.progress.findUnique({ where: { userId_lessonId: { userId, lessonId } } })) !== null;

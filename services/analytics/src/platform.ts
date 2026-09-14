@@ -5,13 +5,19 @@ import type { PlatformStatsResponse, PublicStatsResponse } from '@proai/types';
  * Публічна статистика для лендингу — не прив'язана до жодного конкретного
  * курсу чи набору модулів, аби текст на головній лишався універсальним і при
  * зміні фокусу курсу (інший розділ, інший склад модулів) не потребував правок.
+ *
+ * Рахуємо лише ВІДКРИТІ курси (`comingSoon: false`). Інакше лендинг обіцяв би
+ * 49 модулів і 8 розділів, тоді як пройти можна 5 і 1: решта — заглушки
+ * закритого курсу.
  */
+const OPEN_COURSE = { section: { course: { comingSoon: false } } } as const;
+
 export async function getPublicStats(): Promise<PublicStatsResponse> {
   const [learnerCount, moduleCount, sectionCount, modules] = await Promise.all([
     prisma.user.count({ where: { role: 'LEARNER' } }),
-    prisma.module.count(),
-    prisma.section.count(),
-    prisma.module.findMany({ select: { minutes: true } }),
+    prisma.module.count({ where: OPEN_COURSE }),
+    prisma.section.count({ where: { course: { comingSoon: false } } }),
+    prisma.module.findMany({ where: OPEN_COURSE, select: { minutes: true } }),
   ]);
 
   const totalMinutes = modules.reduce((sum, m) => sum + m.minutes, 0);

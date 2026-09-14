@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Award, Book, Check, Clock, Flame, Info, Play, Shield, Spark, TlSafe } from '@proai/icons';
+import { Award, Book, Check, Clock, Flame, Info, Lock, Play, Shield, Spark, TlSafe } from '@proai/icons';
 import {
   Button,
   ClayCard,
@@ -178,11 +178,28 @@ export function DashboardClient({
                 <div key={m.id} className="flex items-center gap-2">
                   <Link
                     href={`/module/${m.slug}`}
-                    title={done ? `${m.title} — виконано` : m.title}
+                    // Закритий модуль лишається посиланням навмисно: сторінка
+                    // модуля пояснює, чим саме він відкривається, — це корисніше,
+                    // ніж мертвий кружечок, на який нічого не відповідає.
+                    title={
+                      done
+                        ? `${m.title} — виконано`
+                        : m.locked
+                          ? `${m.title} — відкриється після модуля «${m.lockedBy?.title ?? 'попереднього'}»`
+                          : m.title
+                    }
                     className={`group rounded-full ${done ? 'ring-[3px] ring-green/35' : ''}`}
                   >
                     <Orb size={isCurrent ? 'default' : 'sm'} color={done ? 'green' : isCurrent ? 'blue' : 'muted'}>
-                      {done ? <Check size={16} strokeWidth={3} /> : isCurrent ? <Shield size={18} /> : i + 1}
+                      {done ? (
+                        <Check size={16} strokeWidth={3} />
+                      ) : isCurrent ? (
+                        <Shield size={18} />
+                      ) : m.locked ? (
+                        <Lock size={14} />
+                      ) : (
+                        i + 1
+                      )}
                     </Orb>
                   </Link>
                   {i < allModules.length - 1 && (
