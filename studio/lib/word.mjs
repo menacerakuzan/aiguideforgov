@@ -70,7 +70,12 @@ export const SIZE_BOX = { x: 386, y: 108 };
  */
 export async function changeWordFontVisibly(mouse, { name = 'Times New Roman', size = 14 } = {}) {
   // Ctrl+A в документі — фокус там уже є одразу після друку чи вставки.
-  await mouse.key('^a');
+  //
+  // Саме hotkey, а не key('^a'): key набирає літеру через поточну розкладку,
+  // і за ввімкненої української чи російської латинської «a» в ній немає —
+  // виділення просто не відбувається, мовчки. Знайдено 2026-09-04 на пробі
+  // пошуку в PDF; те саме стосується будь-якого Ctrl+ЛІТЕРА.
+  await mouse.hotkey('ctrl+a');
   await sleep(300);
 
   await mouse.glide(FONT_BOX.x, FONT_BOX.y, { ms: 500 });
@@ -83,8 +88,31 @@ export async function changeWordFontVisibly(mouse, { name = 'Times New Roman', s
 
   await ps(['-Action', 'format', '-Name', name, '-Size', String(size)]);
   await sleep(300);
+
+  // Клац по полю «Розмір» РОЗГОРТАЄ список значень, і він лишається висіти
+  // поверх документа — на дублі 1.1 випадний список із 8, 9, 10, 11… закривав
+  // третину сторінки протягом усього наступного кроку. Escape його прибирає,
+  // не чіпаючи ані шрифту, ані виділення.
+  await mouse.escape();
+  await sleep(250);
+
+  // Escape закриває список, але курсор лишається над кнопкою — і Word показує
+  // підказку «Font Size (Ctrl+Shift+P)», яка висить поверх документа, поки
+  // мишу не відвести (спіймано на другому дублі 1.1: підказка простояла весь
+  // наступний крок). Відводимо курсор у поле сторінки, подалі від стрічки.
+  await mouse.glide(960, 620, { ms: 450 });
+  await sleep(200);
 }
 /** Прибрати перший абзац — типове зайве вступне речення від ШІ. */
+/**
+ * Українська мова всьому документу — без побічних дій.
+ *
+ * Викликати після того, як у кадрі щось ДОПИСАЛИ руками: Word позначає
+ * набраний текст мовою поточної розкладки, і в рядку стану під українським
+ * документом з'являється «English (United States)».
+ */
+export const setUkrainian = () => ps(['-Action', 'lang']);
+
 export const trimLeadInWord = () => ps(['-Action', 'trimlead']);
 export const showDoc = (name) => ps(['-Action', 'show', '-Name', name]);
 export const scrollToTop = () => ps(['-Action', 'top']);

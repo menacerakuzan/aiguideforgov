@@ -27,7 +27,7 @@ export type FocusMoment = {
  * поки їй пояснюють, що на ньому. Це краще, ніж розтягувати відео вдвічі —
  * сповільнений курсор виглядає несправжнім.
  */
-const Clip: React.FC<{
+export const Clip: React.FC<{
   src: string; from: number; to: number; speed: number; motion: number; duration: number;
 }> = ({ src, from, to, speed, motion, duration }) => {
   const fill = { width: '100%', height: '100%', objectFit: 'contain' } as const;

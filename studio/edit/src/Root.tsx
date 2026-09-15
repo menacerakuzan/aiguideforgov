@@ -19,10 +19,33 @@ import { Lesson54, TOTAL as LESSON54 } from './lesson54/Lesson54';
 import { Lesson46, TOTAL as LESSON46 } from './lesson46/Lesson46';
 import { Lesson55, TOTAL as LESSON55 } from './lesson55/Lesson55';
 import { Lesson48, TOTAL as LESSON48 } from './lesson48/Lesson48';
+import { Lesson11Boards, BOARDS_TOTAL } from './lesson11/Lesson11Boards';
+import { Lesson11, TOTAL as LESSON11 } from './lesson11/Lesson11';
 
 export const Root: React.FC = () => {
   return (
     <>
+      {/* Урок 1.1 — трейлер курсу: три задачі між брендовими смугами. */}
+      <Composition
+        id="Lesson11"
+        component={Lesson11}
+        durationInFrames={LESSON11}
+        fps={FPS}
+        width={1920}
+        height={1080}
+      />
+
+      {/* Урок 1.1 — тільки брендові смуги, без запису екрана.
+          Окрема композиція, щоб доводити заставку й дошки до ладу ще до зйомки. */}
+      <Composition
+        id="Lesson11Boards"
+        component={Lesson11Boards}
+        durationInFrames={BOARDS_TOTAL}
+        fps={FPS}
+        width={1920}
+        height={1080}
+      />
+
       {/* Урок 2.1 — змонтований скрінкаст. */}
       <Composition
         id="Lesson21"

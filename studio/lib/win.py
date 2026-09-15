@@ -152,6 +152,55 @@ def cmd_key(name):
     send_keys(name, pause=0)
 
 
+# ── сполучення з Ctrl/Alt/Shift ───────────────────────────────────────────
+
+KEYEVENTF_KEYUP = 0x0002
+
+_VK = {
+    "ctrl": 0x11, "alt": 0x12, "shift": 0x10,
+    "enter": 0x0D, "esc": 0x1B, "tab": 0x09, "space": 0x20,
+    "home": 0x24, "end": 0x23, "pgup": 0x21, "pgdn": 0x22,
+    "left": 0x25, "up": 0x26, "right": 0x27, "down": 0x28,
+    "f3": 0x72,
+}
+# Латинські літери й цифри мають сталі віртуальні коди: 'A' = 0x41, '0' = 0x30.
+_VK.update({c: 0x41 + i for i, c in enumerate("abcdefghijklmnopqrstuvwxyz")})
+_VK.update({c: 0x30 + i for i, c in enumerate("0123456789")})
+
+
+def cmd_hotkey(keys):
+    """Сполучення клавіш ПО ВІРТУАЛЬНОМУ КОДУ, а не по символу.
+
+    Навіщо окрема команда, коли є `key`. `send_keys('^f')` питає в поточної
+    розкладки, якою клавішею набирається літера «f». Якщо активна українська
+    чи російська розкладка, латинської «f» у ній немає — і натискання не
+    йде взагалі. Мовчки: помилки немає, просто нічого не відбувається.
+
+    Саме на цьому впала проба пошуку в PDF (2026-09-04): у трей була
+    ввімкнена РУС, `Ctrl+F` не дійшов до переглядача, і замість підсвіченої
+    цифри в кадрі лишилась перша сторінка. Так само тихо могли не спрацювати
+    `Ctrl+A` і `Ctrl+End` у сценаріях, які їх використовують.
+
+    Тут розкладка ні до чого: 0x46 — це фізична клавіша «F» незалежно від
+    того, яку літеру вона зараз друкує.
+
+        {"cmd": "hotkey", "keys": "ctrl+f"}
+    """
+    parts = [k.strip().lower() for k in keys.split("+") if k.strip()]
+    codes = []
+    for part in parts:
+        if part not in _VK:
+            raise ValueError(f"невідома клавіша: {part}")
+        codes.append(_VK[part])
+
+    for code in codes:
+        user32.keybd_event(code, 0, 0, 0)
+        time.sleep(0.02)
+    for code in reversed(codes):
+        user32.keybd_event(code, 0, KEYEVENTF_KEYUP, 0)
+        time.sleep(0.02)
+
+
 # ── вікна ─────────────────────────────────────────────────────────────────
 
 
@@ -289,7 +338,7 @@ def cmd_dialog_close(timeout=2.0):
 HANDLERS = {
     "jump": cmd_jump, "glide": cmd_glide, "down": cmd_down, "up": cmd_up,
     "click": cmd_click, "doubleclick": cmd_doubleclick, "drag": cmd_drag,
-    "type": cmd_type, "key": cmd_key,
+    "type": cmd_type, "key": cmd_key, "hotkey": cmd_hotkey,
     "windows": cmd_windows, "clear": cmd_clear, "front": cmd_front,
     "dialog_find": cmd_dialog_find, "dialog_close": cmd_dialog_close,
 }

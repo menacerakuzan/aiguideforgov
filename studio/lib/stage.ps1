@@ -57,7 +57,23 @@ function Bring-Front([IntPtr]$hwnd) {
     [Win]::AttachThreadInput($tid, $me, $false) | Out-Null
 
     Start-Sleep -Milliseconds 260
-    if ([Win]::GetForegroundWindow() -eq $hwnd) { return $true }
+    if ([Win]::GetForegroundWindow() -eq $hwnd) {
+      # Гасимо підказки клавіш, які запалив наш же Alt.
+      #
+      # Синтетичний Alt вище потрібен, щоб Windows дозволила забрати передній
+      # план. Але застосунки Office розуміють одиночний Alt по-своєму: Word
+      # вмикає режим підказок і малює по всій стрічці букви — F, H, N, G, P,
+      # S, M, R, W, Y… Вони лишаються висіти, доки користувач щось не
+      # натисне, і в кадрі виглядають як збій інтерфейсу (спіймано на дублі
+      # 1.1: підказки простояли чотири секунди поверх стрічки Word).
+      #
+      # Escape вимикає режим підказок і більше нічого не робить: виділення,
+      # курсор і вміст документа лишаються недоторканими.
+      [Win]::keybd_event(0x1B, 0, 0, 0)        # Esc down
+      [Win]::keybd_event(0x1B, 0, 2, 0)        # Esc up
+      Start-Sleep -Milliseconds 120
+      return $true
+    }
   }
   return $false
 }

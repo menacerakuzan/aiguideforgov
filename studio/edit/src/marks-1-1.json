@@ -1,0 +1,142 @@
+[
+  {
+    "name": "t1-zvernennia",
+    "t": 0.001
+  },
+  {
+    "name": "t1-do-chatu",
+    "t": 10.608
+  },
+  {
+    "name": "t1-zapyt",
+    "t": 14.378
+  },
+  {
+    "name": "t1-zapyt-hotovyi",
+    "t": 61.367
+  },
+  {
+    "name": "t1-nadislano",
+    "t": 64.663
+  },
+  {
+    "name": "t1-vidpovid",
+    "t": 71.804
+  },
+  {
+    "name": "t1-prochytano",
+    "t": 76.967
+  },
+  {
+    "name": "t1-kopiiuvannia",
+    "t": 78.395
+  },
+  {
+    "name": "t1-u-word",
+    "t": 81.398
+  },
+  {
+    "name": "t1-pravka",
+    "t": 100.595
+  },
+  {
+    "name": "t1-hotovo",
+    "t": 113.892
+  },
+  {
+    "name": "t2-pochatok",
+    "t": 115.363
+  },
+  {
+    "name": "t2-fail",
+    "t": 121.912
+  },
+  {
+    "name": "t2-fail-dodano",
+    "t": 131.875
+  },
+  {
+    "name": "t2-zapyt-hotovyi",
+    "t": 147.992
+  },
+  {
+    "name": "t2-nadislano",
+    "t": 151.299
+  },
+  {
+    "name": "t2-vidpovid",
+    "t": 170.203
+  },
+  {
+    "name": "t2-prochytano",
+    "t": 177.463
+  },
+  {
+    "name": "t2-perevirka",
+    "t": 179.229
+  },
+  {
+    "name": "t2-hotovo",
+    "t": 197.661
+  },
+  {
+    "name": "t3-pochatok",
+    "t": 199.248
+  },
+  {
+    "name": "t3-audio",
+    "t": 203.239
+  },
+  {
+    "name": "t3-audio-dodano",
+    "t": 213.253
+  },
+  {
+    "name": "t3-zapyt-hotovyi",
+    "t": 231.257
+  },
+  {
+    "name": "t3-nadislano",
+    "t": 234.61
+  },
+  {
+    "name": "t3-vidpovid",
+    "t": 254.33
+  },
+  {
+    "name": "t3-prochytano",
+    "t": 262.74
+  },
+  {
+    "name": "t3-kopiiuvannia",
+    "t": 264.273
+  },
+  {
+    "name": "t3-u-word",
+    "t": 268.143
+  },
+  {
+    "name": "t3-prizvyshche",
+    "t": 285.965
+  },
+  {
+    "name": "t3-chytannia",
+    "t": 285.965
+  },
+  {
+    "name": "t3-pravka",
+    "t": 301.22
+  },
+  {
+    "name": "t3-hotovo",
+    "t": 315.827
+  },
+  {
+    "name": "final",
+    "t": 316.34
+  },
+  {
+    "name": "kinets",
+    "t": 318.028
+  }
+]

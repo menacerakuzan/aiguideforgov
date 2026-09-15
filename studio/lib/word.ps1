@@ -15,7 +15,7 @@
 
 param(
   [Parameter(Mandatory = $true)]
-  [ValidateSet('open', 'new', 'point', 'span', 'select', 'paste', 'copy', 'copyall', 'close', 'show', 'scroll', 'top', 'bottom', 'highlight', 'highlightAll', 'zoom', 'format', 'cleanup', 'trimlead', 'saveas', 'trackon', 'markup', 'comment')]
+  [ValidateSet('open', 'new', 'point', 'span', 'select', 'paste', 'copy', 'copyall', 'close', 'show', 'scroll', 'top', 'bottom', 'highlight', 'highlightAll', 'zoom', 'format', 'cleanup', 'trimlead', 'saveas', 'trackon', 'markup', 'comment', 'lang')]
   [string]$Action,
   [string]$Path,
   [string]$Find,
@@ -50,6 +50,16 @@ switch ($Action) {
     $word.ActiveWindow.WindowState = 1
     $word.ActiveWindow.View.Type = 3
     $word.ActiveWindow.View.Zoom.Percentage = 100
+    # Знаки форматування геть: маркери абзаців (¶) і крапки на місці пробілів
+    # у кадрі читаються як сміття на документі. Ввімкнути їх міг будь-хто
+    # колись у цьому ж Word — налаштування живе в застосунку, не в файлі,
+    # тому вимикаємо явно на кожному дублі, а не сподіваємось на «за
+    # замовчуванням вимкнено».
+    $word.ActiveWindow.View.ShowAll = $false
+    $word.ActiveWindow.View.ShowParagraphs = $false
+    $word.ActiveWindow.View.ShowSpaces = $false
+    $word.ActiveWindow.View.ShowTabs = $false
+    $word.ActiveWindow.View.ShowHiddenText = $false
 
     # Мова документа — українська (1058). Без цього Word вважає текст
     # англійським і підкреслює червоним кожне слово: у кадрі документ виглядає
@@ -75,6 +85,16 @@ switch ($Action) {
     $word.ActiveWindow.WindowState = 1
     $word.ActiveWindow.View.Type = 3
     $word.ActiveWindow.View.Zoom.Percentage = 100
+    # Знаки форматування геть: маркери абзаців (¶) і крапки на місці пробілів
+    # у кадрі читаються як сміття на документі. Ввімкнути їх міг будь-хто
+    # колись у цьому ж Word — налаштування живе в застосунку, не в файлі,
+    # тому вимикаємо явно на кожному дублі, а не сподіваємось на «за
+    # замовчуванням вимкнено».
+    $word.ActiveWindow.View.ShowAll = $false
+    $word.ActiveWindow.View.ShowParagraphs = $false
+    $word.ActiveWindow.View.ShowSpaces = $false
+    $word.ActiveWindow.View.ShowTabs = $false
+    $word.ActiveWindow.View.ShowHiddenText = $false
     $doc.Content.LanguageID = 1058
     $doc.ShowSpellingErrors = $false
     $doc.ShowGrammaticalErrors = $false
@@ -256,6 +276,24 @@ switch ($Action) {
     $word.Selection.Delete()
     'trimmed'
   }
+  'lang' {
+    # Українська мова всьому документу — без жодних побічних дій.
+    #
+    # Навіщо окремо від 'format': текст, який службовець ДОПИСУЄ руками вже
+    # після форматування, Word позначає мовою поточної розкладки клавіатури.
+    # На другому дублі 1.1 реквізити протоколу набирались за англійської
+    # розкладки, і в рядку стану під українським документом стояло «English
+    # (United States)». 'format' це полагодив би, але він ще й повертає курсор
+    # на початок документа — тобто зсунув би кадр саме тоді, коли глядач
+    # дивиться на щойно дописаний рядок.
+    $word = Get-Word
+    if (-not $word) { throw 'Word не запущено.' }
+    $doc = $word.ActiveDocument
+    $doc.Content.LanguageID = 1058
+    $doc.ShowSpellingErrors = $false
+    $doc.ShowGrammaticalErrors = $false
+    'lang uk-UA'
+  }
 
   'cleanup' {
     # Те саме прибирання слідів чату, що й у 'format', але без зміни
@@ -274,6 +312,15 @@ switch ($Action) {
     $doc.Content.Select() | Out-Null
     $word.Selection.Font.Bold = 0
     $word.Selection.Font.Italic = 0
+    # Мова вставленого тексту — українська, явно.
+    #
+    # Порожній документ ми створюємо з uk-UA, але вставка з чату приносить
+    # СВОЮ мову, і Word показує в рядку стану «Russian» під українським
+    # листом. У кадрі це видно, і виглядає як помилка службовця. Ставимо
+    # мову вже після вставки, коли текст у документі.
+    $word.Selection.LanguageID = 1058
+    $doc.ShowSpellingErrors = $false
+    $doc.ShowGrammaticalErrors = $false
     # Повертає курсор на початок документа — див. застереження у 'format'.
     $word.Selection.HomeKey(6) | Out-Null
     'cleaned'
@@ -303,6 +350,15 @@ switch ($Action) {
     # свідомо й рідко, а не через кожен другий підпункт.
     $word.Selection.Font.Bold = 0
     $word.Selection.Font.Italic = 0
+    # Мова вставленого тексту — українська, явно.
+    #
+    # Порожній документ ми створюємо з uk-UA, але вставка з чату приносить
+    # СВОЮ мову, і Word показує в рядку стану «Russian» під українським
+    # листом. У кадрі це видно, і виглядає як помилка службовця. Ставимо
+    # мову вже після вставки, коли текст у документі.
+    $word.Selection.LanguageID = 1058
+    $doc.ShowSpellingErrors = $false
+    $doc.ShowGrammaticalErrors = $false
     # wdStory: прибрати виділення, повернутись на початок. УВАГА: якщо після
     # цього треба дописувати текст У КІНЕЦЬ документа — курсор туди сам не
     # повернеться, спершу викликати scrollToBottom() (перевірено дослідом

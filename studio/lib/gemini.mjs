@@ -256,8 +256,19 @@ export async function send(page) {
  * Ознаки «готово» в інтерфейсі ненадійні — кнопки міняються місцями між
  * версіями. Тому дивимось на сам текст: коли він перестав рости на дві з
  * половиною секунди, генерація закінчилась.
+ *
+ * `minLength` — запобіжник для запитів із файлом. Розбираючи PDF чи аудіо,
+ * Gemini спершу малює в блоці відповіді проміжний стан («Аналіз») і завмирає
+ * на ньому на кілька секунд, поки читає документ. Для перевірки «текст не
+ * росте» це виглядає точнісінько як завершена відповідь — і на пробі
+ * 2026-09-04 функція повернула рядок «Аналіз» замість зведення на 48
+ * сторінок. Мінімальна довжина відсікає такі заглушки: справжня відповідь
+ * помічника ніколи не буває на два десятки символів.
+ *
+ * Типове значення — 0: для запитів без файлу проміжного стану не буває, і
+ * поведінка решти уроків не змінюється.
  */
-export async function waitForAnswer(page, { timeout = 180000, quiet = 2500, before = 0 } = {}) {
+export async function waitForAnswer(page, { timeout = 180000, quiet = 2500, before = 0, minLength = 0 } = {}) {
   const started = Date.now();
 
   // Спершу дочекатись НОВОГО блока відповіді. Без цього кроку стабільність
@@ -276,7 +287,7 @@ export async function waitForAnswer(page, { timeout = 180000, quiet = 2500, befo
     const n = await blocks.count();
     const text = n > before ? await blocks.nth(n - 1).innerText().catch(() => '') : '';
 
-    if (text && text === last) {
+    if (text && text.length >= minLength && text === last) {
       if (!stableSince) stableSince = Date.now();
       if (Date.now() - stableSince >= quiet) return text;
     } else {
