@@ -42,6 +42,12 @@ studio/edit/node_modules/
 studio/edit/out/
 # вихідні матеріали монтажу: дубль, озвучка — копії того, що лежить у out/
 studio/edit/public/
+# Промо-ролик сервісу — те саме правило. Знімки сторінок важать десятки
+# мегабайтів і відтворюються `npm run capture` за хвилину; озвучка — `tts.mjs`.
+# Невідновлюване тут лише те, що в src/ і scripts/.
+studio/promo/node_modules/
+studio/promo/out/
+studio/promo/public/
 # тимчасові файли Word, поки документ відкрито
 ~$*
 

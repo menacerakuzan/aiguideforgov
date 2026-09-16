@@ -126,7 +126,9 @@ export async function getCoursesForUser(userId: string): Promise<Course[]> {
     prisma.course.findMany({
       select: { id: true, slug: true },
       // Закриті курси — в кінці списку: слухач має бачити спершу те, що можна проходити.
-      orderBy: [{ comingSoon: 'asc' }, { title: 'asc' }],
+      // Далі — власний порядок курсу: за назвою «Продвинутий курс» ставав перед
+      // «ШІ для відкритих даних», бо в кириличній абетці П іде раніше за Ш.
+      orderBy: [{ comingSoon: 'asc' }, { order: 'asc' }, { title: 'asc' }],
     }),
     prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { activeCourseId: true } }),
   ]);

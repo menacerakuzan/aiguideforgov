@@ -38,7 +38,7 @@ export async function getLearnerStats(userId: string, courseSlug: string | null)
     // Без courseSlug рахуємо по всіх ВІДКРИТИХ курсах: закритий курс не дав би
     // жодного прогресу, але роздув би знаменник «пройдено X зі 100 уроків».
     where: courseSlug ? { slug: courseSlug } : { comingSoon: false },
-    orderBy: { title: 'asc' },
+    orderBy: [{ order: 'asc' }, { title: 'asc' }],
     include: {
       sections: {
         orderBy: { order: 'asc' },

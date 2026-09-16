@@ -1,0 +1,30 @@
+{
+  "name": "proai-promo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Промо-ролик сервісу ПРО.ШІ. Окремий проєкт від studio/edit: інша оснастка (знімки сторінок + 2.5D-камера), і 18 робочих композицій уроків через це не чіпаються.",
+  "scripts": {
+    "dev": "remotion studio src/index.ts",
+    "capture": "node scripts/capture.mjs",
+    "crop": "node scripts/crop-bands.mjs",
+    "music": "node scripts/music.mjs",
+    "subs": "node scripts/subtitles.mjs",
+    "archive": "node scripts/archive.mjs",
+    "publish": "node scripts/publish.mjs",
+    "render": "remotion render src/index.ts Promo out/promo.mp4",
+    "still": "remotion still src/index.ts Promo",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.514",
+    "@remotion/google-fonts": "4.0.514",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "remotion": "4.0.514"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.7",
+    "playwright-core": "^1.56.0",
+    "typescript": "5.9.3"
+  }
+}

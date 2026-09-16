@@ -10,7 +10,9 @@ export default async function AdminCoursesPage() {
   requirePageAdmin(me);
 
   const courses = await prisma.course.findMany({
-    orderBy: { title: 'asc' },
+    // Той самий порядок, що бачить слухач на /courses, — інакше адміністратор
+    // читав би список курсів у іншій послідовності, ніж той, ким він керує.
+    orderBy: [{ order: 'asc' }, { title: 'asc' }],
     include: { _count: { select: { sections: true } } },
   });
 
