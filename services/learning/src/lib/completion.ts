@@ -125,9 +125,29 @@ export interface ModuleLock {
 }
 
 /**
+ * Скільки модулів відкрито з самого початку, ще до будь-якого прогресу.
+ *
+ * Два, а не один. Перший модуль — знайомство й реєстрація: потрібний, але
+ * нецікавий, і людина, яка прийшла подивитись «а що воно дає», упирається в
+ * нього як у турнікет. Другий модуль — одразу практика на справжніх документах,
+ * і саме він вирішує, лишиться людина чи піде. Тому вхід у практику не
+ * замикаємо.
+ *
+ * Нічого не втрачено: сертифікат усе одно вимагає ВСІХ модулів курсу
+ * (`hasCompletedAllModules`), тож знайомство доведеться пройти — просто не
+ * обов'язково першим.
+ */
+export const MODULES_OPEN_FROM_START = 2;
+
+/**
  * Замки модулів за правилом «модуль N+1 відкривається, коли N завершено».
  *
  * Модулі мають прийти вже в порядку проходження (розділ → order модуля).
+ *
+ * Перші `MODULES_OPEN_FROM_START` модулів відкриті одразу. У ланцюжку при цьому
+ * бере участь лише ОСТАННІЙ із них: третій модуль чекає на другий (практику), а
+ * не на перший (знайомство). Інакше вільний вхід у практику нічого б не дав —
+ * усе після неї однаково впиралося б у пропущене знайомство.
  *
  * Два винятки, без яких правило зробило б більше шкоди, ніж користі:
  *
@@ -153,18 +173,20 @@ export function computeModuleLocks(
   /** Перший незавершений модуль із тих, що йдуть раніше за поточний. */
   let blocker: { slug: string; title: string } | null = null;
 
-  for (const m of orderedModules) {
+  orderedModules.forEach((m, index) => {
+    const openFromStart = index < MODULES_OPEN_FROM_START;
     const completed = completedModuleIds.has(m.id);
     const started = m.lessons.some((l) => completedLessonIds.has(l.id));
 
-    locks.set(m.id, {
-      locked: blocker !== null && !completed && !started,
-      lockedBy: blocker !== null && !completed && !started ? blocker : null,
-    });
+    const locked = !openFromStart && blocker !== null && !completed && !started;
+    locks.set(m.id, { locked, lockedBy: locked ? blocker : null });
 
-    // Перший незавершений модуль закриває все, що йде після нього.
-    if (!completed && blocker === null) blocker = { slug: m.slug, title: m.title };
-  }
+    // Перший незавершений модуль закриває все, що йде після нього — але
+    // рахунок починається з ОСТАННЬОГО відкритого з початку. Модулі до нього
+    // нікого не тримають: вони й самі відкриті, і черги за собою не створюють.
+    const inChain = index >= MODULES_OPEN_FROM_START - 1;
+    if (inChain && !completed && blocker === null) blocker = { slug: m.slug, title: m.title };
+  });
 
   return locks;
 }
