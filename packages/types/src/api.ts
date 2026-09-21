@@ -646,6 +646,8 @@ export const LEARNER_STATUS_LABELS: Record<LearnerJourneyStatus, string> = {
 /** Сертифікат у списку — стисло, рівно те, що видно в таблиці й картці. */
 export const AdminCertificateRowSchema = z.object({
   code: z.string(),
+  /** За який курс видано — знімок назви на день видачі. */
+  courseTitle: z.string(),
   score: z.number().int(),
   withHonors: z.boolean(),
   issuedAt: z.string(),

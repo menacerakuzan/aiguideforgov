@@ -15,8 +15,6 @@ export async function GET(_request: Request, { params }: { params: Promise<{ cod
     if (!cert) return NextResponse.json({ error: 'Сертифікат не знайдено' }, { status: 404 });
     if (cert.userId !== me.id) requireAdmin(me.role);
 
-    const course = await prisma.course.findFirst({ select: { title: true } });
-
     const buffer = await renderToBuffer(
       <CertificateDocument
         data={{
@@ -28,7 +26,11 @@ export async function GET(_request: Request, { params }: { params: Promise<{ cod
           withHonors: cert.withHonors,
           issuedAt: cert.issuedAt.toISOString(),
           validUntil: cert.validUntil.toISOString(),
-          courseTitle: course?.title ?? 'ШІ в публічній службі',
+          // Назва курсу — зі самого сертифіката, а не з бази курсів: документ
+          // друкує те, за що його видали, навіть якщо курс відтоді
+          // перейменували або прибрали з платформи.
+          courseTitle: cert.courseTitle,
+          verifyOrigin: process.env.NEXT_PUBLIC_APP_URL ?? null,
         }}
       />,
     );

@@ -4,23 +4,32 @@ import { generateCertificateCode } from './code';
 
 export interface IssueCertificateInput {
   userId: string;
+  /** Курс, за який видається документ. Сертифікат без курсу не має сенсу. */
+  courseId: string;
   score: number;
   withHonors: boolean;
 }
 
-function toDto(c: {
+/** Скільки місяців сертифікат лишається чинним. */
+const VALID_MONTHS = 24;
+
+interface CertificateRow {
   id: string;
   code: string;
   userId: string;
   holderName: string;
   holderPosition: string | null;
   organizationName: string | null;
+  courseTitle: string;
   score: number;
   withHonors: boolean;
   issuedAt: Date;
   validUntil: Date;
   revoked: boolean;
-}): Certificate {
+  course: { slug: string } | null;
+}
+
+export function toCertificateDto(c: CertificateRow): Certificate {
   return {
     id: c.id,
     code: c.code,
@@ -28,6 +37,8 @@ function toDto(c: {
     holderName: c.holderName,
     holderPosition: c.holderPosition,
     organizationName: c.organizationName,
+    courseTitle: c.courseTitle,
+    courseSlug: c.course?.slug ?? null,
     score: c.score,
     withHonors: c.withHonors,
     issuedAt: c.issuedAt.toISOString(),
@@ -37,25 +48,33 @@ function toDto(c: {
 }
 
 /**
- * Видає сертифікат. Не дублює: якщо в користувача вже є нечинний-невідкликаний
- * сертифікат, повертає його замість створення нового (повторне складання тесту
- * після вже виданого сертифіката не плодить нові документи).
+ * Видає сертифікат за конкретний курс.
+ *
+ * Не дублює В МЕЖАХ КУРСУ: якщо чинний сертифікат за цей курс уже є, повертаємо
+ * його — перескладання атестації після виданого документа не має плодити нові
+ * коди. Але сертифікат за ІНШИЙ курс — це інший документ, і він видається
+ * незалежно: раніше перевірка стояла на самому лише userId, тож людина, яка
+ * пройшла другий курс, мовчки отримувала назад сертифікат за перший.
+ *
+ * Відкликаний сертифікат видачу не блокує: якщо людина склала атестацію
+ * наново, вона має отримати новий чинний документ.
  */
 export async function issueCertificate(input: IssueCertificateInput): Promise<Certificate> {
   const existing = await prisma.certificate.findFirst({
-    where: { userId: input.userId, revoked: false },
+    where: { userId: input.userId, courseId: input.courseId, revoked: false },
     orderBy: { issuedAt: 'desc' },
+    include: { course: { select: { slug: true } } },
   });
-  if (existing) return toDto(existing);
+  if (existing) return toCertificateDto(existing);
 
-  const user = await prisma.user.findUniqueOrThrow({
-    where: { id: input.userId },
-    include: { organization: true },
-  });
+  const [user, course] = await Promise.all([
+    prisma.user.findUniqueOrThrow({ where: { id: input.userId }, include: { organization: true } }),
+    prisma.course.findUniqueOrThrow({ where: { id: input.courseId }, select: { id: true, title: true } }),
+  ]);
 
   const issuedAt = new Date();
   const validUntil = new Date(issuedAt);
-  validUntil.setMonth(validUntil.getMonth() + 24);
+  validUntil.setMonth(validUntil.getMonth() + VALID_MONTHS);
 
   // Унікальність коду: практично гарантована 6-символьним алфавітом,
   // але перевіряємо явно, щоб конфлікт ніколи не впав у користувача помилкою.
@@ -71,12 +90,16 @@ export async function issueCertificate(input: IssueCertificateInput): Promise<Ce
       holderName: user.name,
       holderPosition: user.position,
       organizationName: user.organization?.name ?? null,
+      courseId: course.id,
+      // Знімок назви: курс перейменують — виданий документ не змінюється.
+      courseTitle: course.title,
       score: input.score,
       withHonors: input.withHonors,
       issuedAt,
       validUntil,
     },
+    include: { course: { select: { slug: true } } },
   });
 
-  return toDto(created);
+  return toCertificateDto(created);
 }

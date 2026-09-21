@@ -20,6 +20,7 @@ export async function verifyCertificate(code: string): Promise<VerifyCertificate
     holderName: cert.holderName,
     holderPosition: cert.holderPosition,
     organizationName: cert.organizationName,
+    courseTitle: cert.courseTitle,
     score: cert.score,
     withHonors: cert.withHonors,
     issuedAt: cert.issuedAt.toISOString(),

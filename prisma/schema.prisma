@@ -193,9 +193,10 @@ model Course {
   /// питає), ставав у кінець списку, а не в початок.
   order Int @default(100)
 
-  sections  Section[]
-  finalExam FinalExam?
-  activeFor User[]
+  sections     Section[]
+  finalExam    FinalExam?
+  activeFor    User[]
+  certificates Certificate[]
 
   @@index([slug])
 }
@@ -482,6 +483,14 @@ model Favorite {
 // Сертифікати
 // ----------------------------------------------------------------------------
 
+/// Сертифікат видається ЗА КОНКРЕТНИЙ КУРС: курсів на платформі кілька, і
+/// людина може мати свій сертифікат за кожен пройдений.
+///
+/// Усе, що надруковано на документі, зберігається знімком на момент видачі —
+/// імʼя, посада, орган і назва курсу. Курс можуть перейменувати, людина може
+/// змінити посаду чи піти з органу, сам курс — зникнути з платформи; виданий
+/// папірець від цього не має змінювати жодного слова. Саме тому `courseTitle`
+/// лежить поруч із `courseId`, а не читається щоразу через звʼязок.
 model Certificate {
   id               String   @id @default(cuid())
   code             String   @unique
@@ -496,9 +505,17 @@ model Certificate {
   revoked          Boolean  @default(false)
   revokedReason    String?
 
+  /// Курс, за який видано. Порожньо — курс видалили з платформи вже після
+  /// видачі; сам сертифікат лишається чинним, назва береться з courseTitle.
+  courseId String?
+  course   Course? @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  /// Назва курсу станом на день видачі — те, що надруковано в PDF.
+  courseTitle String
+
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([courseId])
 }
 
 // ----------------------------------------------------------------------------

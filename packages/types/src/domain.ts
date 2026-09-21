@@ -348,6 +348,14 @@ export const PromptSchema = z.object({
 });
 export type Prompt = z.infer<typeof PromptSchema>;
 
+/**
+ * Сертифікат за ОДИН курс. Людина, яка пройшла два курси, має два сертифікати
+ * з різними кодами — це різні документи, а не оновлення одного.
+ *
+ * `courseTitle` — знімок назви на день видачі, як holderName і
+ * organizationName. Курс могли перейменувати або зовсім прибрати з платформи
+ * (тоді `courseSlug` порожній), але надруковане в документі слово лишається.
+ */
 export const CertificateSchema = z.object({
   id: z.string(),
   code: z.string(),
@@ -355,6 +363,10 @@ export const CertificateSchema = z.object({
   holderName: z.string(),
   holderPosition: z.string().nullable(),
   organizationName: z.string().nullable(),
+  /// Назва курсу станом на день видачі — саме вона друкується в PDF.
+  courseTitle: z.string(),
+  /// Порожньо — курс видалено з платформи; сертифікат лишається чинним.
+  courseSlug: z.string().nullable(),
   score: z.number().int().min(0).max(100),
   withHonors: z.boolean(),
   issuedAt: z.string(),
@@ -365,11 +377,13 @@ export type Certificate = z.infer<typeof CertificateSchema>;
 
 /**
  * Те, що бачить будь-хто за посиланням /verify/<код> — без авторизації.
- * Свідомо НЕ містить id та userId: назовні внутрішні ідентифікатори не
- * потрібні (перевіряльнику вистачає імені, органу й дат), а їх витік
- * дає стороннім матеріал для перебору решти API за чужим користувачем.
+ * Свідомо НЕ містить id, userId і courseSlug: назовні внутрішні ідентифікатори
+ * не потрібні (перевіряльнику вистачає імені, органу, назви курсу й дат), а їх
+ * витік дає стороннім матеріал для перебору решти API за чужим користувачем.
+ * Назва курсу назовні, навпаки, потрібна: без неї перевірка підтверджує
+ * «якийсь сертифікат», а не «сертифікат саме за цей курс».
  */
-export const PublicCertificateSchema = CertificateSchema.omit({ id: true, userId: true });
+export const PublicCertificateSchema = CertificateSchema.omit({ id: true, userId: true, courseSlug: true });
 export type PublicCertificate = z.infer<typeof PublicCertificateSchema>;
 
 export const AttemptSchema = z.object({

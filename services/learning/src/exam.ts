@@ -97,7 +97,14 @@ export async function submitFinalExam(userId: string, input: SubmitFinalExamInpu
 
   let certificate = null;
   if (passed) {
-    certificate = await issueCertificate({ userId, score, withHonors: score >= 95 && securityScore === 100 });
+    certificate = await issueCertificate({
+      userId,
+      // Сертифікат прив'язується до курсу ЦІЄЇ атестації, а не до «першого
+      // курсу платформи»: інакше другий курс видавав би документ про перший.
+      courseId: exam.courseId,
+      score,
+      withHonors: score >= 95 && securityScore === 100,
+    });
   }
 
   return {

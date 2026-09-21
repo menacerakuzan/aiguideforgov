@@ -1,28 +1,19 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@proai/db';
 import { requireCurrentUser } from '@proai/auth';
-import type { Certificate } from '@proai/types';
+import { toCertificateDto } from '@proai/certificates';
 import { withApiErrors } from '@/lib/api-guard';
 
+/** Сертифікати поточного слухача — по одному за кожен пройдений курс. */
 export async function GET() {
   return withApiErrors(async () => {
     const me = await requireCurrentUser();
-    const certs = await prisma.certificate.findMany({ where: { userId: me.id }, orderBy: { issuedAt: 'desc' } });
+    const certs = await prisma.certificate.findMany({
+      where: { userId: me.id },
+      orderBy: { issuedAt: 'desc' },
+      include: { course: { select: { slug: true } } },
+    });
 
-    const certificates: Certificate[] = certs.map((c) => ({
-      id: c.id,
-      code: c.code,
-      userId: c.userId,
-      holderName: c.holderName,
-      holderPosition: c.holderPosition,
-      organizationName: c.organizationName,
-      score: c.score,
-      withHonors: c.withHonors,
-      issuedAt: c.issuedAt.toISOString(),
-      validUntil: c.validUntil.toISOString(),
-      revoked: c.revoked,
-    }));
-
-    return NextResponse.json({ certificates });
+    return NextResponse.json({ certificates: certs.map(toCertificateDto) });
   });
 }

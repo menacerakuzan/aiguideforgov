@@ -309,7 +309,7 @@ export default async function AdminLearnerPage({ params }: { params: Promise<{ i
                 {detail.certificates.map((c) => (
                   <div key={c.code} className="rounded-[22px] bg-paper-2 px-4 py-3">
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="font-mono text-[13px] font-bold">{c.code}</span>
+                      <span className="text-[14px] font-bold">{c.courseTitle}</span>
                       {c.revoked ? (
                         <Badge color="red">відкликано</Badge>
                       ) : new Date(c.validUntil) < new Date() ? (
@@ -320,6 +320,7 @@ export default async function AdminLearnerPage({ params }: { params: Promise<{ i
                         </Badge>
                       )}
                     </div>
+                    <p className="mt-1 font-mono text-[12px] text-ink-mute">{c.code}</p>
                     <p className="mt-1 text-[13px] text-ink-soft">
                       {c.score}%{c.withHonors && ' · з відзнакою'} · виданий {formatDate(c.issuedAt)} · чинний до{' '}
                       {formatDate(c.validUntil)}

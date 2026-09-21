@@ -290,6 +290,7 @@ export async function getAdminAnalytics(): Promise<AdminAnalytics> {
     const list = certsByUser.get(c.userId) ?? [];
     list.push({
       code: c.code,
+      courseTitle: c.courseTitle,
       score: c.score,
       withHonors: c.withHonors,
       issuedAt: c.issuedAt.toISOString(),
@@ -838,6 +839,7 @@ export async function getLearnerDetail(userId: string): Promise<AdminLearnerDeta
     })),
     certificates: certificates.map((c) => ({
       code: c.code,
+      courseTitle: c.courseTitle,
       score: c.score,
       withHonors: c.withHonors,
       issuedAt: c.issuedAt.toISOString(),
