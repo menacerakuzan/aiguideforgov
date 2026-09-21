@@ -6,7 +6,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { LessonBlock, LessonRevisionsResponse } from '@proai/types';
 import { ArrowLeft, Check, XIcon } from '@proai/icons';
 import { Button, ClayCard, Input, Label, Select, Textarea, toast } from '@proai/ui';
-import { api } from '@/lib/api-client';
+import { api, ApiFetchError } from '@/lib/api-client';
 
 interface AdminLesson {
   id: string;
@@ -109,8 +109,10 @@ export default function LessonEditorPage({ params }: { params: Promise<{ id: str
       toast.success('Урок збережено');
       queryClient.invalidateQueries({ queryKey: ['admin', 'lesson', id] });
       queryClient.invalidateQueries({ queryKey: ['admin', 'lesson', id, 'revisions'] });
-    } catch {
-      toast.error('Не вдалося зберегти');
+    } catch (e) {
+      // Причину показуємо дослівно: урок перевіряється цілим, і без номера
+      // блоку автор шукав би помилку там, де щойно правив, а не там, де вона є.
+      toast.error(e instanceof ApiFetchError ? `Не вдалося зберегти. ${e.message}` : 'Не вдалося зберегти');
     } finally {
       setSaving(false);
     }

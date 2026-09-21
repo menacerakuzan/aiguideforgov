@@ -4,6 +4,7 @@ import { requireCurrentUser, requireAdmin } from '@proai/auth';
 import { sanitizeLessonBlocks } from '@proai/infra';
 import { UpdateLessonInputSchema, type LessonBlock } from '@proai/types';
 import { withApiErrors } from '@/lib/api-guard';
+import { describeLessonError } from '@/lib/lesson-errors';
 
 /** Повний урок разом із розібраними блоками — для форми редагування в CMS. */
 export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -36,7 +37,15 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     requireAdmin(me.role);
     const { id } = await params;
 
-    const { blocks, validAsOf, ...rest } = UpdateLessonInputSchema.parse({ ...(await request.json()), id });
+    const body = await request.json();
+    const parsed = UpdateLessonInputSchema.safeParse({ ...body, id });
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: describeLessonError(parsed.error, body), details: parsed.error.flatten() },
+        { status: 400 },
+      );
+    }
+    const { blocks, validAsOf, ...rest } = parsed.data;
 
     const lesson = await prisma.$transaction(async (tx) => {
       const before = await tx.lesson.findUniqueOrThrow({ where: { id } });

@@ -10,6 +10,32 @@ export type SectionColor = z.infer<typeof SectionColorSchema>;
 
 /* --- Блоки контенту уроку (contentJson) ---------------------------------- */
 
+/**
+ * Посилання на медіа уроку: повний http(s)-URL (YouTube, Vimeo, зовнішнє
+ * сховище) АБО шлях від кореня сайту (`/media/lessons/2-2/…mp4`).
+ *
+ * Раніше тут стояв `z.string().url()`, який приймає лише повні адреси. А
+ * власні ролики платформи `db:sync-content` записує саме шляхами від кореня —
+ * у базу вони потрапляли повз цю перевірку, і вже потім кожен урок із таким
+ * відео неможливо було зберегти з CMS: хоч що в ньому міняй, сервер відповідав
+ * 400 через відео, якого ніхто не чіпав.
+ *
+ * `//host/…` (протокол-відносне посилання на ЧУЖИЙ сайт) і `javascript:` —
+ * навпаки, відхиляємо: адреса йде в `src` відео чи iframe.
+ */
+export function isMediaUrl(value: string): boolean {
+  // Шлях від кореня сайту, але не `//` — це вже посилання на інший хост.
+  if (/^\/(?!\/)\S*$/.test(value)) return true;
+  // Повна адреса лише по http(s) і з непорожнім хостом. Регулярний вираз, а не
+  // `new URL`: пакет типів збирається без DOM і Node, глобального URL у ньому немає.
+  return /^https?:\/\/[^\s/?#]+(?:[/?#]\S*)?$/i.test(value);
+}
+
+export const MediaUrlSchema = z
+  .string()
+  .trim()
+  .refine(isMediaUrl, 'Має бути повне посилання (https://…) або шлях від кореня сайту (/media/…)');
+
 export const LessonBlockSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('text'), html: z.string() }),
   z.object({
@@ -53,7 +79,7 @@ export const LessonBlockSchema = z.discriminatedUnion('type', [
         Порожній/відсутній URL — це не помилка: показуємо заглушку «тут буде відео»
         з описом із `note`, доки ролик не знято. */
     type: z.literal('video'),
-    url: z.string().url().optional(),
+    url: MediaUrlSchema.optional(),
     caption: z.string().optional(),
     /** Що саме буде у відео — текст заглушки, доки немає url. */
     note: z.string().optional(),
