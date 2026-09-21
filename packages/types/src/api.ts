@@ -614,3 +614,286 @@ export const ImportUsersResponseSchema = z.object({
   rows: z.array(ImportUsersResultRowSchema),
 });
 export type ImportUsersResponse = z.infer<typeof ImportUsersResponseSchema>;
+
+/* ============================================================================
+   Адмін-аналітика: /admin/analytics («Люди» і «Курс») та картка однієї людини.
+
+   Усі числа тут рахуються з історії (Progress, Attempt, ExamAttempt), а не зі
+   збережених лічильників — так само, як їх бачить сам слухач на /progress.
+   Інакше адмін і слухач дивились би на різні цифри про одне й те саме.
+   ========================================================================= */
+
+/** Де людина в курсі. Чотири стани, бо саме їх адмін шукає очима в таблиці. */
+export const LearnerJourneyStatusSchema = z.enum([
+  /** Жодного уроку не завершено. */
+  'NOT_STARTED',
+  /** Щось пройдено, але не всі модулі. */
+  'IN_PROGRESS',
+  /** Усі модулі закриті, сертифіката ще немає (атестація попереду або провалена). */
+  'MODULES_DONE',
+  /** Є чинний сертифікат. */
+  'CERTIFIED',
+]);
+export type LearnerJourneyStatus = z.infer<typeof LearnerJourneyStatusSchema>;
+
+export const LEARNER_STATUS_LABELS: Record<LearnerJourneyStatus, string> = {
+  NOT_STARTED: 'Не починав',
+  IN_PROGRESS: 'Навчається',
+  MODULES_DONE: 'Модулі закрито',
+  CERTIFIED: 'Сертифікований',
+};
+
+/** Сертифікат у списку — стисло, рівно те, що видно в таблиці й картці. */
+export const AdminCertificateRowSchema = z.object({
+  code: z.string(),
+  score: z.number().int(),
+  withHonors: z.boolean(),
+  issuedAt: z.string(),
+  validUntil: z.string(),
+  revoked: z.boolean(),
+  revokedReason: z.string().nullable(),
+});
+export type AdminCertificateRow = z.infer<typeof AdminCertificateRowSchema>;
+
+/** Рядок таблиці людей: усе важливе про одну людину без переходу в картку. */
+export const AdminLearnerRowSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  email: z.string(),
+  role: RoleSchema,
+  position: z.string().nullable(),
+  organizationName: z.string().nullable(),
+  registeredAt: z.string(),
+  /** Остання подія навчання (урок або спроба тесту), не останній вхід. */
+  lastActivityAt: z.string().nullable(),
+  status: LearnerJourneyStatusSchema,
+
+  lessonsCompleted: z.number().int(),
+  lessonsTotal: z.number().int(),
+  modulesCompleted: z.number().int(),
+  modulesTotal: z.number().int(),
+  /** Хвилини саме пройдених уроків. */
+  minutes: z.number().int(),
+
+  quizzesPassed: z.number().int(),
+  quizzesTotal: z.number().int(),
+  quizAttempts: z.number().int(),
+  /** Середній із найкращих балів за складені тести; null — тестів не було. */
+  averageQuizScore: z.number().int().nullable(),
+  /** Частка правильних відповідей по ВСІХ спробах — видно, чи бере з першого разу. */
+  correctAnswersPct: z.number().int().nullable(),
+
+  examAttempts: z.number().int(),
+  examBestScore: z.number().int().nullable(),
+  examPassed: z.boolean(),
+  certificate: AdminCertificateRowSchema.nullable(),
+
+  points: z.number().int(),
+  streak: z.number().int(),
+  longestStreak: z.number().int(),
+  activeDays: z.number().int(),
+
+  /** Де людина стоїть зараз: перший незавершений модуль і урок у ньому. */
+  currentModuleTitle: z.string().nullable(),
+  currentLessonTitle: z.string().nullable(),
+  /** Останній завершений урок — «докуди дійшов». */
+  lastLessonTitle: z.string().nullable(),
+});
+export type AdminLearnerRow = z.infer<typeof AdminLearnerRowSchema>;
+
+/** Сходинка воронки: скільки людей дійшли й скільки це від попередньої сходинки. */
+export const AdminFunnelStepSchema = z.object({
+  key: z.string(),
+  label: z.string(),
+  count: z.number().int(),
+  /** Відсоток від першої сходинки (усі слухачі). */
+  pct: z.number().int(),
+  hint: z.string(),
+});
+export type AdminFunnelStep = z.infer<typeof AdminFunnelStepSchema>;
+
+/** День на графіку активності платформи. */
+export const AdminDailyPointSchema = z.object({
+  date: z.string(),
+  lessons: z.number().int(),
+  quizzes: z.number().int(),
+  /** Скільки різних людей щось робили цього дня. */
+  learners: z.number().int(),
+});
+export type AdminDailyPoint = z.infer<typeof AdminDailyPointSchema>;
+
+export const AdminModuleStatSchema = z.object({
+  slug: z.string(),
+  title: z.string(),
+  sectionTitle: z.string(),
+  order: z.number().int(),
+  isKey: z.boolean(),
+  lessonCount: z.number().int(),
+  /** Почали модуль — завершили в ньому хоча б один урок. */
+  started: z.number().int(),
+  /** Закрили модуль: усі уроки + зарахований тест. */
+  completed: z.number().int(),
+  hasQuiz: z.boolean(),
+  passScore: z.number().int(),
+  quizAttempts: z.number().int(),
+  /** Частка спроб тесту, які зараховано; null — спроб не було. */
+  quizPassRate: z.number().int().nullable(),
+  averageQuizScore: z.number().int().nullable(),
+});
+export type AdminModuleStat = z.infer<typeof AdminModuleStatSchema>;
+
+export const AdminLessonStatSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  moduleTitle: z.string(),
+  sectionTitle: z.string(),
+  order: z.number().int(),
+  /** Скільки людей почали модуль цього уроку. */
+  started: z.number().int(),
+  /** Скільки з них дійшли саме до цього уроку. */
+  completed: z.number().int(),
+  completionPct: z.number().int(),
+  dropoffPct: z.number().int(),
+});
+export type AdminLessonStat = z.infer<typeof AdminLessonStatSchema>;
+
+/** Питання тесту очима платформи: як часто на нього відповідають правильно. */
+export const AdminQuestionStatSchema = z.object({
+  id: z.string(),
+  moduleTitle: z.string(),
+  text: z.string(),
+  answers: z.number().int(),
+  correct: z.number().int(),
+  correctPct: z.number().int(),
+  /** Варіант, який плутають найчастіше; null — усі відповіли правильно. */
+  topWrongOption: z.string().nullable(),
+});
+export type AdminQuestionStat = z.infer<typeof AdminQuestionStatSchema>;
+
+export const AdminOrgStatSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  kind: z.string(),
+  users: z.number().int(),
+  started: z.number().int(),
+  certified: z.number().int(),
+  /** Середній відсоток пройденого курсу по людях організації. */
+  averageProgressPct: z.number().int(),
+});
+export type AdminOrgStat = z.infer<typeof AdminOrgStatSchema>;
+
+export const AdminAnalyticsSchema = z.object({
+  generatedAt: z.string(),
+  totals: z.object({
+    users: z.number().int(),
+    learners: z.number().int(),
+    admins: z.number().int(),
+    organizations: z.number().int(),
+    sections: z.number().int(),
+    modules: z.number().int(),
+    lessons: z.number().int(),
+    questions: z.number().int(),
+  }),
+  engagement: z.object({
+    activeToday: z.number().int(),
+    active7: z.number().int(),
+    active30: z.number().int(),
+    /** Почали, але нічого не робили 14+ днів — саме їх варто гукнути. */
+    dormant: z.number().int(),
+    neverStarted: z.number().int(),
+  }),
+  completion: z.object({
+    lessonsCompleted: z.number().int(),
+    modulesCompleted: z.number().int(),
+    averageCoursePct: z.number().int(),
+    averageLessonsPerLearner: z.number().int(),
+    minutesLearned: z.number().int(),
+  }),
+  quizzes: z.object({
+    attempts: z.number().int(),
+    passRate: z.number().int().nullable(),
+    averageScore: z.number().int().nullable(),
+    correctAnswersPct: z.number().int().nullable(),
+  }),
+  exam: z.object({
+    attempts: z.number().int(),
+    learners: z.number().int(),
+    passed: z.number().int(),
+    passRate: z.number().int().nullable(),
+    averageScore: z.number().int().nullable(),
+  }),
+  certificates: z.object({ active: z.number().int(), revoked: z.number().int() }),
+  funnel: z.array(AdminFunnelStepSchema),
+  daily: z.array(AdminDailyPointSchema),
+  learners: z.array(AdminLearnerRowSchema),
+  modules: z.array(AdminModuleStatSchema),
+  lessons: z.array(AdminLessonStatSchema),
+  questions: z.array(AdminQuestionStatSchema),
+  organizations: z.array(AdminOrgStatSchema),
+});
+export type AdminAnalytics = z.infer<typeof AdminAnalyticsSchema>;
+
+/* --- Картка однієї людини ---------------------------------------------- */
+
+export const AdminQuizAttemptRowSchema = z.object({
+  moduleTitle: z.string(),
+  moduleSlug: z.string(),
+  score: z.number().int(),
+  passScore: z.number().int(),
+  passed: z.boolean(),
+  correct: z.number().int(),
+  total: z.number().int(),
+  createdAt: z.string(),
+});
+export type AdminQuizAttemptRow = z.infer<typeof AdminQuizAttemptRowSchema>;
+
+export const AdminExamAttemptRowSchema = z.object({
+  score: z.number().int(),
+  securityScore: z.number().int(),
+  passed: z.boolean(),
+  createdAt: z.string(),
+});
+export type AdminExamAttemptRow = z.infer<typeof AdminExamAttemptRowSchema>;
+
+/** Помилка з ОСТАННЬОЇ спроби тесту — те, що людина досі розуміє не так. */
+export const AdminMistakeSchema = z.object({
+  moduleTitle: z.string(),
+  questionText: z.string(),
+  pickedText: z.string(),
+  correctText: z.string(),
+  createdAt: z.string(),
+});
+export type AdminMistake = z.infer<typeof AdminMistakeSchema>;
+
+export const AdminLessonEventSchema = z.object({
+  title: z.string(),
+  moduleTitle: z.string(),
+  completedAt: z.string(),
+});
+export type AdminLessonEvent = z.infer<typeof AdminLessonEventSchema>;
+
+export const AdminLearnerDetailSchema = z.object({
+  user: z.object({
+    id: z.string(),
+    name: z.string(),
+    email: z.string(),
+    role: RoleSchema,
+    position: z.string().nullable(),
+    organizationName: z.string().nullable(),
+    registeredAt: z.string(),
+    lastSeenAt: z.string().nullable(),
+    activeCourseTitle: z.string().nullable(),
+    banned: z.boolean(),
+  }),
+  /** Той самий розрахунок, що бачить сам слухач на /progress. */
+  stats: LearnerStatsSchema,
+  correctAnswersPct: z.number().int().nullable(),
+  currentModuleTitle: z.string().nullable(),
+  currentLessonTitle: z.string().nullable(),
+  quizHistory: z.array(AdminQuizAttemptRowSchema),
+  examHistory: z.array(AdminExamAttemptRowSchema),
+  mistakes: z.array(AdminMistakeSchema),
+  recentLessons: z.array(AdminLessonEventSchema),
+  certificates: z.array(AdminCertificateRowSchema),
+});
+export type AdminLearnerDetail = z.infer<typeof AdminLearnerDetailSchema>;

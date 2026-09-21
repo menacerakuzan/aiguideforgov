@@ -1,57 +1,144 @@
-import { getLessonDropoff } from '@proai/analytics';
-import { ClayCard, ProgressBar } from '@proai/ui';
+import { getAdminAnalytics } from '@proai/analytics';
+import { dayStamp } from '@proai/learning';
+import { Award, Book, Chart, Clock, Flame, Users } from '@proai/icons';
+import { ClayCard } from '@proai/ui';
 import { requirePageAdmin, requirePageUser } from '@/lib/page-guard';
+import { AnalyticsRoster } from '@/components/admin/analytics-roster';
+import {
+  AnalyticsTabs,
+  DataRow,
+  Funnel,
+  SectionHeading,
+  StatTile,
+  formatMinutes,
+} from '@/components/admin/analytics-ui';
 
-export default async function AdminAnalyticsPage() {
+export const metadata = { title: 'Аналітика: люди' };
+
+/**
+ * Аналітика → «Люди».
+ *
+ * Сторінка відповідає на два питання адміністратора в тому порядку, в якому
+ * він їх ставить: «як справи загалом» (плитки й воронка) і «як справи в цієї
+ * конкретної людини» (таблиця, звідки клік веде в її картку).
+ */
+export default async function AdminAnalyticsPeoplePage() {
   const me = await requirePageUser();
   requirePageAdmin(me);
 
-  const { rows } = await getLessonDropoff();
-  const withData = rows.filter((r) => r.reached > 0).sort((a, b) => b.dropoffPct - a.dropoffPct);
+  const data = await getAdminAnalytics();
+  const today = dayStamp(new Date());
+
+  const organizations = [...new Set(data.learners.map((l) => l.organizationName).filter(Boolean))].sort() as string[];
 
   return (
     <div className="pt-8 pb-16">
       <header className="mb-6">
-        <h1 className="font-display text-3xl font-bold">Аналітика: відвал по уроках</h1>
-        <p className="mt-1 text-ink-soft">
-          Для кожного уроку — скільки людей почали модуль проти скільки дійшли саме до нього. Найгірші зверху.
+        <h1 className="font-display text-3xl font-bold">Аналітика</h1>
+        <p className="mt-1 max-w-[70ch] text-ink-soft">
+          Усі числа порахувано з історії навчання — завершених уроків і спроб тестів, — тому вони збігаються з тим,
+          що кожна людина бачить у себе на сторінці «Прогрес».
         </p>
       </header>
 
-      {withData.length === 0 ? (
-        <ClayCard>Ще немає даних — жоден урок не пройдено.</ClayCard>
-      ) : (
-        <div className="flex flex-col gap-3">
-          {withData.map((r) => (
-            <ClayCard key={r.lessonId} padding="sm" className="flex flex-col gap-2">
-              <div className="flex flex-wrap items-center justify-between gap-2 px-2">
-                <div>
-                  <p className="font-semibold">{r.lessonTitle}</p>
-                  <p className="text-xs text-ink-mute">{r.moduleTitle}</p>
-                </div>
-                <span
-                  className={`rounded-full px-3 py-1 text-xs font-bold ${
-                    r.dropoffPct >= 40
-                      ? 'bg-red-tint text-red-deep'
-                      : r.dropoffPct >= 15
-                        ? 'bg-amber-tint text-amber-deep'
-                        : 'bg-green-tint text-green-deep'
-                  }`}
-                >
-                  {r.dropoffPct}% відвалу
-                </span>
-              </div>
-              <div className="px-2">
-                <ProgressBar
-                  color={r.dropoffPct >= 40 ? 'blue' : 'green'}
-                  value={(r.completed / r.reached) * 100}
-                  valueLabel={`${r.completed} з ${r.reached} дійшли`}
-                />
-              </div>
-            </ClayCard>
-          ))}
+      <AnalyticsTabs active="/admin/analytics" />
+
+      <div className="mb-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatTile
+          icon={<Users size={16} />}
+          color="blue"
+          value={`${data.totals.learners}`}
+          label="слухачів"
+          hint={`${data.engagement.neverStarted} ще не починали`}
+        />
+        <StatTile
+          icon={<Flame size={16} />}
+          color="sun"
+          variant="sun"
+          value={`${data.engagement.active7}`}
+          label="активні за 7 днів"
+          hint={`сьогодні — ${data.engagement.activeToday}, за 30 днів — ${data.engagement.active30}`}
+        />
+        <StatTile
+          icon={<Chart size={16} />}
+          color="green"
+          value={`${data.completion.averageCoursePct}%`}
+          label="середній прогрес курсу"
+          hint={`у середньому ${data.completion.averageLessonsPerLearner} з ${data.totals.lessons} уроків`}
+        />
+        <StatTile
+          icon={<Award size={16} />}
+          color="gold"
+          variant="gold"
+          value={`${data.certificates.active}`}
+          label="чинних сертифікатів"
+          hint={data.certificates.revoked > 0 ? `відкликано: ${data.certificates.revoked}` : 'жодного не відкликано'}
+        />
+      </div>
+
+      <div className="mb-5 grid gap-5 lg:grid-cols-[1.4fr_1fr]">
+        <ClayCard>
+          <SectionHeading
+            title="Шлях слухача"
+            hint="Скільки людей доходять до кожного етапу. Найбільший розрив між сусідніми смугами — і є місце, де курс втрачає людей."
+          />
+          <Funnel steps={data.funnel} />
+        </ClayCard>
+
+        <div className="flex flex-col gap-5">
+          <ClayCard>
+            <SectionHeading title="Хто потребує уваги" hint="Люди, до яких варто написати або нагадати." />
+            <div className="flex flex-col gap-3">
+              <DataRow label="Зареєструвались, але не почали" value={`${data.engagement.neverStarted}`} />
+              <DataRow label="Почали й зникли (14+ днів)" value={`${data.engagement.dormant}`} />
+              <DataRow
+                label="Пройшли модулі, але без сертифіката"
+                value={`${data.funnel.find((s) => s.key === 'allModules')!.count - data.certificates.active}`}
+              />
+            </div>
+            <p className="mt-4 text-[13px] text-ink-soft">
+              Відібрати цих людей у таблиці нижче можна фільтром «Стан навчання».
+            </p>
+          </ClayCard>
+
+          <ClayCard padding="sm">
+            <div className="flex flex-col gap-3">
+              <DataRow
+                label="Уроків пройдено разом"
+                value={
+                  <span>
+                    {data.completion.lessonsCompleted}{' '}
+                    <span className="text-[13px] font-semibold text-ink-mute">
+                      ({formatMinutes(data.completion.minutesLearned)})
+                    </span>
+                  </span>
+                }
+              />
+              <DataRow label="Модулів закрито разом" value={`${data.completion.modulesCompleted}`} />
+              <DataRow
+                label="Правильних відповідей у тестах"
+                value={data.quizzes.correctAnswersPct === null ? '—' : `${data.quizzes.correctAnswersPct}%`}
+              />
+            </div>
+          </ClayCard>
         </div>
-      )}
+      </div>
+
+      <ClayCard padding="sm">
+        <div className="px-2">
+          <SectionHeading
+            title="Люди"
+            hint="Один рядок — одна людина: скільки пройдено, які бали, де зупинилась, чи є сертифікат."
+          />
+        </div>
+        <AnalyticsRoster rows={data.learners} today={today} organizations={organizations} />
+      </ClayCard>
+
+      <p className="mt-6 flex items-center gap-2 px-2 text-[13px] text-ink-mute">
+        <Book size={14} /> Знаменники («з 49 уроків») рахують лише відкриті курси — закритий курс не роздуває цифри.
+        <Clock size={14} className="ml-2" /> Дані станом на{' '}
+        {new Date(data.generatedAt).toLocaleString('uk-UA', { hour: '2-digit', minute: '2-digit' })}.
+      </p>
     </div>
   );
 }

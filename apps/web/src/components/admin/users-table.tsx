@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ROLES, ROLE_LABELS, type Role } from '@proai/types';
 import { Award, Search } from '@proai/icons';
@@ -88,8 +89,12 @@ export function UsersTable({ users, organizations = [] }: { users: Row[]; organi
             {filtered.map((u) => (
               <TableRow key={u.id}>
                 <TableCell>
-                  <p className="font-semibold text-ink">{u.name}</p>
-                  <p className="text-xs text-ink-mute">{u.email}</p>
+                  {/* Імʼя веде в аналітику людини: звідси адмін керує роллю й
+                      організацією, а «як у неї справи» живе окремою сторінкою. */}
+                  <Link href={`/admin/analytics/user/${u.id}`} className="block hover:underline">
+                    <p className="font-semibold text-ink">{u.name}</p>
+                    <p className="text-xs text-ink-mute">{u.email}</p>
+                  </Link>
                 </TableCell>
                 <TableCell className="text-ink-soft">
                   <Select

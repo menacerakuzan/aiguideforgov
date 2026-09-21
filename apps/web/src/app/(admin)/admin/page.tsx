@@ -58,7 +58,7 @@ export default async function AdminOverviewPage() {
           </Button>
           <Button variant="ghost" asChild>
             <Link href="/admin/analytics">
-              <Chart size={17} /> Відвал по уроках
+              <Chart size={17} /> Аналітика
             </Link>
           </Button>
         </div>
