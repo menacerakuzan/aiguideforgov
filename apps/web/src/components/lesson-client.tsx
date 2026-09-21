@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Lesson, LessonBlock } from '@proai/types';
-import { ArrowLeft, Check, Clock, Copy, Doc, Play, Spark, TlCaution, TlForbid, TlSafe, Upload } from '@proai/icons';
+import { ArrowLeft, Check, Clock, Copy, Doc, Lock, Play, Spark, TlCaution, TlForbid, TlSafe, Upload } from '@proai/icons';
 import {
   Button,
   ClayCard,
@@ -25,8 +25,20 @@ import { LessonSkeleton } from '@/components/lesson-skeleton';
  * прогресу й конфеті. Але сам урок приходить готовим з серверного компонента
  * (`initialLesson`) — раніше сторінка вантажила JS і аж потім питала
  * /api/lessons/<id>, через що текст уроку зʼявлявся помітно пізніше за каркас.
+ *
+ * `demo` — гостьовий показ на `/demo`: той самий урок, але без жодного запиту
+ * до API. Немає повторного завантаження, завершення, коментарів і виходу до
+ * модуля; повернутися можна лише на головну, а внизу — запрошення зареєструватися.
  */
-export function LessonClient({ id, initialLesson }: { id: string; initialLesson: Lesson }) {
+export function LessonClient({
+  id,
+  initialLesson,
+  demo = false,
+}: {
+  id: string;
+  initialLesson: Lesson;
+  demo?: boolean;
+}) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const fireConfetti = useFireConfetti();
@@ -35,6 +47,8 @@ export function LessonClient({ id, initialLesson }: { id: string; initialLesson:
     queryKey: ['lessons', id],
     queryFn: () => api.get<{ lesson: Lesson }>(`/api/lessons/${id}`),
     initialData: { lesson: initialLesson },
+    // Гість не має сесії: /api/lessons відповів би 401, і урок змінився б на помилку.
+    enabled: !demo,
   });
 
   /* Відповіді на мікроперевірки: ключ — індекс блоку, значення — чи відповіли правильно.
@@ -77,11 +91,16 @@ export function LessonClient({ id, initialLesson }: { id: string; initialLesson:
     <article className="mx-auto max-w-[720px] pt-8">
       <div className="mb-6 flex flex-wrap items-center gap-3">
         <Link
-          href={`/module/${lesson.moduleSlug}`}
+          href={demo ? '/' : `/module/${lesson.moduleSlug}`}
           className="inline-flex items-center gap-1.5 rounded-full bg-surface px-4 py-2 text-sm font-semibold text-ink-soft shadow-[0_9px_18px_-9px_rgba(38,34,74,0.14)]"
         >
-          <ArrowLeft size={14} /> {lesson.moduleTitle}
+          <ArrowLeft size={14} /> {demo ? 'На головну' : lesson.moduleTitle}
         </Link>
+        {demo && (
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-tint px-3 py-1.5 text-xs font-bold text-blue-deep">
+            <Spark size={13} /> Демо-урок
+          </span>
+        )}
         <span className="ml-auto inline-flex items-center gap-1.5 rounded-full bg-sun-tint px-3 py-1.5 text-xs font-bold text-sun-deep">
           <Clock size={13} /> {lesson.minutes} хв
         </span>
@@ -109,44 +128,79 @@ export function LessonClient({ id, initialLesson }: { id: string; initialLesson:
         ))}
       </div>
 
-      <ClayCard className="mt-9 text-center">
-        <h2 className="mb-1.5 text-lg font-bold">Готові рухатись далі?</h2>
-        {lesson.nextLesson && (
-          <p className="mb-5 text-sm text-ink-soft">
-            Наступний урок: {lesson.nextLesson.title} · {lesson.nextLesson.minutes} хв
-          </p>
-        )}
-        <Button
-          variant="green"
-          size="lg"
-          disabled={complete.isPending || !checksPassed}
-          onClick={() => complete.mutate()}
-        >
-          <Check size={18} /> {complete.isPending ? 'Зберігаємо…' : 'Завершити урок'}
-        </Button>
+      {demo ? (
+        <DemoFinale />
+      ) : (
+        <ClayCard className="mt-9 text-center">
+          <h2 className="mb-1.5 text-lg font-bold">Готові рухатись далі?</h2>
+          {lesson.nextLesson && (
+            <p className="mb-5 text-sm text-ink-soft">
+              Наступний урок: {lesson.nextLesson.title} · {lesson.nextLesson.minutes} хв
+            </p>
+          )}
+          <Button
+            variant="green"
+            size="lg"
+            disabled={complete.isPending || !checksPassed}
+            onClick={() => complete.mutate()}
+          >
+            <Check size={18} /> {complete.isPending ? 'Зберігаємо…' : 'Завершити урок'}
+          </Button>
 
-        {!checksPassed && (
-          <p className="mt-4 text-sm font-semibold text-ink-soft">
-            {gatedCount > checkCount ? 'Спершу пройдіть завдання уроку' : 'Спершу дайте відповідь на питання'} —{' '}
-            <span className="text-blue-deep">
-              {solvedCount} з {gatedCount}
-            </span>
-            .{' '}
-            <button
-              type="button"
-              className="underline underline-offset-2 hover:text-blue"
-              onClick={() =>
-                document.getElementById('lesson-checks')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-              }
-            >
-              Перейти до питань
-            </button>
-          </p>
-        )}
-      </ClayCard>
+          {!checksPassed && (
+            <p className="mt-4 text-sm font-semibold text-ink-soft">
+              {gatedCount > checkCount ? 'Спершу пройдіть завдання уроку' : 'Спершу дайте відповідь на питання'} —{' '}
+              <span className="text-blue-deep">
+                {solvedCount} з {gatedCount}
+              </span>
+              .{' '}
+              <button
+                type="button"
+                className="underline underline-offset-2 hover:text-blue"
+                onClick={() =>
+                  document.getElementById('lesson-checks')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                }
+              >
+                Перейти до питань
+              </button>
+            </p>
+          )}
+        </ClayCard>
+      )}
 
-      <LessonComments lessonId={id} />
+      {!demo && <LessonComments lessonId={id} />}
     </article>
+  );
+}
+
+/**
+ * Кінець демо-уроку замість «Завершити урок» і коментарів: прогрес гостя нікуди
+ * не пишеться, тож завершувати нічого. Після реєстрації урок проходиться заново,
+ * уже з прогресом.
+ */
+function DemoFinale() {
+  return (
+    <ClayCard variant="blue" className="relative mt-9 overflow-hidden !p-9 text-center sm:!p-11">
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-bold text-white">
+        <Spark size={13} /> Це був перший урок із 47
+      </span>
+      <h2 className="mt-4 font-display text-[26px] font-bold text-white sm:text-[32px]">Сподобалось? Далі — вже з вами</h2>
+      <p className="mx-auto mt-3 max-w-[46ch] text-[16px] text-white/90">
+        Зареєструйтесь, щоб відкрити решту курсу: практику на справжніх документах, правила безпеки, тести й
+        сертифікат. Прогрес, збережені промпти та коментарі — у вашому кабінеті.
+      </p>
+      <div className="mt-7 flex flex-wrap justify-center gap-3.5">
+        <Button asChild variant="sun" size="lg">
+          <Link href="/register">Зареєструватися</Link>
+        </Button>
+        <Button asChild variant="ghost" size="lg">
+          <Link href="/login">Увійти</Link>
+        </Button>
+      </div>
+      <p className="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-white/80">
+        <Lock size={13} /> У демо прогрес не зберігається — після реєстрації урок почнеться спочатку.
+      </p>
+    </ClayCard>
   );
 }
 

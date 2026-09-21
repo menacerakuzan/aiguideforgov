@@ -5,6 +5,7 @@ import { ThemeToggle } from '@/components/theme-toggle';
 const LINKS = [
   { href: '/#svitlofor', label: 'Світлофор даних' },
   { href: '/#moduli', label: 'Модулі' },
+  { href: '/demo', label: 'Демо-урок' },
   { href: '/login', label: 'Увійти' },
 ];
 

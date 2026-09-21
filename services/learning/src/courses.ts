@@ -248,4 +248,45 @@ export async function getLesson(userId: string, lessonId: string): Promise<Lesso
   };
 }
 
+/**
+ * Демонстраційний урок — 1.1 базового курсу, відкритий гостям без реєстрації.
+ *
+ * Шукаємо за slug, а не за id: id — cuid і міняється після кожного `db:seed`,
+ * а slug зафіксовано в `prisma/src/content/lessons-module-1.ts`.
+ */
+export const DEMO_LESSON_SLUG = 'demonstratsiya-yak-tse-vyhlyadaie';
+
+/**
+ * Урок 1.1 для гостя на `/demo`. Без userId, тож без прогресу й замків:
+ * `completed` завжди false, а `nextLesson` — null, бо з демо далі в курс
+ * не пускаємо. Відкривається лише цей один slug — решта уроків, як і раніше,
+ * вимагає сесії.
+ */
+export async function getDemoLesson(): Promise<Lesson | null> {
+  const lesson = await prisma.lesson.findUnique({
+    where: { slug: DEMO_LESSON_SLUG },
+    include: {
+      module: { include: { section: { select: { slug: true, course: { select: { comingSoon: true } } } } } },
+    },
+  });
+  if (!lesson || lesson.module.section.course.comingSoon) return null;
+
+  return {
+    id: lesson.id,
+    slug: lesson.slug,
+    title: lesson.title,
+    minutes: lesson.minutes,
+    order: lesson.order,
+    kind: lesson.kind,
+    completed: false,
+    moduleId: lesson.moduleId,
+    moduleSlug: lesson.module.slug,
+    moduleTitle: lesson.module.title,
+    sectionSlug: lesson.module.section.slug,
+    blocks: JSON.parse(lesson.content) as LessonBlock[],
+    validAsOf: lesson.validAsOf ? lesson.validAsOf.toISOString() : null,
+    nextLesson: null,
+  };
+}
+
 export { isModuleCompleted };

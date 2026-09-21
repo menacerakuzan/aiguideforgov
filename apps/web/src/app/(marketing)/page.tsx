@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Award, Spark, TlCaution, TlForbid, TlSafe } from '@proai/icons';
+import { Award, Check, Clock, Play, Spark, TlCaution, TlForbid, TlSafe } from '@proai/icons';
 import { Button, ClayCard, Orb, Reveal } from '@proai/ui';
 import { LandingStats } from '@/components/landing-stats';
 import { LandingSectionsPreview } from '@/components/landing-sections-preview';
@@ -39,6 +39,11 @@ export default function LandingPage() {
             <div className="mt-8 flex flex-wrap gap-3.5">
               <Button asChild variant="blue" size="lg">
                 <Link href="/register">Почати урок</Link>
+              </Button>
+              <Button asChild variant="ghost" size="lg">
+                <Link href="/demo">
+                  <Play size={18} /> Спробувати без реєстрації
+                </Link>
               </Button>
             </div>
 
@@ -131,6 +136,73 @@ export default function LandingPage() {
               </ClayCard>
             </Reveal>
           </div>
+        </div>
+      </section>
+
+      {/* ============================ ДЕМО-УРОК ============================ */}
+      <section id="demo" className="px-6 pb-20">
+        <div className="mx-auto max-w-[1160px]">
+          <Reveal>
+            <ClayCard className="grid items-center gap-10 !p-8 sm:!p-12 lg:grid-cols-[1.1fr_.9fr]">
+              <div>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-tint px-3 py-1.5 text-xs font-bold text-blue-deep">
+                  <Spark size={13} /> Без реєстрації
+                </span>
+                <h2 className="mt-4 font-display text-[30px] leading-[1.15] font-bold sm:text-[38px]">
+                  Подивіться, як це працює, ще до реєстрації
+                </h2>
+                <p className="mt-3.5 max-w-[52ch] text-lg text-ink-soft">
+                  Перший урок курсу відкритий для всіх: три звичайні задачі держслужбовця, зроблені з помічником-ШІ, —
+                  справжнім відео, з документами й запитами, які можна повторити.
+                </p>
+                <ul className="mt-6 grid gap-2.5 text-[15.5px]">
+                  {[
+                    'Лист-відповідь на звернення громадянки',
+                    'Зведення звіту на 48 сторінок і перевірка цифр за хвилину',
+                    'Протокол наради з аудіозапису з дорученнями',
+                  ].map((item) => (
+                    <li key={item} className="flex items-start gap-2.5">
+                      <span className="mt-0.5 grid h-6 w-6 flex-none place-items-center rounded-full bg-green-tint text-green-deep">
+                        <Check size={14} />
+                      </span>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+                <Button asChild variant="blue" size="lg" className="mt-8">
+                  <Link href="/demo">
+                    <Play size={18} /> Відкрити демо-урок
+                  </Link>
+                </Button>
+              </div>
+
+              <Link
+                href="/demo"
+                aria-label="Відкрити демо-урок"
+                className="group relative block rounded-[26px] border-[2.5px] border-ink bg-paper-2 p-6 shadow-[4px_5px_0_0_var(--color-ink)] transition-transform hover:-translate-y-1"
+              >
+                <div className="relative grid aspect-video place-items-center overflow-hidden rounded-[18px] border-2 border-ink bg-ink">
+                  <div
+                    className="pointer-events-none absolute inset-0"
+                    style={{ background: 'radial-gradient(circle at 30% 20%, rgba(90,130,255,0.55), rgba(38,34,74,0) 60%), radial-gradient(circle at 80% 90%, rgba(255,210,110,0.4), rgba(38,34,74,0) 55%)' }}
+                  />
+                  <span className="relative grid h-16 w-16 place-items-center rounded-full border-[2.5px] border-ink bg-sun text-sun-deep shadow-[3px_4px_0_0_var(--color-ink)] transition-transform group-hover:scale-110">
+                    <Play size={26} />
+                  </span>
+                </div>
+                <p className="mt-4 text-xs font-bold tracking-wide text-ink-mute uppercase">Урок 1.1 · Основи ШІ</p>
+                <p className="mt-1 font-display text-lg leading-snug font-bold">Демонстрація: як це виглядає в реальній роботі</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-sun-tint px-3 py-1 text-xs font-bold text-sun-deep">
+                    <Clock size={12} /> 8 хв
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-green-tint px-3 py-1 text-xs font-bold text-green-deep">
+                    <Check size={12} /> Відкрито для всіх
+                  </span>
+                </div>
+              </Link>
+            </ClayCard>
+          </Reveal>
         </div>
       </section>
 
