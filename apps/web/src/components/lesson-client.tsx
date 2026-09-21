@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, useId, useState } from 'react';
+import { Fragment, useEffect, useId, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -306,10 +306,33 @@ function toEmbedUrl(url: string): string {
 
 function VideoBlock({ block }: { block: Extract<LessonBlock, { type: 'video' }> }) {
   const { url, caption, note, duration } = block;
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [missing, setMissing] = useState(false);
+
+  /* Файл за посиланням не завантажився. Так буває штатно: посилання в урок
+     ставлять разом зі сценарієм зйомки, а сам ролик змонтують і докладуть у
+     public/media пізніше (медіа доставляється окремо від git). Без цього
+     слухач бачив би замість заглушки браузерне «No video with supported
+     format and MIME type found».
+
+     Подію error можна пропустити: сторінка приходить із сервера, і браузер
+     встигає спробувати завантажити відео ДО гідратації, коли React ще не
+     навісив onError. Тому після монтування ще й дивимось на `video.error` —
+     він з'являється лише після невдачі. networkState тут навмисно не
+     перевіряємо: NETWORK_NO_SOURCE браузер ставить і на старті завантаження
+     цілком робочого ролика, і такий ролик підмінився б заглушкою. */
+  //
+  // Стан ВИЗНАЧАЄМО заново при кожній зміні url, а не лише вмикаємо: Next
+  // перевикористовує компонент при переході між уроками одного маршруту, і
+  // «зламане» відео з попереднього уроку інакше ховало б справне в наступному
+  // на тій самій позиції. Якщо новий файл теж не завантажиться, його спіймає onError.
+  useEffect(() => {
+    setMissing(Boolean(videoRef.current?.error));
+  }, [url]);
 
   /* Ролика ще немає — показуємо заглушку з описом того, що в ньому буде.
      Це штатний стан під час виробництва курсу, а не помилка контенту. */
-  if (!url) {
+  if (!url || missing) {
     return (
       <figure>
         <div className="media-ph media-ph-video">
@@ -328,7 +351,7 @@ function VideoBlock({ block }: { block: Extract<LessonBlock, { type: 'video' }> 
     <figure>
       <div className="relative aspect-video overflow-hidden rounded-[26px] bg-ink">
         {isDirectVideoFile(url) ? (
-          <video src={url} controls className="h-full w-full" />
+          <video ref={videoRef} src={url} controls onError={() => setMissing(true)} className="h-full w-full" />
         ) : (
           <iframe
             src={toEmbedUrl(url)}
@@ -346,8 +369,26 @@ function VideoBlock({ block }: { block: Extract<LessonBlock, { type: 'video' }> 
 
 function ImageBlock({ block }: { block: Extract<LessonBlock, { type: 'image' }> }) {
   const { src, alt, caption, note } = block;
+  const imgRef = useRef<HTMLImageElement>(null);
+  const [missing, setMissing] = useState(false);
 
-  if (!src) {
+  /* Файл за посиланням не завантажився — показуємо ту саму заглушку, що й
+     для ще не знятого кадру. Інакше браузер малює alt-текст усередині рамки
+     скріншота, стиснутої до одного рядка, і це виглядає як дивний заголовок у
+     обведенні. Причина та сама, що й у VideoBlock: посилання в урок ставлять
+     раніше, ніж кадр знято й докладено в public/media.
+
+     Як і з відео, подія error могла статися до гідратації. Зламане зображення
+     браузер позначає як complete із naturalWidth 0; ще не довантажене має
+     complete=false, тож справний кадр заглушкою не підміниться. */
+  //
+  // Як і у відео, стан визначаємо заново при зміні src — див. коментар у VideoBlock.
+  useEffect(() => {
+    const img = imgRef.current;
+    setMissing(Boolean(img?.complete && img.naturalWidth === 0));
+  }, [src]);
+
+  if (!src || missing) {
     return (
       <figure>
         <div className="media-ph media-ph-image">
@@ -366,8 +407,10 @@ function ImageBlock({ block }: { block: Extract<LessonBlock, { type: 'image' }> 
       {/* eslint-disable-next-line @next/next/no-img-element -- скріншоти уроків лежать
           у /public і не потребують оптимізації next/image */}
       <img
+        ref={imgRef}
         src={src}
         alt={alt}
+        onError={() => setMissing(true)}
         className="w-full rounded-[26px] border-[2.5px] border-ink shadow-[4px_5px_0_0_var(--color-ink)]"
       />
       {caption && <figcaption className="mt-2.5 text-sm text-ink-soft">{caption}</figcaption>}

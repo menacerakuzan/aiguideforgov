@@ -33,9 +33,34 @@ const SVG_ATTRS = [
   'fill', 'fill-rule', 'fill-opacity', 'stroke', 'stroke-width', 'stroke-linecap',
   'stroke-linejoin', 'stroke-dasharray', 'opacity',
   'font-size', 'font-weight', 'font-family', 'text-anchor', 'dominant-baseline',
+  // Градієнти: без них кольорові логотипи інструментів (Gemini, Copilot, Gamma,
+  // Canva, Ideogram) лишались порожніми кружками — див. GRADIENT_TAGS нижче.
+  'gradientUnits', 'offset', 'stop-color', 'stop-opacity',
 ];
 
+/**
+ * `id` дозволений ЛИШЕ на градієнтах: на них посилається `fill="url(#…)"`, і
+ * без id заливка вказує в порожнечу — фігура просто не зафарбовується.
+ *
+ * На будь-якому іншому елементі id лишається забороненим: довільний id в
+ * авторському HTML — це DOM clobbering (елемент із id стає глобальною змінною
+ * window) і колізії з id самого застосунку. Тому й тут значення обмежене:
+ * латиниця, цифри й дефіс, починається з літери.
+ */
+const GRADIENT_TAGS = ['linearGradient', 'radialGradient'];
+const SAFE_ID = /^[a-z][a-z0-9-]{0,63}$/i;
+
+/** Довжина в CSS: число з одиницею. Без calc(), var() і всього, що обчислюється. */
+const LENGTH = /^\d+(\.\d+)?(px|%|rem|em)$/;
+
 const OPTIONS: sanitizeHtml.IOptions = {
+  // Регістр імен атрибутів зберігаємо. Типово парсер переводить їх у нижній
+  // регістр, і `viewBox` ставав `viewbox` — а allow-list порівнює дослівно,
+  // тож атрибут мовчки відкидався. SVG без viewBox браузер малює у стандартній
+  // рамці 150 px заввишки без масштабування: кожна діаграма уроків, вища за
+  // 150, втрачала низ (у 1.1 — рядок «Разом»). На безпеку це не впливає:
+  // `onClick` так само не збігається з allow-list, як і `onclick`.
+  parser: { lowerCaseAttributeNames: false },
   allowedTags: [
     'p', 'br', 'hr',
     'strong', 'b', 'em', 'i', 'u', 's', 'mark', 'sub', 'sup',
@@ -53,23 +78,39 @@ const OPTIONS: sanitizeHtml.IOptions = {
     td: ['colspan', 'rowspan'],
     th: ['colspan', 'rowspan', 'scope'],
     ...Object.fromEntries(SVG_TAGS.map((tag) => [tag, [...SVG_ATTRS, 'class', 'aria-hidden', 'role']])),
+    ...Object.fromEntries(GRADIENT_TAGS.map((tag) => [tag, [...SVG_ATTRS, 'class', 'aria-hidden', 'role', 'id']])),
   },
   // javascript: і data: у href — класичний обхід; лишаємо лише безпечні схеми.
   allowedSchemes: ['http', 'https', 'mailto', 'tel'],
   allowedSchemesByTag: { img: ['http', 'https', 'data'] },
   allowProtocolRelative: false,
-  // Інлайновий style дозволений вузько: лише кольори й вирівнювання,
-  // жодних url(), position чи інших властивостей, якими можна перекрити сторінку.
+  // Інлайновий style дозволений вузько: кольори, вирівнювання й кілька
+  // властивостей розміру та відступу, якими автори центрують SVG-діаграми
+  // (`max-width:520px;display:block;margin:0 auto`). Жодних url(), position,
+  // z-index чи інших властивостей, якими можна перекрити сторінку.
   allowedStyles: {
     '*': {
       color: [/^#[0-9a-f]{3,8}$/i, /^rgba?\([\d\s.,%]+\)$/i, /^var\(--[\w-]+\)$/],
       'background-color': [/^#[0-9a-f]{3,8}$/i, /^rgba?\([\d\s.,%]+\)$/i, /^var\(--[\w-]+\)$/],
       'text-align': [/^(left|right|center|justify)$/],
       'font-weight': [/^(normal|bold|[1-9]00)$/],
-      width: [/^\d+(\.\d+)?(px|%|rem|em)$/],
+      width: [LENGTH],
+      'max-width': [LENGTH],
+      display: [/^(block|inline-block|inline)$/],
+      margin: [/^(0|auto|\d+(\.\d+)?(px|%|rem|em))(\s+(0|auto|\d+(\.\d+)?(px|%|rem|em))){0,3}$/],
     },
   },
   transformTags: {
+    // id градієнта з незвичним значенням прибираємо ще до allow-list.
+    ...Object.fromEntries(
+      GRADIENT_TAGS.map((tag) => [
+        tag,
+        (tagName: string, attribs: sanitizeHtml.Attributes) => {
+          const { id, ...rest } = attribs;
+          return { tagName, attribs: id && SAFE_ID.test(id) ? { ...rest, id } : rest };
+        },
+      ]),
+    ),
     // Зовнішнє посилання без noopener лишає відкриту сторінку доступною
     // через window.opener — примусово закриваємо це на кожному <a>.
     a: (tagName, attribs) => ({
