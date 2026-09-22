@@ -43,6 +43,12 @@ const ServerEnvSchema = z.object({
   NEXT_PUBLIC_APP_URL: z.string().url().optional(),
   /** Кілька доменів через кому — для стенду чи прев'ю. */
   TRUSTED_ORIGINS: z.string().optional(),
+  /**
+   * Проксі між людиною й застосунком (IP або CIDR через кому). Потрібні, щоб
+   * обмеження частоти рахувало спроби кожної людини окремо — див.
+   * services/auth/src/instance.ts. Порожньо — довіряємо локальним і приватним мережам.
+   */
+  TRUSTED_PROXIES: z.string().optional(),
 });
 
 export type ServerEnv = z.infer<typeof ServerEnvSchema>;
