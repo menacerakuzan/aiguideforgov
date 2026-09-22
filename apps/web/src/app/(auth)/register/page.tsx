@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
@@ -19,7 +19,17 @@ interface OrganizationOption {
 }
 
 export default function RegisterPage() {
+  // useSearchParams вимагає межі Suspense — інакше Next не збере сторінку.
+  return (
+    <Suspense>
+      <RegisterForm />
+    </Suspense>
+  );
+}
+
+function RegisterForm() {
   const router = useRouter();
+  const params = useSearchParams();
   const [serverError, setServerError] = useState<string | null>(null);
 
   const { data } = useQuery({
@@ -35,7 +45,12 @@ export default function RegisterPage() {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<RegisterInput>({ resolver: zodResolver(RegisterInputSchema) });
+  } = useForm<RegisterInput>({
+    resolver: zodResolver(RegisterInputSchema),
+    // Пошта з форми входу («акаунта немає — зареєструйтесь»): не змушуємо
+    // набирати її вдруге.
+    defaultValues: { email: params.get('email') ?? '' },
+  });
 
   const onSubmit = handleSubmit(async (values) => {
     setServerError(null);

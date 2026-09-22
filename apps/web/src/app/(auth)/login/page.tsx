@@ -14,6 +14,8 @@ function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
   const [serverError, setServerError] = useState<string | null>(null);
+  /** Пошта, якої немає в системі, — щоб одразу запропонувати реєстрацію з нею. */
+  const [unknownEmail, setUnknownEmail] = useState<string | null>(null);
 
   const {
     register,
@@ -23,11 +25,14 @@ function LoginForm() {
 
   const onSubmit = handleSubmit(async (values) => {
     setServerError(null);
+    setUnknownEmail(null);
     const { error } = await signIn.email({ email: values.email, password: values.password });
     if (error) {
-      // Загальний текст навмисно: він однаковий для «немає такого акаунта» і
-      // «пароль не той», щоб форма входу не працювала як довідник адрес.
-      setServerError(authErrorMessage(error, 'Неправильна пошта або пароль'));
+      // «Акаунта немає» і «пароль не той» — різні відповіді: людина, яка
+      // помилилась у пошті чи ще не реєструвалась, інакше намагалась згадати
+      // пароль, якого не існує. Чому це прийнятно — див. services/auth/src/instance.ts.
+      if (error.code === 'ACCOUNT_NOT_FOUND') setUnknownEmail(values.email);
+      setServerError(authErrorMessage(error, 'Не вдалося увійти. Спробуйте ще раз.'));
       return;
     }
     router.push(params.get('next') ?? '/dashboard');
@@ -62,7 +67,20 @@ function LoginForm() {
           <FieldError>{errors.password?.message}</FieldError>
         </div>
 
-        <FieldError>{serverError}</FieldError>
+        {unknownEmail ? (
+          <div className="rounded-[22px] border-2 border-amber bg-amber-tint px-5 py-4 text-amber-deep">
+            <p className="text-[15px] font-bold">Акаунта з поштою {unknownEmail} немає</p>
+            <p className="mt-1 text-sm">Перевірте, чи правильно введено адресу, або зареєструйтесь — це займе хвилину.</p>
+            <Link
+              href={`/register?email=${encodeURIComponent(unknownEmail)}`}
+              className="mt-3 inline-flex rounded-full bg-surface px-4 py-2 text-sm font-bold text-ink shadow-[3px_3px_0_0_var(--color-ink)] border-2 border-ink"
+            >
+              Зареєструватися з цією поштою
+            </Link>
+          </div>
+        ) : (
+          <FieldError>{serverError}</FieldError>
+        )}
 
         <Button type="submit" variant="blue" size="lg" className="mt-2 w-full" disabled={isSubmitting}>
           {isSubmitting ? 'Входимо…' : 'Увійти'}

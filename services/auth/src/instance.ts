@@ -1,4 +1,5 @@
 import { betterAuth } from 'better-auth';
+import { APIError, createAuthMiddleware } from 'better-auth/api';
 import { prismaAdapter } from '@better-auth/prisma-adapter';
 import { prisma } from '@proai/db';
 import { infra, serverEnv } from '@proai/infra';
@@ -95,6 +96,42 @@ async function normalizeProfileFields(input: Record<string, unknown>) {
   };
 }
 
+/** Код, за яким форма входу показує «такого акаунта немає — зареєструйтесь». */
+export const ACCOUNT_NOT_FOUND = 'ACCOUNT_NOT_FOUND';
+
+/**
+ * Вхід із поштою, якої немає в системі, отримує ОКРЕМУ відповідь.
+ *
+ * Better Auth навмисно відповідає однаково («неправильна пошта або пароль»),
+ * щоб форма входу не підказувала, хто зареєстрований. На цій платформі така
+ * обережність нічого не захищала: форма реєстрації й так каже «ця пошта вже
+ * зареєстрована». Зате люди, які помилились у пошті або ще не реєструвались,
+ * отримували «неправильний пароль» і намагались згадати пароль, якого немає.
+ *
+ * Перевірка живе ВСЕРЕДИНІ запиту входу, а не окремим ендпоінтом «чи є така
+ * пошта»: так на неї діє той самий ліміт — 5 спроб на хвилину (rateLimit
+ * нижче спрацьовує раніше за хуки), і окремого довідника адрес не з'являється.
+ *
+ * Шукаємо тим самим методом, що й сам Better Auth (`findUserByEmail`), —
+ * інакше нормалізація пошти (регістр) могла б розійтися, і людина з
+ * наявним акаунтом побачила б «акаунта немає».
+ */
+const accountNotFoundOnSignIn = createAuthMiddleware(async (ctx) => {
+  if (ctx.path !== '/sign-in/email') return;
+
+  const email = typeof ctx.body?.email === 'string' ? ctx.body.email.trim() : '';
+  // Некоректну адресу лишаємо самому ендпоінту — він відповість INVALID_EMAIL.
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return;
+
+  const user = await ctx.context.internalAdapter.findUserByEmail(email);
+  if (!user) {
+    throw APIError.from('UNAUTHORIZED', {
+      code: ACCOUNT_NOT_FOUND,
+      message: 'No account with this email',
+    });
+  }
+});
+
 export const auth = betterAuth({
   database: prismaAdapter(prisma, { provider: 'sqlite' }),
   secret: env.BETTER_AUTH_SECRET,
@@ -132,6 +169,9 @@ export const auth = betterAuth({
       '/forget-password': { window: 60 * 60, max: 5 },
       '/reset-password': { window: 60 * 60, max: 10 },
     },
+  },
+  hooks: {
+    before: accountNotFoundOnSignIn,
   },
   advanced: {
     // За HTTPS куки мають бути Secure. Better Auth виводить це з baseURL,
