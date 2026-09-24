@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { prisma } from '@proai/db';
 import { listPasswordResetRequests } from '@proai/auth';
 import { getPlatformStats } from '@proai/analytics';
-import { Award, Chart, Check, Doc, Spark, TlSafe, Users } from '@proai/icons';
+import { Award, Chart, Chat, Check, Doc, Spark, TlSafe, Users } from '@proai/icons';
 import { Button, ClayCard, Orb } from '@proai/ui';
 import { PasswordResetQueue } from '@/components/admin/password-reset-queue';
 import { UsersTable } from '@/components/admin/users-table';
@@ -35,7 +35,9 @@ export default async function AdminOverviewPage() {
     <div className="pt-8">
       <header className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <h1 className="font-display text-3xl font-bold">Адміністрування</h1>
-        <div className="flex gap-3">
+        {/* flex-wrap: кнопок більше, ніж уміщує рядок, — зайві акуратно
+            переходять на наступний, а не вилазять за межі сторінки. */}
+        <div className="flex flex-wrap gap-3">
           <Button variant="ghost" asChild>
             <Link href="/admin/content">
               <Doc size={17} /> Контент курсу
@@ -59,6 +61,11 @@ export default async function AdminOverviewPage() {
           <Button variant="ghost" asChild>
             <Link href="/admin/analytics">
               <Chart size={17} /> Аналітика
+            </Link>
+          </Button>
+          <Button variant="ghost" asChild>
+            <Link href="/admin/support">
+              <Chat size={17} /> Підтримка
             </Link>
           </Button>
         </div>

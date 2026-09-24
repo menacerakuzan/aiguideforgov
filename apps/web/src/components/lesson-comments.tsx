@@ -97,7 +97,7 @@ function CommentRow({
           </button>
         )}
       </div>
-      <p className="mb-3 text-[15px]">{comment.body}</p>
+      <p className="mb-3 text-[15px] [overflow-wrap:anywhere]">{comment.body}</p>
       <div className="flex items-center gap-3">
         <button
           onClick={() => onReact(1)}

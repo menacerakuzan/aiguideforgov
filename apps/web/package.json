@@ -21,6 +21,7 @@
     "@proai/infra": "workspace:*",
     "@proai/learning": "workspace:*",
     "@proai/prompts": "workspace:*",
+    "@proai/support": "workspace:*",
     "@proai/types": "workspace:*",
     "@proai/ui": "workspace:*",
     "@react-pdf/renderer": "^4.5.1",

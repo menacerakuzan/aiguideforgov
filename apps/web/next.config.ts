@@ -53,6 +53,7 @@ const nextConfig: NextConfig = {
     '@proai/prompts',
     '@proai/certificates',
     '@proai/analytics',
+    '@proai/support',
     '@proai/infra',
   ],
 

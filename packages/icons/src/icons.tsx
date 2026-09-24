@@ -255,3 +255,23 @@ export const Upload = makeIcon(
     <path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
   </>,
 );
+
+/* --- Чат підтримки ------------------------------------------------------------- */
+
+export const Chat = makeIcon(
+  'Chat',
+  <>
+    <path d="M20.5 11.6c0 4.2-3.8 7.4-8.5 7.4-1.2 0-2.3-.2-3.3-.6L4 19.8l1.3-3.7c-1.1-1.3-1.8-2.8-1.8-4.5 0-4.2 3.8-7.6 8.5-7.6s8.5 3.4 8.5 7.6Z" />
+    <circle cx="8.4" cy="11.7" r="1.05" fill="currentColor" stroke="none" />
+    <circle cx="12" cy="11.7" r="1.05" fill="currentColor" stroke="none" />
+    <circle cx="15.6" cy="11.7" r="1.05" fill="currentColor" stroke="none" />
+  </>,
+);
+
+export const Send = makeIcon(
+  'Send',
+  <>
+    <path d="M21 3 10.2 13.8" />
+    <path d="M21 3 14.4 21l-4.2-7.2L3 9.6 21 3Z" />
+  </>,
+);

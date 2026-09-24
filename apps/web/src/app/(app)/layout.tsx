@@ -1,12 +1,13 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { getCurrentUser } from '@proai/auth';
+import { getCurrentUser, isAdmin } from '@proai/auth';
 import { BrandMark } from '@proai/ui';
 import { AppNavbar } from '@/components/app-navbar';
 import { ConfettiProvider } from '@/components/confetti-provider';
 import { AppUserMenu } from '@/components/app-user-menu';
 import { GlobalSearch } from '@/components/global-search';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { SupportWidget } from '@/components/support/support-widget';
 
 const LINKS = [
   { href: '/dashboard', label: 'Кабінет' },
@@ -38,6 +39,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         }
       />
       <div className="mx-auto max-w-[1160px] px-6 pb-24">{children}</div>
+      {/* Кругла кнопка чату з підтримкою — на кожній сторінці, поверх прокрутки. */}
+      <SupportWidget isAdmin={isAdmin(user.role)} />
     </ConfettiProvider>
   );
 }

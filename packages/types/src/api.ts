@@ -899,3 +899,98 @@ export const AdminLearnerDetailSchema = z.object({
   certificates: z.array(AdminCertificateRowSchema),
 });
 export type AdminLearnerDetail = z.infer<typeof AdminLearnerDetailSchema>;
+
+/* --- Чат підтримки (/api/support, /api/admin/support) ------------------------------ */
+
+/** Найдовше повідомлення в підтримку. Опис проблеми з уставленим текстом помилки вміщується з запасом. */
+export const SUPPORT_MESSAGE_MAX = 2000;
+
+/**
+ * Сторінка, з якої написано повідомлення. Лише відносний шлях нашого сайту:
+ * адміністратор бачить його як посилання, і `//evil.example` чи `javascript:`
+ * перетворили б чат на спосіб підсунути йому чуже посилання.
+ */
+const SupportPagePathSchema = z
+  .string()
+  .max(300)
+  .regex(/^\/(?![/\\])[^\s]*$/);
+
+export const SendSupportMessageInputSchema = z.object({
+  body: z.string().trim().min(1, 'Напишіть повідомлення').max(SUPPORT_MESSAGE_MAX),
+  /** Невалідний контекст сторінки не має коштувати людині повідомлення — його просто відкидаємо. */
+  pagePath: SupportPagePathSchema.optional().catch(undefined),
+  pageTitle: z.string().trim().max(200).optional().catch(undefined),
+});
+export type SendSupportMessageInput = z.infer<typeof SendSupportMessageInputSchema>;
+
+export const SupportMessageSchema = z.object({
+  id: z.string(),
+  body: z.string(),
+  /** Сторона розмови: true — підтримка, false — сама людина. */
+  fromAdmin: z.boolean(),
+  /** Імʼя автора. Для слухача повідомлення підтримки підписані просто «Підтримка». */
+  authorName: z.string().nullable(),
+  /** Написав поточний користувач (для адміна — саме він, а не колега). */
+  isMine: z.boolean(),
+  pagePath: z.string().nullable(),
+  pageTitle: z.string().nullable(),
+  createdAt: z.string(),
+  /** Коли прочитала інша сторона. */
+  readAt: z.string().nullable(),
+});
+export type SupportMessageDto = z.infer<typeof SupportMessageSchema>;
+
+/** GET /api/support — розмова поточного слухача. */
+export const SupportThreadResponseSchema = z.object({
+  messages: z.array(SupportMessageSchema),
+  unread: z.number().int().nonnegative(),
+});
+export type SupportThreadResponse = z.infer<typeof SupportThreadResponseSchema>;
+
+/**
+ * GET /api/support/unread — лічильник біля круглої кнопки.
+ * Слухачу — непрочитані відповіді підтримки; адміністратору — непрочитані
+ * повідомлення від усіх людей.
+ */
+export const SupportUnreadResponseSchema = z.object({ unread: z.number().int().nonnegative() });
+export type SupportUnreadResponse = z.infer<typeof SupportUnreadResponseSchema>;
+
+export const SupportPersonSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  email: z.string(),
+  organizationName: z.string().nullable(),
+  position: z.string().nullable(),
+});
+export type SupportPerson = z.infer<typeof SupportPersonSchema>;
+
+/** Рядок у списку розмов адміністратора. */
+export const SupportThreadRowSchema = z.object({
+  user: SupportPersonSchema,
+  lastMessage: z.object({
+    body: z.string(),
+    fromAdmin: z.boolean(),
+    createdAt: z.string(),
+  }),
+  /** Непрочитані повідомлення від людини. */
+  unread: z.number().int().nonnegative(),
+  /** Останнє слово за людиною — їй ще не відповіли (навіть якщо вже прочитали). */
+  awaitingReply: z.boolean(),
+});
+export type SupportThreadRow = z.infer<typeof SupportThreadRowSchema>;
+
+export const SupportThreadsResponseSchema = z.object({ threads: z.array(SupportThreadRowSchema) });
+export type SupportThreadsResponse = z.infer<typeof SupportThreadsResponseSchema>;
+
+/** GET /api/admin/support/[userId] — розмова з людиною (може бути ще порожньою). */
+export const AdminSupportThreadResponseSchema = z.object({
+  user: SupportPersonSchema,
+  messages: z.array(SupportMessageSchema),
+});
+export type AdminSupportThreadResponse = z.infer<typeof AdminSupportThreadResponseSchema>;
+
+/** GET /api/admin/support/people — кому адміністратор може написати першим. */
+export const SupportPeopleResponseSchema = z.object({
+  people: z.array(SupportPersonSchema.extend({ hasThread: z.boolean() })),
+});
+export type SupportPeopleResponse = z.infer<typeof SupportPeopleResponseSchema>;

@@ -70,6 +70,11 @@ model User {
   /// Заявки на відновлення пароля до цього акаунта.
   passwordResetRequests PasswordResetRequest[] @relation("PasswordResetAccount")
 
+  /// Розмова цієї людини з підтримкою (одна на людину).
+  supportThread   SupportThread?
+  /// Повідомлення в підтримку, написані цим користувачем (людиною або адміністратором).
+  supportMessages SupportMessage[]
+
   @@index([organizationId])
 }
 
@@ -155,6 +160,63 @@ model PasswordResetRequest {
 
   @@index([status, createdAt])
   @@index([email])
+}
+
+// ----------------------------------------------------------------------------
+// Чат підтримки: людина ↔ адміністратори
+// ----------------------------------------------------------------------------
+
+/// Розмова людини з підтримкою.
+///
+/// Рівно ОДНА на людину (`userId @unique`): для слухача це просто «чат із
+/// підтримкою», без списку звернень, тем і статусів — так само, як у
+/// месенджері. Адміністраторів кілька, але з боку людини вони — одна
+/// «Підтримка», тож розмова належить людині, а не парі «людина — адмін».
+///
+/// Створюється з першим повідомленням — від людини або від адміністратора,
+/// який вирішив написати першим.
+model SupportThread {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  /// Час останнього повідомлення — за ним сортується список розмов в адмінці.
+  lastMessageAt DateTime @default(now())
+
+  messages SupportMessage[]
+
+  @@index([lastMessageAt])
+}
+
+model SupportMessage {
+  id       String        @id @default(cuid())
+  threadId String
+  thread   SupportThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  /// Хто говорить: підтримка чи сама людина. Окремим полем, а не через роль
+  /// автора: роль можуть змінити, автора — видалити, а сторона в розмові
+  /// від цього не змінюється.
+  fromAdmin Boolean
+  /// Автор. Порожньо — акаунт адміністратора видалили, повідомлення лишається.
+  authorId  String?
+  author    User?   @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  /// Звичайний текст (не HTML) — рендериться з екрануванням.
+  body String
+
+  /// Сторінка, з якої людина написала (напр. `/lesson/…`), і її заголовок.
+  /// Питання зазвичай «а в мене тут не працює» — без цього адміністратор
+  /// мусив би перепитувати, про який урок мова.
+  pagePath  String?
+  pageTitle String?
+
+  createdAt DateTime  @default(now())
+  /// Коли повідомлення прочитала ІНША сторона. Для лічильника непрочитаних і
+  /// позначки «Прочитано».
+  readAt    DateTime?
+
+  @@index([threadId, createdAt])
+  @@index([fromAdmin, readAt])
 }
 
 // ----------------------------------------------------------------------------

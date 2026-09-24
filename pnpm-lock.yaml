@@ -44,6 +44,9 @@ importers:
       '@proai/prompts':
         specifier: workspace:*
         version: link:../../services/prompts
+      '@proai/support':
+        specifier: workspace:*
+        version: link:../../services/support
       '@proai/types':
         specifier: workspace:*
         version: link:../../packages/types
@@ -411,6 +414,31 @@ importers:
       typescript:
         specifier: ^5.7.0
         version: 5.9.3
+
+  services/support:
+    dependencies:
+      '@proai/db':
+        specifier: workspace:*
+        version: link:../../prisma
+      '@proai/infra':
+        specifier: workspace:*
+        version: link:../infra
+      '@proai/types':
+        specifier: workspace:*
+        version: link:../../packages/types
+    devDependencies:
+      '@proai/config':
+        specifier: workspace:*
+        version: link:../../packages/config
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.20.1
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.0
+        version: 2.1.9(@types/node@22.20.1)(lightningcss@1.32.0)
 
 packages:
 

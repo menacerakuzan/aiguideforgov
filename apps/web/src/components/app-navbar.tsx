@@ -20,10 +20,12 @@ export function AppNavbar({
   links,
   brand,
   actions,
+  crowded,
 }: {
   links: NavLinkItem[];
   brand: React.ReactNode;
   actions?: React.ReactNode;
+  crowded?: boolean;
 }) {
   const pathname = usePathname();
 
@@ -38,5 +40,5 @@ export function AppNavbar({
 
   const withCurrent = links.map((link) => ({ ...link, current: link.href === activeHref }));
 
-  return <Navbar LinkComponent={Link} links={withCurrent} brand={brand} actions={actions} />;
+  return <Navbar LinkComponent={Link} links={withCurrent} brand={brand} actions={actions} crowded={crowded} />;
 }

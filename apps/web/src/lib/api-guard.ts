@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { ZodError } from 'zod';
 import { ForbiddenError, RequestNotActionableError, UnauthorizedError } from '@proai/auth';
 import { NotEligibleError } from '@proai/learning';
+import { SupportRateLimitError, SupportRecipientError } from '@proai/support';
 
 /**
  * Обгортка над route handler: типізовані помилки доменного шару (auth-гарди,
@@ -22,6 +23,12 @@ export function withApiErrors(handler: () => Promise<Response>): Promise<Respons
     // Заявку вже опрацював інший адміністратор — це конфлікт стану, а не збій.
     if (error instanceof RequestNotActionableError) {
       return NextResponse.json({ error: error.message }, { status: 409 });
+    }
+    if (error instanceof SupportRateLimitError) {
+      return NextResponse.json({ error: error.message }, { status: 429 });
+    }
+    if (error instanceof SupportRecipientError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
     }
     if (error instanceof ZodError) {
       return NextResponse.json({ error: 'Перевірте введені дані', details: error.flatten() }, { status: 400 });

@@ -3,8 +3,8 @@ import { notFound } from 'next/navigation';
 import { getLearnerDetail } from '@proai/analytics';
 import { dayStamp } from '@proai/learning';
 import { LEARNER_STATUS_LABELS, ROLE_LABELS, type ModuleProgressRow } from '@proai/types';
-import { ArrowLeft, Award, Book, Check, Clock, Flame, Shield, Spark, XIcon } from '@proai/icons';
-import { Avatar, Badge, ClayCard, EmptyState, Orb, ProgressBar, ProgressRing } from '@proai/ui';
+import { ArrowLeft, Award, Book, Chat, Check, Clock, Flame, Shield, Spark, XIcon } from '@proai/icons';
+import { Avatar, Badge, Button, ClayCard, EmptyState, Orb, ProgressBar, ProgressRing } from '@proai/ui';
 import { requirePageAdmin, requirePageUser } from '@/lib/page-guard';
 import { ActivityHeatmap } from '@/components/activity-heatmap';
 import {
@@ -75,6 +75,13 @@ export default async function AdminLearnerPage({ params }: { params: Promise<{ i
               <p className="text-[14px] text-ink-mute">
                 {[user.organizationName, user.position].filter(Boolean).join(' · ')}
               </p>
+            )}
+            {user.role !== 'ADMIN' && (
+              <Button size="sm" variant="ghost" asChild className="mt-4">
+                <Link href={`/admin/support?user=${user.id}`}>
+                  <Chat size={16} /> Написати в підтримці
+                </Link>
+              </Button>
             )}
           </div>
 
